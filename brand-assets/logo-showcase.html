@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logo Showcase - Interactive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0a0a0b;
+            color: #fff;
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 48px;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .section {
+            margin-bottom: 64px;
+        }
+
+        .section-title {
+            font-size: 1.25rem;
+            margin-bottom: 24px;
+            color: #a1a1aa;
+            text-align: center;
+        }
+
+        .logo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 32px;
+        }
+
+        .logo-card {
+            background: #1a1a1d;
+            border: 1px solid #27272a;
+            border-radius: 16px;
+            padding: 32px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .logo-card:hover {
+            transform: translateY(-8px);
+            border-color: #3b82f6;
+            box-shadow: 0 20px 40px rgba(59, 130, 246, 0.2);
+        }
+
+        .logo-card svg {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .logo-card:hover svg {
+            transform: scale(1.1);
+        }
+
+        .logo-name {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .logo-desc {
+            font-size: 0.875rem;
+            color: #a1a1aa;
+        }
+
+        /* Animation for rotating elements on hover */
+        .logo-card:hover .rotate-on-hover {
+            animation: rotate 2s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Pulse animation on hover */
+        .logo-card:hover .pulse-on-hover {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Logo Design System</h1>
+
+        <!-- Original Designs -->
+        <section class="section">
+            <h2 class="section-title">Original Designs</h2>
+            <div class="logo-grid">
+                <div class="logo-card">
+                    <svg viewBox="0 0 100 100" fill="none">
+                        <defs>
+                            <radialGradient id="novaGrad" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#fff"/>
+                                <stop offset="30%" stop-color="#f59e0b"/>
+                                <stop offset="100%" stop-color="#000"/>
+                            </radialGradient>
+                        </defs>
+                        <g class="rotate-on-hover" style="transform-origin: center;">
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="#f59e0b" stroke-width="0.5" opacity="0.3"/>
+                            <circle cx="50" cy="50" r="35" fill="none" stroke="#f59e0b" stroke-width="0.5" opacity="0.2"/>
+                        </g>
+                        <circle class="pulse-on-hover" cx="50" cy="50" r="20" fill="url(#novaGrad)"/>
+                        <path d="M 50 15 L 53 25 L 50 22 L 47 25 Z" fill="#f59e0b"/>
+                        <path d="M 85 50 L 75 53 L 78 50 L 75 47 Z" fill="#f59e0b"/>
+                        <path d="M 50 85 L 47 75 L 50 78 L 53 75 Z" fill="#f59e0b"/>
+                        <path d="M 15 50 L 25 47 L 22 50 L 25 53 Z" fill="#f59e0b"/>
+                    </svg>
+                    <div class="logo-name">NOVA</div>
+                    <div class="logo-desc">Golden Core Design</div>
+                </div>
+
+                <div class="logo-card">
+                    <svg viewBox="0 0 140 140" fill="none">
+                        <defs>
+                            <radialGradient id="voidGrad" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#000"/>
+                                <stop offset="40%" stop-color="#001a2e"/>
+                                <stop offset="100%" stop-color="#22d3ee"/>
+                            </radialGradient>
+                        </defs>
+                        <circle cx="70" cy="70" r="65" stroke="#22d3ee" stroke-width="0.5" fill="none" opacity="0.3"/>
+                        <g class="rotate-on-hover" style="transform-origin: center;">
+                            <path d="M 70 10 L 73 22 L 70 19 L 67 22 Z" fill="#22d3ee"/>
+                            <path d="M 130 70 L 118 73 L 121 70 L 118 67 Z" fill="#22d3ee"/>
+                            <path d="M 70 130 L 67 118 L 70 121 L 73 118 Z" fill="#22d3ee"/>
+                            <path d="M 10 70 L 22 67 L 19 70 L 22 73 Z" fill="#22d3ee"/>
+                        </g>
+                        <circle class="pulse-on-hover" cx="70" cy="70" r="22" fill="url(#voidGrad)"/>
+                        <circle cx="70" cy="70" r="8" fill="#0a0a0b"/>
+                        <circle cx="74" cy="66" r="3" fill="#fff" opacity="0.8"/>
+                    </svg>
+                    <div class="logo-name">Void Eye</div>
+                    <div class="logo-desc">Cyan Eye Design</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Color Variations -->
+        <section class="section">
+            <h2 class="section-title">Color Variations</h2>
+            <div class="logo-grid">
+                <div class="logo-card">
+                    <svg viewBox="0 0 140 140" fill="none">
+                        <defs>
+                            <radialGradient id="purpleGrad" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#000"/>
+                                <stop offset="40%" stop-color="#4c1d95"/>
+                                <stop offset="100%" stop-color="#a855f7"/>
+                            </radialGradient>
+                        </defs>
+                        <circle cx="70" cy="70" r="65" stroke="#a855f7" stroke-width="0.5" fill="none" opacity="0.3"/>
+                        <g class="rotate-on-hover" style="transform-origin: center;">
+                            <path d="M 70 10 L 73 22 L 70 19 L 67 22 Z" fill="#a855f7"/>
+                            <path d="M 130 70 L 118 73 L 121 70 L 118 67 Z" fill="#a855f7"/>
+                            <path d="M 70 130 L 67 118 L 70 121 L 73 118 Z" fill="#a855f7"/>
+                            <path d="M 10 70 L 22 67 L 19 70 L 22 73 Z" fill="#a855f7"/>
+                        </g>
+                        <circle class="pulse-on-hover" cx="70" cy="70" r="22" fill="url(#purpleGrad)"/>
+                        <circle cx="70" cy="70" r="8" fill="#0a0a0b"/>
+                        <circle cx="74" cy="66" r="3" fill="#fff" opacity="0.8"/>
+                    </svg>
+                    <div class="logo-name">Void Eye Purple</div>
+                    <div class="logo-desc">Mystic Purple</div>
+                </div>
+
+                <div class="logo-card">
+                    <svg viewBox="0 0 140 140" fill="none">
+                        <defs>
+                            <radialGradient id="redGrad" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#000"/>
+                                <stop offset="40%" stop-color="#7f1d1d"/>
+                                <stop offset="100%" stop-color="#ef4444"/>
+                            </radialGradient>
+                        </defs>
+                        <circle cx="70" cy="70" r="65" stroke="#ef4444" stroke-width="0.5" fill="none" opacity="0.3"/>
+                        <g class="rotate-on-hover" style="transform-origin: center;">
+                            <path d="M 70 10 L 73 22 L 70 19 L 67 22 Z" fill="#ef4444"/>
+                            <path d="M 130 70 L 118 73 L 121 70 L 118 67 Z" fill="#ef4444"/>
+                            <path d="M 70 130 L 67 118 L 70 121 L 73 118 Z" fill="#ef4444"/>
+                            <path d="M 10 70 L 22 67 L 19 70 L 22 73 Z" fill="#ef4444"/>
+                        </g>
+                        <circle class="pulse-on-hover" cx="70" cy="70" r="22" fill="url(#redGrad)"/>
+                        <circle cx="70" cy="70" r="8" fill="#0a0a0b"/>
+                        <circle cx="74" cy="66" r="3" fill="#fff" opacity="0.8"/>
+                    </svg>
+                    <div class="logo-name">Void Eye Red</div>
+                    <div class="logo-desc">Alert Red</div>
+                </div>
+
+                <div class="logo-card">
+                    <svg viewBox="0 0 140 140" fill="none">
+                        <defs>
+                            <radialGradient id="greenGrad" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#000"/>
+                                <stop offset="40%" stop-color="#14532d"/>
+                                <stop offset="100%" stop-color="#22c55e"/>
+                            </radialGradient>
+                        </defs>
+                        <circle cx="70" cy="70" r="65" stroke="#22c55e" stroke-width="0.5" fill="none" opacity="0.3"/>
+                        <g class="rotate-on-hover" style="transform-origin: center;">
+                            <path d="M 70 10 L 73 22 L 70 19 L 67 22 Z" fill="#22c55e"/>
+                            <path d="M 130 70 L 118 73 L 121 70 L 118 67 Z" fill="#22c55e"/>
+                            <path d="M 70 130 L 67 118 L 70 121 L 73 118 Z" fill="#22c55e"/>
+                            <path d="M 10 70 L 22 67 L 19 70 L 22 73 Z" fill="#22c55e"/>
+                        </g>
+                        <circle class="pulse-on-hover" cx="70" cy="70" r="22" fill="url(#greenGrad)"/>
+                        <circle cx="70" cy="70" r="8" fill="#0a0a0b"/>
+                        <circle cx="74" cy="66" r="3" fill="#fff" opacity="0.8"/>
+                    </svg>
+                    <div class="logo-name">Void Eye Green</div>
+                    <div class="logo-desc">Nature Green</div>
+                </div>
+
+                <div class="logo-card">
+                    <svg viewBox="0 0 100 100" fill="none">
+                        <defs>
+                            <radialGradient id="silverGrad" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#fff"/>
+                                <stop offset="30%" stop-color="#9ca3af"/>
+                                <stop offset="100%" stop-color="#374151"/>
+                            </radialGradient>
+                        </defs>
+                        <g class="rotate-on-hover" style="transform-origin: center;">
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="#9ca3af" stroke-width="0.5" opacity="0.3"/>
+                            <circle cx="50" cy="50" r="35" fill="none" stroke="#9ca3af" stroke-width="0.5" opacity="0.2"/>
+                        </g>
+                        <circle class="pulse-on-hover" cx="50" cy="50" r="20" fill="url(#silverGrad)"/>
+                        <path d="M 50 15 L 53 25 L 50 22 L 47 25 Z" fill="#9ca3af"/>
+                        <path d="M 85 50 L 75 53 L 78 50 L 75 47 Z" fill="#9ca3af"/>
+                        <path d="M 50 85 L 47 75 L 50 78 L 53 75 Z" fill="#9ca3af"/>
+                        <path d="M 15 50 L 25 47 L 22 50 L 25 53 Z" fill="#9ca3af"/>
+                    </svg>
+                    <div class="logo-name">NOVA Silver</div>
+                    <div class="logo-desc">Tech Silver</div>
+                </div>
+
+                <div class="logo-card">
+                    <svg viewBox="0 0 100 100" fill="none">
+                        <defs>
+                            <radialGradient id="blueGrad" cx="50%" cy="50%" r="50%">
+                                <stop offset="0%" stop-color="#fff"/>
+                                <stop offset="30%" stop-color="#3b82f6"/>
+                                <stop offset="100%" stop-color="#1e3a8a"/>
+                            </radialGradient>
+                        </defs>
+                        <g class="rotate-on-hover" style="transform-origin: center;">
+                            <circle cx="50" cy="50" r="45" fill="none" stroke="#3b82f6" stroke-width="0.5" opacity="0.3"/>
+                            <circle cx="50" cy="50" r="35" fill="none" stroke="#3b82f6" stroke-width="0.5" opacity="0.2"/>
+                        </g>
+                        <circle class="pulse-on-hover" cx="50" cy="50" r="20" fill="url(#blueGrad)"/>
+                        <path d="M 50 15 L 53 25 L 50 22 L 47 25 Z" fill="#3b82f6"/>
+                        <path d="M 85 50 L 75 53 L 78 50 L 75 47 Z" fill="#3b82f6"/>
+                        <path d="M 50 85 L 47 75 L 50 78 L 53 75 Z" fill="#3b82f6"/>
+                        <path d="M 15 50 L 25 47 L 22 50 L 25 53 Z" fill="#3b82f6"/>
+                    </svg>
+                    <div class="logo-name">NOVA Blue</div>
+                    <div class="logo-desc">Ocean Blue</div>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>

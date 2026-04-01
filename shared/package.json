@@ -1,0 +1,33 @@
+{
+  "name": "@fgvpn/shared",
+  "version": "1.0.0",
+  "description": "FGVPN Shared Modules",
+  "type": "module",
+  "main": "./constants/index.js",
+  "types": "./constants/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./constants/index.js",
+      "types": "./constants/index.d.ts"
+    },
+    "./constants": {
+      "import": "./constants/index.js",
+      "types": "./constants/index.d.ts"
+    },
+    "./types": {
+      "import": "./types/index.js",
+      "types": "./types/index.d.ts"
+    },
+    "./utils": {
+      "import": "./utils/index.js",
+      "types": "./utils/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

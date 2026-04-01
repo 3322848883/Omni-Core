@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" fill="none">
+  <defs>
+    <radialGradient id="voidGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#000"/>
+      <stop offset="40%" stop-color="#001a2e"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </radialGradient>
+    <filter id="voidGlow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  
+  <!-- Outer ring with breathing effect -->
+  <circle cx="70" cy="70" r="65" stroke="#22d3ee" stroke-width="0.5" fill="none" opacity="0.3">
+    <animate attributeName="r" values="65;68;65" dur="4s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.3;0.6;0.3" dur="4s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Rotating markers -->
+  <g>
+    <animateTransform attributeName="transform" type="rotate" from="0 70 70" to="360 70 70" dur="15s" repeatCount="indefinite"/>
+    <path d="M 70 10 L 73 22 L 70 19 L 67 22 Z" fill="#22d3ee"/>
+    <path d="M 130 70 L 118 73 L 121 70 L 118 67 Z" fill="#22d3ee"/>
+    <path d="M 70 130 L 67 118 L 70 121 L 73 118 Z" fill="#22d3ee"/>
+    <path d="M 10 70 L 22 67 L 19 70 L 22 73 Z" fill="#22d3ee"/>
+  </g>
+  
+  <!-- Pupil with pulse -->
+  <circle cx="70" cy="70" r="22" fill="url(#voidGrad)" filter="url(#voidGlow)">
+    <animate attributeName="r" values="22;25;22" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Inner core -->
+  <circle cx="70" cy="70" r="8" fill="#0a0a0b">
+    <animate attributeName="r" values="8;10;8" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Highlight with shimmer -->
+  <circle cx="74" cy="66" r="3" fill="#fff" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Additional orbiting particles -->
+  <g>
+    <animateTransform attributeName="transform" type="rotate" from="0 70 70" to="360 70 70" dur="8s" repeatCount="indefinite"/>
+    <circle cx="70" cy="40" r="1.5" fill="#22d3ee" opacity="0.5"/>
+    <circle cx="100" cy="70" r="1.5" fill="#22d3ee" opacity="0.5"/>
+    <circle cx="70" cy="100" r="1.5" fill="#22d3ee" opacity="0.5"/>
+    <circle cx="40" cy="70" r="1.5" fill="#22d3ee" opacity="0.5"/>
+  </g>
+</svg>

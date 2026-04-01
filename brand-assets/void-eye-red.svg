@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 140" fill="none">
+  <defs>
+    <radialGradient id="redGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#000"/>
+      <stop offset="40%" stop-color="#7f1d1d"/>
+      <stop offset="100%" stop-color="#ef4444"/>
+    </radialGradient>
+    <filter id="redGlow">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+  <circle cx="70" cy="70" r="65" stroke="#ef4444" stroke-width="0.5" fill="none" opacity="0.3"/>
+  <path d="M 70 10 L 73 22 L 70 19 L 67 22 Z" fill="#ef4444"/>
+  <path d="M 130 70 L 118 73 L 121 70 L 118 67 Z" fill="#ef4444"/>
+  <path d="M 70 130 L 67 118 L 70 121 L 73 118 Z" fill="#ef4444"/>
+  <path d="M 10 70 L 22 67 L 19 70 L 22 73 Z" fill="#ef4444"/>
+  <circle cx="70" cy="70" r="22" fill="url(#redGrad)" filter="url(#redGlow)"/>
+  <circle cx="70" cy="70" r="8" fill="#0a0a0b"/>
+  <circle cx="74" cy="66" r="3" fill="#fff" opacity="0.8"/>
+</svg>
