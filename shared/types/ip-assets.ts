@@ -6,7 +6,7 @@ export interface IPPool {
   id: string;
   name: string;
   ipType: IpType;
-  lineType: LineType;
+  lineType?: LineType;
   nodeId?: string;
   status: 'active' | 'inactive';
   isActive: boolean;
@@ -15,7 +15,7 @@ export interface IPPool {
   rotationStrategy?: RotationStrategy;
   rotationInterval?: number;
   currentIndex?: number;
-  lastRotationAt?: Date;
+  lastRotationAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -54,7 +54,6 @@ export interface IPReputationData {
   lastChecked: Date;
 }
 
-// IP Reputation Types for IPData API Integration
 export interface IPReputation {
   ip: string;
   provider: string;
@@ -130,7 +129,6 @@ export interface IPCheckRateLimit {
   maxRequestsPerDay: number;
 }
 
-// IP Pool Types
 export interface IPPoolIP {
   id: string;
   poolId: string;
@@ -140,12 +138,18 @@ export interface IPPoolIP {
   assignedAt?: Date;
   expiresAt?: Date;
   reputation: number;
+  score?: number;
+  usageCount?: number;
+  releasedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface IPPoolConfig {
   enabled: boolean;
+  name: string;
+  nodeId: string;
+  ipType: IpType;
   ips: string[];
   rotationStrategy: RotationStrategy;
   rotationInterval: number;
@@ -162,6 +166,7 @@ export interface IPPoolStatus {
 
 export interface IPRotationResult {
   success: boolean;
+  poolId?: string;
   previousIp: string | null;
   newIp: string | null;
   rotatedAt: Date;
@@ -179,4 +184,43 @@ export interface NodeIPAssetExtension {
   ipRotationEnabled: boolean;
   ipRotationInterval: number | null;
   lastIpRotationAt: Date | null;
+}
+
+// Plan Validation Types
+export interface PlanValidationResult {
+  allowed: boolean;
+  code?: string;
+  reason?: string;
+  errors?: Array<{
+    code: string;
+    message: string;
+    field?: string;
+  }>;
+}
+
+export interface NodeAccessCheckParams {
+  userId: string;
+  nodeId: string;
+  nodeIpType?: IpType;
+  nodeLineType?: LineType;
+  nodeServiceType?: string;
+  nodeIpScore?: number;
+}
+
+export interface UserSubscriptionEntitlement {
+  userId: string;
+  subscriptionId: string;
+  planId: string;
+  planGroupId: string;
+  serviceTypes: string[];
+  ipTypes: IpType[];
+  lineTypes: LineType[];
+  trafficLimit: number;
+  trafficUsed: number;
+  expireDate: Date | null;
+  maxConnections: number;
+  currentConnections: number;
+  ipRotationEnabled?: boolean;
+  ipRotationInterval?: number | null;
+  minIpScore?: number | null;
 }

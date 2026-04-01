@@ -2,13 +2,17 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config';
 
 export interface TokenPayload {
-  userId: string;
-  email: string;
+  userId?: string;
+  email?: string;
+  sub?: string;
+  username?: string;
   role?: string;
+  type?: string;
 }
 
 export interface DecodedToken {
-  userId: string;
+  sub: string;
+  userId?: string;
   username: string;
   role: string;
   type: string;
@@ -18,13 +22,13 @@ export interface DecodedToken {
 
 export function generateAccessToken(payload: TokenPayload): string {
   return jwt.sign(payload, config.jwt.secret, {
-    expiresIn: config.jwt.expiresIn || '15m',
+    expiresIn: config.jwt.expiresIn,
   });
 }
 
 export function generateRefreshToken(payload: TokenPayload): string {
-  return jwt.sign(payload, config.jwt.secret, {
-    expiresIn: config.jwt.refreshExpiresIn || '7d',
+  return jwt.sign(payload, config.jwt.refreshSecret, {
+    expiresIn: config.jwt.refreshExpiresIn,
   });
 }
 
@@ -33,7 +37,6 @@ export function verifyToken(token: string): TokenPayload {
 }
 
 export function verifyAccessToken(token: string): DecodedToken {
-  // Remove token prefix if present
   let jwtToken = token;
   if (token.startsWith('aat_') || token.startsWith('art_') || 
       token.startsWith('cat_') || token.startsWith('crt_')) {
@@ -43,12 +46,11 @@ export function verifyAccessToken(token: string): DecodedToken {
 }
 
 export function verifyRefreshToken(token: string): DecodedToken {
-  // Remove token prefix if present (art_ for admin refresh token)
   let jwtToken = token;
   if (token.startsWith('art_') || token.startsWith('crt_')) {
     jwtToken = token.substring(4);
   }
-  return jwt.verify(jwtToken, config.jwt.secret) as DecodedToken;
+  return jwt.verify(jwtToken, config.jwt.refreshSecret) as DecodedToken;
 }
 
 export function decodeToken(token: string): TokenPayload | null {
@@ -69,26 +71,21 @@ export function extractTokenFromHeader(authHeader: string | undefined): string |
 export function isValidAccessTokenFormat(token: string): boolean {
   if (!token || typeof token !== 'string') return false;
   
-  // Remove token prefix if present (aat_ for admin access token, art_ for admin refresh token)
   let jwtToken = token;
   if (token.startsWith('aat_') || token.startsWith('art_') || 
       token.startsWith('cat_') || token.startsWith('crt_')) {
     jwtToken = token.substring(4);
   }
   
-  // Check if token has 3 parts (header.payload.signature)
   const parts = jwtToken.split('.');
   if (parts.length !== 3) return false;
   
   try {
-    // Try to decode the header
     const header = JSON.parse(Buffer.from(parts[0], 'base64').toString());
     if (header.typ !== 'JWT') return false;
     
-    // Try to decode the payload - just check it's valid JSON
     const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-    // Check for required fields (sub is used instead of userId in this implementation)
-    if (!payload.sub || !payload.username || !payload.role || !payload.type) return false;
+    if (!payload.sub && !payload.userId) return false;
     
     return true;
   } catch {
@@ -99,25 +96,20 @@ export function isValidAccessTokenFormat(token: string): boolean {
 export function isValidRefreshTokenFormat(token: string): boolean {
   if (!token || typeof token !== 'string') return false;
   
-  // Must start with 'art_' for admin refresh token or 'crt_' for client refresh token
   if (!token.startsWith('art_') && !token.startsWith('crt_')) return false;
   
-  // Remove token prefix
   const jwtToken = token.substring(4);
   
-  // Check if token has 3 parts (header.payload.signature)
   const parts = jwtToken.split('.');
   if (parts.length !== 3) return false;
   
   try {
-    // Try to decode the header
     const header = JSON.parse(Buffer.from(parts[0], 'base64').toString());
     if (header.typ !== 'JWT') return false;
     
-    // Try to decode the payload
     const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString());
-    // Check for required fields and ensure type is 'refresh'
-    if (!payload.sub || !payload.username || !payload.role || payload.type !== 'refresh') return false;
+    if (!payload.sub && !payload.userId) return false;
+    if (payload.type !== 'refresh') return false;
     
     return true;
   } catch {

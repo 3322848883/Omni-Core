@@ -126,7 +126,7 @@ export class PlanValidationService {
       ipScore: number | null;
     }
   ): PlanValidationResult {
-    const planGroup = subscription.planGroup;
+    const planGroup = subscription.planGroupId;
 
     // 规则R1: 机场大流量套餐只能访问机房IP
     if (planGroup === 'airport') {
@@ -218,8 +218,8 @@ export class PlanValidationService {
     }
 
     // 规则R6: 验证IP类型权限
-    if (subscription.allowedIpTypes && subscription.allowedIpTypes.length > 0) {
-      if (!subscription.allowedIpTypes.includes(node.ipType)) {
+    if (subscription.ipTypes && subscription.ipTypes.length > 0) {
+      if (!subscription.ipTypes.includes(node.ipType)) {
         return {
           allowed: false,
           code: ValidationErrorCode.IP_TYPE_NOT_ALLOWED,
@@ -229,8 +229,8 @@ export class PlanValidationService {
     }
 
     // 规则R7: 验证线路类型权限
-    if (subscription.allowedLineTypes && subscription.allowedLineTypes.length > 0) {
-      if (!subscription.allowedLineTypes.includes(node.lineType)) {
+    if (subscription.lineTypes && subscription.lineTypes.length > 0) {
+      if (!subscription.lineTypes.includes(node.lineType)) {
         return {
           allowed: false,
           code: ValidationErrorCode.LINE_TYPE_NOT_ALLOWED,
@@ -288,7 +288,7 @@ export class PlanValidationService {
         .where('status', 'active');
 
       // 根据套餐组过滤
-      switch (subscription.planGroup) {
+      switch (subscription.planGroupId) {
         case 'airport':
           // 机场套餐：只能访问机房IP + 标准线路
           query.where('ip_type', IpType.DATACENTER)
@@ -440,16 +440,20 @@ export class PlanValidationService {
       // 构建权益配置
       const entitlement: UserSubscriptionEntitlement = {
         userId,
-        planGroup: plan.group_id || plan.group,
+        subscriptionId: subscription.id,
+        planId: plan.id,
+        planGroupId: plan.group_id || plan.group,
         serviceTypes: this.parseJSON(plan.service_types) || [plan.service_type],
-        allowedIpTypes: this.parseJSON(plan.allowed_ip_types) || [],
-        allowedLineTypes: this.parseJSON(plan.allowed_line_types) || [],
-        minIpScore: plan.min_ip_score || null,
-        ipRotationEnabled: plan.ip_rotation_enabled || false,
-        ipRotationInterval: plan.ip_rotation_interval || null,
+        ipTypes: this.parseJSON(plan.allowed_ip_types) || [],
+        lineTypes: this.parseJSON(plan.allowed_line_types) || [],
         trafficLimit: subscription.traffic_limit || plan.traffic_limit || 0,
         trafficUsed: subscription.traffic_used || 0,
-        expireDate: subscription.end_date
+        expireDate: subscription.end_date,
+        maxConnections: plan.max_connections || 5,
+        currentConnections: 0,
+        ipRotationEnabled: plan.ip_rotation_enabled || false,
+        ipRotationInterval: plan.ip_rotation_interval || null,
+        minIpScore: plan.min_ip_score || null
       };
 
       // 缓存结果
@@ -511,7 +515,7 @@ export class PlanValidationService {
    */
   getAllowedIpTypesForGroup(groupId: string): IpType[] {
     const group = getPlanGroupById(groupId);
-    return group?.allowedIpTypes || [];
+    return group?.ipTypes || [];
   }
 
   /**
@@ -521,7 +525,7 @@ export class PlanValidationService {
    */
   getAllowedLineTypesForGroup(groupId: string): LineType[] {
     const group = getPlanGroupById(groupId);
-    return group?.allowedLineTypes || [];
+    return group?.lineTypes || [];
   }
 
   /**
@@ -582,8 +586,8 @@ export class PlanValidationService {
       id: group.id,
       name: group.name,
       description: group.description,
-      allowedIpTypes: group.allowedIpTypes,
-      allowedLineTypes: group.allowedLineTypes,
+      ipTypes: group.ipTypes,
+      lineTypes: group.lineTypes,
       icon: group.icon,
       color: group.color,
       recommendedFor: group.recommendedFor
@@ -611,7 +615,7 @@ export class PlanValidationService {
     // 验证IP类型配置
     if (config.allowedIpTypes) {
       for (const ipType of config.allowedIpTypes) {
-        if (!group.allowedIpTypes.includes(ipType)) {
+        if (!group.ipTypes.includes(ipType)) {
           return {
             allowed: false,
             reason: `套餐组 ${group.name} 不支持IP类型: ${ipType}`
@@ -623,7 +627,7 @@ export class PlanValidationService {
     // 验证线路类型配置
     if (config.allowedLineTypes) {
       for (const lineType of config.allowedLineTypes) {
-        if (!group.allowedLineTypes.includes(lineType)) {
+        if (!group.lineTypes.includes(lineType)) {
           return {
             allowed: false,
             reason: `套餐组 ${group.name} 不支持线路类型: ${lineType}`

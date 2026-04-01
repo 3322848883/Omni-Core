@@ -106,21 +106,36 @@ export const PLAN_GROUPS_V2 = [
     name: '基础套餐',
     description: '适合个人用户',
     ipTypes: [IpType.DATACENTER],
-    lineTypes: [LineType.STANDARD]
+    lineTypes: [LineType.STANDARD],
+    allowedIpTypes: [IpType.DATACENTER],
+    allowedLineTypes: [LineType.STANDARD],
+    icon: 'plane',
+    color: '#3B82F6',
+    recommendedFor: ['日常浏览', '轻度使用']
   },
   {
     id: 'premium',
     name: '高级套餐',
     description: '适合高级用户',
     ipTypes: [IpType.DATACENTER, IpType.RESIDENTIAL_DYNAMIC],
-    lineTypes: [LineType.STANDARD, LineType.CN2]
+    lineTypes: [LineType.STANDARD, LineType.CN2],
+    allowedIpTypes: [IpType.DATACENTER, IpType.RESIDENTIAL_DYNAMIC],
+    allowedLineTypes: [LineType.STANDARD, LineType.CN2],
+    icon: 'crown',
+    color: '#F59E0B',
+    recommendedFor: ['游戏加速', '视频流媒体']
   },
   {
     id: 'enterprise',
     name: '企业套餐',
     description: '适合企业用户',
     ipTypes: [IpType.DATACENTER, IpType.RESIDENTIAL_DYNAMIC, IpType.RESIDENTIAL_STATIC],
-    lineTypes: [LineType.STANDARD, LineType.CN2, LineType.IEPL, LineType.IPLC]
+    lineTypes: [LineType.STANDARD, LineType.CN2, LineType.IEPL, LineType.IPLC],
+    allowedIpTypes: [IpType.DATACENTER, IpType.RESIDENTIAL_DYNAMIC, IpType.RESIDENTIAL_STATIC],
+    allowedLineTypes: [LineType.STANDARD, LineType.CN2, LineType.IEPL, LineType.IPLC],
+    icon: 'shield',
+    color: '#EC4899',
+    recommendedFor: ['企业用户', 'IP敏感业务']
   }
 ];
 

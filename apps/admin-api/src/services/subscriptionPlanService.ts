@@ -20,6 +20,7 @@ import {
   isValidServiceType,
   PLAN_GROUPS
 } from '@shared/constants';
+import { IpType, LineType } from '@shared/constants/ip-type';
 
 /**
  * 生成唯一 ID
@@ -78,16 +79,20 @@ function dbRecordToPlan(record: any): SubscriptionPlan {
     id: record.id,
     name: record.name,
     description: record.description || '',
-    group: record.group_id || 'standard',
-    price: record.price,
-    durationDays: record.duration_days,
-    trafficLimit: record.traffic_limit,
-    serviceTypes: JSON.parse(record.service_types || '[]'),
     primaryServiceType: record.primary_service_type || ServiceType.STANDARD,
+    allowedServiceTypes: JSON.parse(record.service_types || '[]'),
+    trafficLimit: record.traffic_limit,
+    durationDays: record.duration_days,
+    price: record.price,
+    currency: record.currency || 'CNY',
+    features: JSON.parse(record.features || '[]'),
+    ipType: record.ip_type || IpType.DATACENTER,
+    lineType: record.line_type || LineType.STANDARD,
+    group: record.group_id || 'standard',
+    serviceTypes: JSON.parse(record.service_types || '[]'),
     priorityBoost: record.priority_boost || 0,
     guaranteedBandwidth: record.guaranteed_bandwidth || 0,
     maxConnections: record.max_connections || 3,
-    features: JSON.parse(record.features || '[]'),
     isActive: record.is_active === 1 || record.is_active === true,
     sortOrder: record.sort_order || 0,
     createdAt: record.created_at,
@@ -151,13 +156,14 @@ export async function getPlans(query: PlanListQuery = {}): Promise<PlanListRespo
 
   return {
     items: records.map(dbRecordToPlan),
+    total,
+    page,
+    pageSize: limit,
     pagination: {
       page,
       limit,
       total,
-      totalPages: Math.ceil(total / limit),
-      hasNext: page * limit < total,
-      hasPrev: page > 1
+      totalPages: Math.ceil(total / limit)
     }
   };
 }
@@ -214,8 +220,10 @@ export async function createPlan(
   }
 
   // 验证服务类型
-  validateServiceTypes(data.serviceTypes);
-  validatePrimaryServiceType(data.primaryServiceType, data.serviceTypes);
+  const serviceTypes = data.serviceTypes || [];
+  const primaryServiceType = data.primaryServiceType || data.serviceTypes?.[0] || ServiceType.STANDARD;
+  validateServiceTypes(serviceTypes);
+  validatePrimaryServiceType(primaryServiceType, serviceTypes);
 
   // 检查名称是否已存在
   const existingPlan = await db('subscription_plans')
@@ -240,8 +248,8 @@ export async function createPlan(
     price: data.price,
     duration_days: data.durationDays,
     traffic_limit: data.trafficLimit,
-    service_types: JSON.stringify(data.serviceTypes),
-    primary_service_type: data.primaryServiceType,
+    service_types: JSON.stringify(serviceTypes),
+    primary_service_type: primaryServiceType,
     priority_boost: data.priorityBoost || 0,
     guaranteed_bandwidth: data.guaranteedBandwidth || 0,
     max_connections: data.maxConnections || 3,
@@ -465,17 +473,10 @@ export async function getPlanStats(id: string): Promise<PlanStats> {
   const retentionRate = total > 0 ? (active / total) * 100 : 0;
 
   return {
-    planId: id,
-    planName: plan.name,
+    totalPlans: 1,
+    activePlans: active > 0 ? 1 : 0,
     totalSubscriptions: total,
-    activeSubscriptions: active,
-    expiredSubscriptions: parseInt(subscriptionStats?.expired as string) || 0,
-    totalRevenue: parseFloat(revenueStats?.total_revenue as string) || 0,
-    monthlyRevenue: parseFloat(revenueStats?.monthly_revenue as string) || 0,
-    averageSubscriptionDuration: parseFloat(durationStats?.avg_duration as string) || 0,
-    userRetentionRate: parseFloat(retentionRate.toFixed(2)),
-    subscriptionsByServiceType,
-    growthTrend: formattedTrend
+    revenue: parseFloat(revenueStats?.total_revenue as string) || 0
   };
 }
 
@@ -498,10 +499,11 @@ export async function getPlanGroups(): Promise<PlanGroup[]> {
     name: group.name,
     description: group.description,
     serviceTypes: [...group.serviceTypes],
+    ipTypes: [],
+    lineTypes: [],
     icon: group.icon,
     color: group.color,
-    recommendedFor: [...group.recommendedFor],
-    planCount: countMap.get(group.id) || 0
+    recommendedFor: [...group.recommendedFor]
   }));
 }
 

@@ -403,6 +403,7 @@ router.post('/', authMiddleware, validate(NodeValidation.create), async (req: Re
     if (ipPoolConfig && ipPoolConfig.enabled) {
       try {
         const pool = await ipPoolService.createIPPool({
+          enabled: true,
           name: `${name} IP Pool`,
           nodeId: node.id,
           ipType,
@@ -845,13 +846,13 @@ router.post('/:id/check-ip', authMiddleware, validate(NodeValidation.checkIp), a
       data: {
         success: true,
         ipAddress: reputation.ip,
-        ipType: reputation.isResidential ? IpType.STATIC_RESIDENTIAL : (reputation.isDatacenter ? IpType.DATACENTER : IpType.DATACENTER),
+        ipType: reputation.isResidential ? IpType.RESIDENTIAL_STATIC : (reputation.isDatacenter ? IpType.DATACENTER : IpType.DATACENTER),
         isp: reputation.isp || 'Unknown',
         country: reputation.country || 'Unknown',
         region: reputation.country || 'Unknown',
         city: 'Unknown',
         score: reputation.score,
-        reputationStatus: scoreLabel.status,
+        reputationStatus: scoreLabel.label,
         blacklistCount: reputation.abuseRecords || 0,
         latency: 0,
         message: `IP检测完成: ${reputation.ip} - 评分: ${reputation.score}`
@@ -902,7 +903,7 @@ router.post('/:id/refresh-ip-score', authMiddleware, validate(NodeValidation.byI
         success: true,
         oldScore: node.ip_score || 0,
         newScore: reputation.score,
-        status: scoreLabel.status,
+        status: scoreLabel.label,
         checkedAt: reputation.checkedAt,
         message: `评分已刷新: ${node.ip_score || 0} → ${reputation.score}`
       }

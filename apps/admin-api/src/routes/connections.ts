@@ -149,7 +149,7 @@ router.post('/users/:userId/disconnect', authMiddleware, async (req: Request, re
     }
 
     // Disconnect user
-    const success = await xrayClient.disconnectUser(user.email, inboundTag);
+    const success = await xrayClient.disconnectUser(user.email);
 
     if (success) {
       logger.info(`User ${user.email} disconnected by ${req.user?.username || 'system'}`);

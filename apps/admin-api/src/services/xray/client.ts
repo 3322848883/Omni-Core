@@ -338,6 +338,39 @@ export class XrayClient {
     return [];
   }
 
+  // 获取在线用户列表
+  async getOnlineUsers(): Promise<UserConnection[]> {
+    try {
+      const response = await this.client.get('/online');
+      return response.data || [];
+    } catch (error) {
+      logger.debug('Failed to get online users');
+      return [];
+    }
+  }
+
+  // 获取用户连接信息
+  async getUserConnections(email: string): Promise<UserConnection | null> {
+    try {
+      const response = await this.client.get(`/user/${email}/connections`);
+      return response.data;
+    } catch (error) {
+      logger.debug(`Failed to get connections for user ${email}`);
+      return null;
+    }
+  }
+
+  // 断开用户连接
+  async disconnectUser(email: string): Promise<boolean> {
+    try {
+      await this.client.post(`/user/${email}/disconnect`);
+      return true;
+    } catch (error) {
+      logger.debug(`Failed to disconnect user ${email}`);
+      return false;
+    }
+  }
+
   // 热重载配置
   async hotReloadConfig(config: { inbounds: XrayInboundConfig[] }): Promise<boolean> {
     // 热重载配置需要通过其他方式实现

@@ -47,7 +47,7 @@ export function sendError(
   message: string,
   code: string | number = 'INTERNAL_ERROR',
   statusCode: number = 500,
-  errors?: any[]
+  errors?: Array<{ field: string; message: string }>
 ): void {
   const response: ApiResponse = {
     success: false,
@@ -56,6 +56,9 @@ export function sendError(
     requestId: (res.req as any).requestId || createRequestId(),
     timestamp: Date.now(),
   };
+  if (errors && errors.length > 0) {
+    (response as any).errors = errors;
+  }
   res.status(statusCode).json(response);
 }
 

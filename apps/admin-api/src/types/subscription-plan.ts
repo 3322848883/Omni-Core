@@ -16,6 +16,11 @@ export interface SubscriptionPlan {
   features: string[];
   ipType: IpType;
   lineType: LineType;
+  group?: string;
+  serviceTypes?: ServiceType[];
+  priorityBoost?: number;
+  guaranteedBandwidth?: number;
+  maxConnections?: number;
   isActive: boolean;
   sortOrder: number;
   createdAt: Date;
@@ -69,15 +74,54 @@ export interface UpdatePlanRequest {
   sortOrder?: number;
 }
 
-// Additional types for service layer
-export interface CreatePlanData extends CreatePlanRequest {}
-export interface UpdatePlanData extends UpdatePlanRequest {}
+export interface CreatePlanData {
+  name: string;
+  description: string;
+  primaryServiceType?: ServiceType;
+  allowedServiceTypes?: ServiceType[];
+  serviceTypes?: ServiceType[];
+  trafficLimit: number;
+  durationDays: number;
+  price: number;
+  currency?: string;
+  features?: string[];
+  ipType?: IpType;
+  lineType?: LineType;
+  group?: string;
+  priorityBoost?: number;
+  guaranteedBandwidth?: number;
+  maxConnections?: number;
+  isActive?: boolean;
+  sortOrder?: number;
+}
+
+export interface UpdatePlanData {
+  name?: string;
+  description?: string;
+  primaryServiceType?: ServiceType;
+  allowedServiceTypes?: ServiceType[];
+  serviceTypes?: ServiceType[];
+  trafficLimit?: number;
+  durationDays?: number;
+  price?: number;
+  currency?: string;
+  features?: string[];
+  ipType?: IpType;
+  lineType?: LineType;
+  group?: string;
+  priorityBoost?: number;
+  guaranteedBandwidth?: number;
+  maxConnections?: number;
+  isActive?: boolean;
+  sortOrder?: number;
+}
 
 export interface PlanStats {
   totalPlans: number;
   activePlans: number;
   totalSubscriptions: number;
   revenue: number;
+  planId?: string;
 }
 
 export interface PlanListQuery {
@@ -85,6 +129,9 @@ export interface PlanListQuery {
   limit?: number;
   isActive?: boolean;
   serviceType?: ServiceType;
+  group?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface PlanListResponse {
@@ -92,6 +139,12 @@ export interface PlanListResponse {
   total: number;
   page: number;
   pageSize: number;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
 }
 
 export interface PlanGroup {
@@ -101,6 +154,8 @@ export interface PlanGroup {
   serviceTypes: ServiceType[];
   ipTypes: IpType[];
   lineTypes: LineType[];
+  allowedIpTypes?: IpType[];
+  allowedLineTypes?: IpType[];
   icon?: string;
   color?: string;
   recommendedFor?: string[];

@@ -75,3 +75,31 @@ export const SUBSCRIPTION_STATUS = {
   EXPIRED: 2,
   CANCELLED: 3,
 } as const;
+
+// Aliases for backward compatibility
+export const HTTP_STATUS = HttpStatus;
+export const ERROR_CODES = ErrorCode;
+
+// Invite Code Status
+export const INVITE_CODE_STATUS = {
+  ACTIVE: 'active',
+  USED: 'used',
+  EXPIRED: 'expired',
+} as const;
+
+// Order Status
+export const ORDER_STATUS = {
+  PENDING: 'pending',
+  PAID: 'paid',
+  CANCELLED: 'cancelled',
+  EXPIRED: 'expired',
+  REFUNDED: 'refunded',
+} as const;
+
+// Payment Status
+export const PAYMENT_STATUS = {
+  PENDING: 'pending',
+  COMPLETED: 'completed',
+  FAILED: 'failed',
+  REFUNDED: 'refunded',
+} as const;

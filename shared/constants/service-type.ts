@@ -76,6 +76,8 @@ export interface PlanGroup {
   name: string;
   description: string;
   serviceTypes: ServiceType[];
+  ipTypes?: string[];
+  lineTypes?: string[];
   icon: string;
   color: string;
   recommendedFor: string[];

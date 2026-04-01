@@ -4,7 +4,25 @@ export class AppError extends Error {
   public statusCode: number;
   public code: string;
 
-  constructor(message: string, statusCode: number = 500, code: string = 'INTERNAL_ERROR') {
+  constructor(
+    messageOrCode: string,
+    statusCodeOrMessage: number | string = 500,
+    codeOrStatus?: string | number
+  ) {
+    let message: string;
+    let statusCode: number;
+    let code: string;
+
+    if (typeof statusCodeOrMessage === 'string') {
+      message = statusCodeOrMessage;
+      statusCode = typeof codeOrStatus === 'number' ? codeOrStatus : 500;
+      code = messageOrCode;
+    } else {
+      message = messageOrCode;
+      statusCode = statusCodeOrMessage;
+      code = typeof codeOrStatus === 'string' ? codeOrStatus : 'INTERNAL_ERROR';
+    }
+
     super(message);
     this.name = 'AppError';
     this.statusCode = statusCode;
@@ -14,7 +32,10 @@ export class AppError extends Error {
 }
 
 export class NotFoundError extends AppError {
-  constructor(message: string = 'Resource not found') {
+  constructor(resource: string = 'Resource', id?: string) {
+    const message = id 
+      ? `${resource} not found: ${id}` 
+      : `${resource} not found`;
     super(message, 404, 'NOT_FOUND');
     this.name = 'NotFoundError';
   }
@@ -24,12 +45,18 @@ export class ValidationError extends AppError {
   public errors?: Array<{ field: string; message: string }>;
 
   constructor(
-    message: string = 'Validation failed',
+    messageOrErrors: string | Array<{ field: string; message: string }>,
     errors?: Array<{ field: string; message: string }>
   ) {
+    const message = typeof messageOrErrors === 'string' 
+      ? messageOrErrors 
+      : 'Validation failed';
+    const errorsArray = typeof messageOrErrors === 'string' 
+      ? errors 
+      : messageOrErrors;
     super(message, 422, 'VALIDATION_ERROR');
     this.name = 'ValidationError';
-    this.errors = errors;
+    this.errors = errorsArray;
   }
 }
 

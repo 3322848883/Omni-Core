@@ -50,6 +50,9 @@ export class IPPoolService {
         currentIndex: 0,
         lastRotationAt: null,
         isActive: true,
+        status: 'active',
+        totalIPs: config.ips.length,
+        availableIPs: config.ips.length,
         createdAt: now,
         updatedAt: now
       };
@@ -129,11 +132,12 @@ export class IPPoolService {
         id: uuidv4(),
         poolId,
         ip,
-        status: score && score < IPScoreThresholds.POOR ? 'blocked' : 'active',
-        score,
+        status: score && score < IPScoreThresholds.POOR ? 'blocked' : 'available',
+        score: score ?? undefined,
+        reputation: score ?? 0,
         usageCount: 0,
-        assignedAt: null,
-        releasedAt: null,
+        assignedAt: undefined,
+        releasedAt: undefined,
         createdAt: now,
         updatedAt: now
       };
@@ -238,7 +242,7 @@ export class IPPoolService {
 
       const ipRecords = ips.map(ip => this.mapDatabaseRecordToPoolIP(ip));
 
-      const activeIpCount = ipRecords.filter(ip => ip.status === 'active').length;
+      const activeIpCount = ipRecords.filter(ip => ip.status === 'available').length;
       const blockedIpCount = ipRecords.filter(ip => ip.status === 'blocked').length;
 
       // 获取当前使用的IP
@@ -251,7 +255,7 @@ export class IPPoolService {
 
       // 计算下次轮换时间
       let nextRotationAt: Date | null = null;
-      if (pool.lastRotationAt) {
+      if (pool.lastRotationAt && pool.rotationInterval) {
         nextRotationAt = new Date(pool.lastRotationAt.getTime() + pool.rotationInterval * 1000);
       }
 
@@ -333,7 +337,9 @@ export class IPPoolService {
         });
 
       // 同步到Xray（如果配置了Xray服务）
-      await this.syncToXray(pool.nodeId, nextIP);
+      if (pool.nodeId) {
+        await this.syncToXray(pool.nodeId, nextIP);
+      }
 
       // 更新池状态
       const newIndex = await this.calculateNextIndex(pool);
@@ -365,7 +371,7 @@ export class IPPoolService {
    * @returns 是否应该轮换
    */
   shouldRotate(pool: IPPool): boolean {
-    if (!pool.lastRotationAt) {
+    if (!pool.lastRotationAt || !pool.rotationInterval) {
       return true;
     }
 
@@ -527,15 +533,15 @@ export class IPPoolService {
         case RotationStrategy.ROUND_ROBIN:
           return this.getRoundRobinIP(pool, ips);
 
-        case RotationStrategy.RANDOM:
+        case RotationStrategy.ON_DEMAND:
           return this.getRandomIP(ips);
 
-        case RotationStrategy.LEAST_USED:
+        case RotationStrategy.DAILY:
+        case RotationStrategy.WEEKLY:
+        case RotationStrategy.MONTHLY:
           return this.getLeastUsedIP(ips);
 
-        case RotationStrategy.QUALITY_FIRST:
-          return this.getQualityFirstIP(ips);
-
+        case RotationStrategy.FIXED:
         default:
           return this.getRoundRobinIP(pool, ips);
       }
@@ -549,7 +555,8 @@ export class IPPoolService {
    * 轮询策略获取IP
    */
   private getRoundRobinIP(pool: IPPool, ips: any[]): string {
-    const index = pool.currentIndex % ips.length;
+    const currentIndex = pool.currentIndex ?? 0;
+    const index = currentIndex % ips.length;
     return ips[index].ip;
   }
 
@@ -596,7 +603,8 @@ export class IPPoolService {
       .first();
 
     const total = parseInt(count?.count as string || '0', 10);
-    return total > 0 ? (pool.currentIndex + 1) % total : 0;
+    const currentIndex = pool.currentIndex ?? 0;
+    return total > 0 ? (currentIndex + 1) % total : 0;
   }
 
   /**
@@ -773,6 +781,9 @@ export class IPPoolService {
       currentIndex: record.current_index,
       lastRotationAt: record.last_rotation_at,
       isActive: record.is_active,
+      status: record.is_active ? 'active' : 'inactive',
+      totalIPs: record.total_ips || 0,
+      availableIPs: record.available_ips || 0,
       createdAt: record.created_at,
       updatedAt: record.updated_at
     };
@@ -788,6 +799,7 @@ export class IPPoolService {
       ip: record.ip,
       status: record.status,
       score: record.score,
+      reputation: record.score || 0,
       usageCount: record.usage_count,
       assignedAt: record.assigned_at,
       releasedAt: record.released_at,

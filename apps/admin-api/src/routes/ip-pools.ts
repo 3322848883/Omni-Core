@@ -8,10 +8,12 @@ import { getIPReputationService } from '../services/ip-reputation';
 import {
   IpType,
   LineType,
-  RotationStrategy,
   isValidIpType,
+  IpTypeMeta
+} from '../shared/constants/ip-type';
+import {
+  RotationStrategy,
   isValidRotationStrategy,
-  IpTypeMeta,
   RotationStrategyMeta
 } from '../shared/constants/ip-assets';
 
@@ -62,9 +64,9 @@ router.get('/', authMiddleware, async (req: Request, res: Response, next: NextFu
           nodeName: node?.name || null,
           nodeStatus: node?.status || null,
           ipType: pool.ipType,
-          ipTypeLabel: IpTypeMeta[pool.ipType]?.label || pool.ipType,
+          ipTypeLabel: pool.ipType ? IpTypeMeta[pool.ipType]?.label : undefined,
           rotationStrategy: pool.rotationStrategy,
-          rotationStrategyLabel: RotationStrategyMeta[pool.rotationStrategy]?.label || pool.rotationStrategy,
+          rotationStrategyLabel: pool.rotationStrategy ? RotationStrategyMeta[pool.rotationStrategy]?.label : undefined,
           rotationInterval: pool.rotationInterval,
           currentIndex: pool.currentIndex,
           lastRotationAt: pool.lastRotationAt,
@@ -131,9 +133,9 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response, next: Nex
         nodeStatus: node?.status || null,
         currentNodeIp: node?.current_ip || null,
         ipType: poolStatus.pool.ipType,
-        ipTypeLabel: IpTypeMeta[poolStatus.pool.ipType]?.label || poolStatus.pool.ipType,
+        ipTypeLabel: poolStatus.pool.ipType ? IpTypeMeta[poolStatus.pool.ipType]?.label : undefined,
         rotationStrategy: poolStatus.pool.rotationStrategy,
-        rotationStrategyLabel: RotationStrategyMeta[poolStatus.pool.rotationStrategy]?.label || poolStatus.pool.rotationStrategy,
+        rotationStrategyLabel: poolStatus.pool.rotationStrategy ? RotationStrategyMeta[poolStatus.pool.rotationStrategy]?.label : undefined,
         rotationInterval: poolStatus.pool.rotationInterval,
         currentIndex: poolStatus.pool.currentIndex,
         lastRotationAt: poolStatus.pool.lastRotationAt,
@@ -234,6 +236,7 @@ router.post('/', authMiddleware, async (req: Request, res: Response, next: NextF
     }
 
     const pool = await ipPoolService.createIPPool({
+      enabled: true,
       name,
       nodeId,
       ipType,
