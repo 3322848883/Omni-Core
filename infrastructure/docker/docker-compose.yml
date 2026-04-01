@@ -1,0 +1,185 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: omnicore-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: omnicore
+      MYSQL_USER: omnicore
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-omnicore123}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - omnicore-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: omnicore-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - omnicore-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Xray Core
+  xray:
+    image: teddysun/xray:latest
+    container_name: omnicore-xray
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "8443:8443"
+      - "2083:2083"
+      - "8388:8388"
+      - "10085:10085"
+    volumes:
+      - ./xray/config.json:/etc/xray/config.json:ro
+      - ./xray/certs:/etc/xray/certs:ro
+    networks:
+      - omnicore-network
+    depends_on:
+      - mysql
+      - redis
+
+  # Admin API
+  admin-api:
+    build:
+      context: ../../apps/admin-api
+      dockerfile: Dockerfile
+    container_name: omnicore-admin-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: omnicore_admin
+      DB_USER: omnicore
+      DB_PASSWORD: ${MYSQL_PASSWORD:-omnicore123}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret}
+      XRAY_API_HOST: xray
+      XRAY_API_PORT: 10085
+    ports:
+      - "3001:3001"
+    networks:
+      - omnicore-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      xray:
+        condition: service_started
+
+  # Client API
+  client-api:
+    build:
+      context: ../../apps/client-api
+      dockerfile: Dockerfile
+    container_name: omnicore-client-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: omnicore_client
+      DB_USER: omnicore
+      DB_PASSWORD: ${MYSQL_PASSWORD:-omnicore123}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-your_jwt_secret}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID}
+      PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET}
+    ports:
+      - "3002:3002"
+    networks:
+      - omnicore-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: omnicore-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+    networks:
+      - omnicore-network
+    depends_on:
+      - admin-api
+      - client-api
+
+  # Prometheus (Monitoring)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: omnicore-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - omnicore-network
+
+  # Grafana (Monitoring)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: omnicore-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    networks:
+      - omnicore-network
+    depends_on:
+      - prometheus
+
+volumes:
+  mysql-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  omnicore-network:
+    driver: bridge

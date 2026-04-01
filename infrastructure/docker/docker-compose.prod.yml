@@ -1,0 +1,121 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: omnicore-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql123
+      MYSQL_DATABASE: omnicore_admin
+      MYSQL_USER: omnicore
+      MYSQL_PASSWORD: omnicore123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - omnicore-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: omnicore-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - omnicore-network
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  xray:
+    image: teddysun/xray:latest
+    container_name: omnicore-xray
+    restart: unless-stopped
+    ports:
+      - "443:443"
+      - "8443:8443"
+      - "2083:2083"
+      - "8388:8388"
+      - "10085:10085"
+    volumes:
+      - ./xray/config.json:/etc/xray/config.json:ro
+      - ./xray/certs:/etc/xray/certs:ro
+    networks:
+      - omnicore-network
+
+  admin-api:
+    build:
+      context: ../../apps/admin-api
+      dockerfile: Dockerfile
+    container_name: omnicore-admin-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: omnicore_admin
+      DB_USER: omnicore
+      DB_PASSWORD: omnicore123
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: omnicore_jwt_secret_prod_2024
+      JWT_REFRESH_SECRET: omnicore_jwt_refresh_prod_2024
+      XRAY_API_HOST: xray
+      XRAY_API_PORT: 10085
+    ports:
+      - "3001:3001"
+    networks:
+      - omnicore-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  client-api:
+    build:
+      context: ../../apps/client-api
+      dockerfile: Dockerfile
+    container_name: omnicore-client-api
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: omnicore_client
+      DB_USER: omnicore
+      DB_PASSWORD: omnicore123
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: omnicore_client_jwt_secret_prod_2024
+    ports:
+      - "3002:3002"
+    networks:
+      - omnicore-network
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+volumes:
+  mysql-data:
+  redis-data:
+
+networks:
+  omnicore-network:
+    driver: bridge
