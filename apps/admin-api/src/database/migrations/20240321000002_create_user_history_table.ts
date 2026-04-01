@@ -15,8 +15,6 @@ export async function up(knex: Knex): Promise<void> {
     table.index('user_id', 'idx_history_user_id');
     table.index('changed_at', 'idx_history_changed_at');
   });
-
-  await knex.raw('ALTER TABLE user_history COMMENT = "用户变更历史表"');
 }
 
 export async function down(knex: Knex): Promise<void> {

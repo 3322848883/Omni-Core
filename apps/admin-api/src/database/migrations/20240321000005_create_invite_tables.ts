@@ -21,8 +21,6 @@ export async function up(knex: Knex): Promise<void> {
     table.index('status', 'idx_invite_relations_status');
   });
 
-  await knex.raw('ALTER TABLE invite_relations COMMENT = "邀请关系表"');
-
   // Invite Rewards Table
   await knex.schema.createTable('invite_rewards', (table) => {
     table.bigIncrements('id').primary();
@@ -40,8 +38,6 @@ export async function up(knex: Knex): Promise<void> {
     table.index('status', 'idx_invite_rewards_status');
   });
 
-  await knex.raw('ALTER TABLE invite_rewards COMMENT = "邀请奖励记录表"');
-
   // Invite Reward Rules Table
   await knex.schema.createTable('invite_reward_rules', (table) => {
     table.bigIncrements('id').primary();
@@ -58,8 +54,6 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamp('created_at').defaultTo(knex.fn.now());
     table.timestamp('updated_at').defaultTo(knex.fn.now());
   });
-
-  await knex.raw('ALTER TABLE invite_reward_rules COMMENT = "邀请奖励规则配置表"');
 }
 
 export async function down(knex: Knex): Promise<void> {

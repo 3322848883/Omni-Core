@@ -22,8 +22,6 @@ export async function up(knex: Knex): Promise<void> {
     table.index('status', 'idx_orders_status');
     table.index('created_at', 'idx_orders_created_at');
   });
-
-  await knex.raw('ALTER TABLE orders COMMENT = "订单表"');
 }
 
 export async function down(knex: Knex): Promise<void> {

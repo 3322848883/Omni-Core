@@ -21,6 +21,7 @@ export class AppError extends Error {
     details?: Record<string, unknown>
   ) {
     super(message);
+    this.name = this.constructor.name;
     this.code = code;
     this.statusCode = statusCode || HttpStatus.INTERNAL_ERROR;
     this.isOperational = isOperational;

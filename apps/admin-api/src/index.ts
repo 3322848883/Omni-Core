@@ -13,6 +13,7 @@ import { requestLogger } from './middlewares/requestLogger';
 import { initializeXrayService, shutdownXrayService } from './services/xray';
 import { initializePaymentProviders } from './services/payment';
 import { ErrorCode } from '@shared/constants';
+import { runMigrations, runSeeds, testConnection } from './database';
 
 // Routes
 import { authRoutes } from './routes/auth';
@@ -189,10 +190,6 @@ app.use(errorHandler);
 const PORT = config.port;
 const HOST = config.host;
 
-// Initialize services
-initializeXrayService();
-initializePaymentProviders();
-
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received, shutting down gracefully');
@@ -206,10 +203,39 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-app.listen(PORT, HOST, () => {
-  logger.info(`Admin API server running on http://${HOST}:${PORT}`);
-  logger.info(`Environment: ${config.nodeEnv}`);
-  logger.info(`API Prefix: ${apiPrefix}`);
-});
+// Start server function
+async function startServer() {
+  try {
+    // Test database connection
+    const dbConnected = await testConnection();
+    if (!dbConnected) {
+      logger.error('Database connection failed, exiting...');
+      process.exit(1);
+    }
+    
+    // Run database migrations
+    await runMigrations();
+    
+    // Run database seeds
+    await runSeeds();
+    
+    // Initialize services
+    initializeXrayService();
+    initializePaymentProviders();
+    
+    // Start the server
+    app.listen(PORT, HOST, () => {
+      logger.info(`Admin API server running on http://${HOST}:${PORT}`);
+      logger.info(`Environment: ${config.nodeEnv}`);
+      logger.info(`API Prefix: ${apiPrefix}`);
+    });
+  } catch (error) {
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
 
 export default app;

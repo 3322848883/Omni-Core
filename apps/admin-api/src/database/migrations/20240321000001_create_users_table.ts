@@ -19,9 +19,6 @@ export async function up(knex: Knex): Promise<void> {
     table.index('status', 'idx_users_status');
     table.index('expire_date', 'idx_users_expire_date');
   });
-
-  // MySQL特有：添加表注释
-  await knex.raw('ALTER TABLE users COMMENT = "用户主表"');
 }
 
 export async function down(knex: Knex): Promise<void> {

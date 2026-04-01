@@ -28,8 +28,6 @@ export async function up(knex: Knex): Promise<void> {
     table.index('region', 'idx_nodes_region');
     table.index('priority', 'idx_nodes_priority');
   });
-
-  await knex.raw('ALTER TABLE nodes COMMENT = "节点信息表"');
 }
 
 export async function down(knex: Knex): Promise<void> {

@@ -2,8 +2,8 @@ import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
   await knex.schema.alterTable('nodes', (table) => {
-    table.string('service_type', 50).nullable().defaultTo('standard').comment('服务类型: standard, premium, etc');
-    table.string('service_group', 50).nullable().comment('服务组');
+    table.string('service_type', 50).nullable().defaultTo('standard');
+    table.string('service_group', 50).nullable();
   });
 
   await knex.schema.createTable('subscription_plans', (table) => {
@@ -24,8 +24,6 @@ export async function up(knex: Knex): Promise<void> {
     table.timestamp('created_at').defaultTo(knex.fn.now());
     table.timestamp('updated_at').defaultTo(knex.fn.now());
   });
-
-  await knex.raw('ALTER TABLE subscription_plans COMMENT = "套餐计划表"');
 }
 
 export async function down(knex: Knex): Promise<void> {

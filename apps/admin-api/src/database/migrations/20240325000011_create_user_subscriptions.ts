@@ -21,8 +21,6 @@ export async function up(knex: Knex): Promise<void> {
     table.index(['plan_id'], 'idx_user_subs_plan');
     table.index(['end_date'], 'idx_user_subs_end_date');
   });
-
-  await knex.raw('ALTER TABLE user_subscriptions COMMENT = "用户订阅表"');
 }
 
 export async function down(knex: Knex): Promise<void> {

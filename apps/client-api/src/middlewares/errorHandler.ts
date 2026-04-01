@@ -23,13 +23,13 @@ export const errorHandler = (
     requestId,
   });
 
-  // Handle AppError
-  if ((err as any)?.name === 'AppError') {
-    const appErr = err as any;
-    res.status(appErr.statusCode || HttpStatus.INTERNAL_ERROR).json({
+  // Handle AppError and its subclasses
+  if (err instanceof AppError) {
+    res.status(err.statusCode || HttpStatus.INTERNAL_ERROR).json({
       success: false,
-      code: appErr.code || ErrorCode.INTERNAL_ERROR,
-      message: appErr.message,
+      code: err.code || ErrorCode.INTERNAL_ERROR,
+      message: err.message,
+      errors: err.errors,
       requestId,
       timestamp: Date.now(),
     });

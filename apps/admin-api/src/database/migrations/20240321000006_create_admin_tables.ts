@@ -18,8 +18,6 @@ export async function up(knex: Knex): Promise<void> {
     table.index('is_active', 'idx_admin_users_is_active');
   });
 
-  await knex.raw('ALTER TABLE admin_users COMMENT = "管理员账号表"');
-
   // Admin Logs Table
   await knex.schema.createTable('admin_logs', (table) => {
     table.bigIncrements('id').primary();
@@ -35,8 +33,6 @@ export async function up(knex: Knex): Promise<void> {
     table.index('action', 'idx_admin_logs_action');
     table.index('created_at', 'idx_admin_logs_created_at');
   });
-
-  await knex.raw('ALTER TABLE admin_logs COMMENT = "管理员操作日志表"');
 
   // Configuration Table
   await knex.schema.createTable('configurations', (table) => {
@@ -54,8 +50,6 @@ export async function up(knex: Knex): Promise<void> {
     table.index('config_type', 'idx_configurations_config_type');
     table.index('environment', 'idx_configurations_environment');
   });
-
-  await knex.raw('ALTER TABLE configurations COMMENT = "配置表"');
 }
 
 export async function down(knex: Knex): Promise<void> {

@@ -69,6 +69,24 @@ app.get('/health', (_req, res) => {
 // API routes - Client API uses /api/v1/client prefix
 app.use('/api/v1/client', routes);
 
+// Legacy user profile route for compatibility
+app.get('/api/v1/user/profile', async (req, res, next) => {
+  try {
+    // Return basic success response for backward compatibility
+    const requestId = createRequestId();
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: { message: 'Authentication required' },
+      requestId,
+      timestamp: Date.now(),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // 404 handler
 app.use((_req, res) => {
   const requestId = createRequestId();

@@ -662,4 +662,93 @@ router.post('/collector/stop', authMiddleware, async (req: Request, res: Respons
   }
 });
 
+// GET /api/v1/traffic/stats - Get comprehensive traffic statistics
+router.get('/stats', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const thisMonth = today.substring(0, 7) + '-01';
+
+    // Today's traffic
+    const [todayStats] = await db('traffic_stats_daily')
+      .where('stat_date', today)
+      .sum('total_bytes as total')
+      .sum('upload_bytes as upload')
+      .sum('download_bytes as download');
+
+    // This month's traffic
+    const [monthStats] = await db('traffic_stats_daily')
+      .where('stat_date', '>=', thisMonth)
+      .sum('total_bytes as total')
+      .sum('upload_bytes as upload')
+      .sum('download_bytes as download');
+
+    // Total traffic
+    const [totalStats] = await db('traffic_stats_daily')
+      .sum('total_bytes as total')
+      .sum('upload_bytes as upload')
+      .sum('download_bytes as download');
+
+    // Active users today
+    const [activeUsersToday] = await db('traffic_stats_daily')
+      .where('stat_date', today)
+      .countDistinct('user_id as count');
+
+    // Active users this month
+    const [activeUsersMonth] = await db('traffic_stats_daily')
+      .where('stat_date', '>=', thisMonth)
+      .countDistinct('user_id as count');
+
+    // Top 5 users by traffic
+    const topUsers = await db('traffic_stats_daily')
+      .select('user_id')
+      .sum('total_bytes as total_bytes')
+      .groupBy('user_id')
+      .orderBy('total_bytes', 'desc')
+      .limit(5);
+
+    // Top 5 nodes by traffic
+    const topNodes = await db('traffic_stats_node')
+      .select('node_id')
+      .sum('total_bytes as total_bytes')
+      .groupBy('node_id')
+      .orderBy('total_bytes', 'desc')
+      .limit(5);
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: {
+        today: {
+          total: parseInt(todayStats.total as string) || 0,
+          upload: parseInt(todayStats.upload as string) || 0,
+          download: parseInt(todayStats.download as string) || 0,
+          activeUsers: parseInt(activeUsersToday.count as string) || 0
+        },
+        thisMonth: {
+          total: parseInt(monthStats.total as string) || 0,
+          upload: parseInt(monthStats.upload as string) || 0,
+          download: parseInt(monthStats.download as string) || 0,
+          activeUsers: parseInt(activeUsersMonth.count as string) || 0
+        },
+        total: {
+          total: parseInt(totalStats.total as string) || 0,
+          upload: parseInt(totalStats.upload as string) || 0,
+          download: parseInt(totalStats.download as string) || 0
+        },
+        topUsers: topUsers.map(u => ({
+          userId: u.user_id,
+          totalBytes: parseInt(u.total_bytes as string) || 0
+        })),
+        topNodes: topNodes.map(n => ({
+          nodeId: n.node_id,
+          totalBytes: parseInt(n.total_bytes as string) || 0
+        }))
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export { router as trafficRoutes };

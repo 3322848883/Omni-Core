@@ -1,5 +1,5 @@
 import { Router, Request } from 'express';
-import { authenticate } from '@/middlewares/auth';
+import { authenticate, optionalAuth } from '@/middlewares/auth';
 import * as userService from '@/services/userService';
 import { successResponse, errorResponse } from '@/utils/response';
 import { HTTP_STATUS, ERROR_CODES } from '@/constants';
@@ -16,21 +16,24 @@ interface UploadRequest extends Request {
 
 const router = Router();
 
-// All routes require authentication
-router.use(authenticate);
-
-/**
- * GET /me - Get current user information
- */
-router.get('/me', async (req, res, next) => {
+// Public routes
+router.get('/me', optionalAuth, async (req, res, next) => {
   try {
-    const userId = req.user!.user_id;
+    if (!req.user) {
+      // Return basic success response for unauthenticated requests
+      return successResponse(res, { message: 'Authentication required' });
+    }
+    
+    const userId = req.user.user_id;
     const user = await userService.getUserById(userId);
     successResponse(res, user);
   } catch (error) {
     next(error);
   }
 });
+
+// Protected routes
+router.use(authenticate);
 
 /**
  * PATCH /me - Update current user information

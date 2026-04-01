@@ -18,8 +18,6 @@ export async function up(knex: Knex): Promise<void> {
     table.index('is_public', 'idx_site_config_is_public');
   });
 
-  await knex.raw('ALTER TABLE site_config COMMENT = "网站配置表"');
-
   // Insert default configurations
   const defaultConfigs = [
     // 基础信息
