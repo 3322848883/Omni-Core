@@ -13,6 +13,7 @@ import { requestLogger } from './middlewares/requestLogger';
 import { initializeXrayService, shutdownXrayService } from './services/xray';
 import { initializePaymentProviders } from './services/payment';
 import { ErrorCode } from './shared/constants';
+import { db, runMigrations, runSeeds } from './database';
 
 // Routes
 import { authRoutes } from './routes/auth';
@@ -189,27 +190,55 @@ app.use(errorHandler);
 const PORT = config.port;
 const HOST = config.host;
 
-// Initialize services
-initializeXrayService();
-initializePaymentProviders();
+// Initialize database and start server
+async function startServer() {
+  try {
+    // Test database connection
+    await db.raw('SELECT 1');
+    logger.info('Database connection established');
+    
+    // Run migrations
+    logger.info('Running database migrations...');
+    await runMigrations();
+    
+    // Run seeds
+    logger.info('Running database seeds...');
+    try {
+      await runSeeds();
+    } catch (seedError) {
+      logger.warn('Seeds may have already been run, continuing...');
+    }
+    
+    // Initialize services
+    initializeXrayService();
+    initializePaymentProviders();
+    
+    // Handle graceful shutdown
+    process.on('SIGTERM', () => {
+      logger.info('SIGTERM received, shutting down gracefully');
+      shutdownXrayService();
+      db.destroy();
+      process.exit(0);
+    });
+    
+    process.on('SIGINT', () => {
+      logger.info('SIGINT received, shutting down gracefully');
+      shutdownXrayService();
+      db.destroy();
+      process.exit(0);
+    });
+    
+    app.listen(PORT, HOST, () => {
+      logger.info(`Admin API server running on http://${HOST}:${PORT}`);
+      logger.info(`Environment: ${config.nodeEnv}`);
+      logger.info(`API Prefix: ${apiPrefix}`);
+    });
+  } catch (error) {
+    logger.error('Failed to start server:', error);
+    process.exit(1);
+  }
+}
 
-// Handle graceful shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, shutting down gracefully');
-  shutdownXrayService();
-  process.exit(0);
-});
-
-process.on('SIGINT', () => {
-  logger.info('SIGINT received, shutting down gracefully');
-  shutdownXrayService();
-  process.exit(0);
-});
-
-app.listen(PORT, HOST, () => {
-  logger.info(`Admin API server running on http://${HOST}:${PORT}`);
-  logger.info(`Environment: ${config.nodeEnv}`);
-  logger.info(`API Prefix: ${apiPrefix}`);
-});
+startServer();
 
 export default app;

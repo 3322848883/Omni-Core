@@ -16,11 +16,11 @@ const dbConfig: Knex.Config = {
     max: 10
   },
   migrations: {
-    directory: './migrations',
+    directory: './src/database/migrations',
     tableName: 'knex_migrations'
   },
   seeds: {
-    directory: './seeds'
+    directory: './src/database/seeds'
   }
 };
 
