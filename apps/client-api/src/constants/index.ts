@@ -28,6 +28,10 @@ export const ErrorCode = {
   UNAUTHORIZED: 'UNAUTHORIZED',
   FORBIDDEN: 'FORBIDDEN',
   RATE_LIMITED: 'RATE_LIMITED',
+  CONFLICT: 'CONFLICT',
+  UNPROCESSABLE_ENTITY: 'UNPROCESSABLE_ENTITY',
+  TOO_MANY_REQUESTS: 'TOO_MANY_REQUESTS',
+  DATABASE_ERROR: 'DATABASE_ERROR',
 
   // Auth
   INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
@@ -49,7 +53,13 @@ export const ErrorCode = {
   PAYMENT_FAILED: 'PAYMENT_FAILED',
   ORDER_NOT_FOUND: 'ORDER_NOT_FOUND',
   ORDER_ALREADY_PAID: 'ORDER_ALREADY_PAID',
+
+  // Invite
+  INVALID_INVITE_CODE: 'INVALID_INVITE_CODE',
 } as const;
+
+export type ErrorCodeType = typeof ErrorCode[keyof typeof ErrorCode];
+export type HttpStatusCode = typeof HttpStatus[keyof typeof HttpStatus];
 
 // Default Values
 export const DEFAULTS = {

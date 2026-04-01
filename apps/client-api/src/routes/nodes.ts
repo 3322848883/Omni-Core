@@ -295,13 +295,13 @@ router.get('/meta/ip-types', async (req: Request, res: Response, next: NextFunct
   try {
     const ipTypes = Object.values(IpType).map(type => ({
       value: type,
-      label: IpTypeMeta[type].label,
-      description: IpTypeMeta[type].description,
-      costLevel: IpTypeMeta[type].costLevel,
-      priceMultiplier: IpTypeMeta[type].priceMultiplier,
-      typicalBandwidth: IpTypeMeta[type].typicalBandwidth,
-      typicalTraffic: IpTypeMeta[type].typicalTraffic,
-      useCases: IpTypeMeta[type].useCases
+      label: IpTypeMeta[type]?.label || type,
+      description: IpTypeMeta[type]?.description || '',
+      costLevel: (IpTypeMeta[type] as any)?.costLevel || 'low',
+      priceMultiplier: (IpTypeMeta[type] as any)?.priceMultiplier || 1,
+      typicalBandwidth: (IpTypeMeta[type] as any)?.typicalBandwidth || '',
+      typicalTraffic: (IpTypeMeta[type] as any)?.typicalTraffic || '',
+      useCases: (IpTypeMeta[type] as any)?.useCases || []
     }));
 
     successResponse(res, ipTypes, 'IP types fetched successfully');

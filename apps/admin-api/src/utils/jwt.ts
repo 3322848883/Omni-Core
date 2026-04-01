@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import type { StringValue } from 'ms';
 import { config } from '../config';
 
 export interface TokenPayload {
@@ -21,15 +22,17 @@ export interface DecodedToken {
 }
 
 export function generateAccessToken(payload: TokenPayload): string {
-  return jwt.sign(payload, config.jwt.secret, {
-    expiresIn: config.jwt.expiresIn,
-  });
+  const options = {
+    expiresIn: config.jwt.expiresIn as StringValue,
+  };
+  return jwt.sign(payload, config.jwt.secret, options);
 }
 
 export function generateRefreshToken(payload: TokenPayload): string {
-  return jwt.sign(payload, config.jwt.refreshSecret, {
-    expiresIn: config.jwt.refreshExpiresIn,
-  });
+  const options = {
+    expiresIn: config.jwt.refreshExpiresIn as StringValue,
+  };
+  return jwt.sign(payload, config.jwt.refreshSecret, options);
 }
 
 export function verifyToken(token: string): TokenPayload {

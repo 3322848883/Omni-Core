@@ -67,7 +67,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Edit, View } from '@element-plus/icons-vue';
-import { ServiceType, ServiceTypeMeta } from '@shared/constants/service-type.mjs';
+import { ServiceType, ServiceTypeMeta } from '@/constants/service-type';
 import { getIconComponent } from '@utils/icon-map';
 
 interface ServiceTypeStats {

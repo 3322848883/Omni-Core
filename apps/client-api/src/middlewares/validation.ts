@@ -234,7 +234,7 @@ export function validate(schema: ValidationSchema) {
 
     // 如果有错误，抛出 ValidationError
     if (errors.length > 0) {
-      next(new ValidationError(errors));
+      next(new ValidationError('Validation failed', errors));
       return;
     }
 

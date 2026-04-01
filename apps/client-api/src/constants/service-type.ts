@@ -16,4 +16,4 @@ export {
   getAllServiceTypes,
   isValidServiceType,
   type PlanGroup
-} from '../../../shared/constants/service-type';
+} from '@shared/constants/service-type';

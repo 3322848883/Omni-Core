@@ -56,7 +56,10 @@ export enum RotationStrategy {
   WEEKLY = 'weekly',
   MONTHLY = 'monthly',
   ON_DEMAND = 'on_demand',
-  ROUND_ROBIN = 'round_robin'
+  ROUND_ROBIN = 'round_robin',
+  RANDOM = 'random',
+  LEAST_USED = 'least_used',
+  QUALITY_FIRST = 'quality_first'
 }
 
 export const RotationStrategyMeta = {
@@ -88,6 +91,21 @@ export const RotationStrategyMeta = {
   [RotationStrategy.ROUND_ROBIN]: {
     label: '轮询',
     description: '轮询分配IP',
+    requiresApproval: false
+  },
+  [RotationStrategy.RANDOM]: {
+    label: '随机',
+    description: '随机选择IP',
+    requiresApproval: false
+  },
+  [RotationStrategy.LEAST_USED]: {
+    label: '最少使用',
+    description: '选择使用次数最少的IP',
+    requiresApproval: false
+  },
+  [RotationStrategy.QUALITY_FIRST]: {
+    label: '质量优先',
+    description: '选择质量最高的IP',
     requiresApproval: false
   }
 } as const;

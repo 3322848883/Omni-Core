@@ -28,16 +28,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
-import {
-  ServiceType,
-  getAllServiceTypes,
-  getServiceTypeLabel,
-  getServiceTypeColor,
-  getServiceTypeBgColor,
-  getServiceTypeIcon,
-  ServiceTypeMeta,
-} from '@shared/constants/service-type.mjs';
-import { getIconComponent } from '@utils/icon-map';
+import { ServiceType, getAllServiceTypes, ServiceTypeMeta } from '@/constants/service-type';
 
 const props = defineProps<{
   modelValue: ServiceType;
@@ -45,7 +36,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: ServiceType];
-  change: [value: ServiceType];
+  'change': [value: ServiceType];
 }>();
 
 const serviceTypes = getAllServiceTypes();
@@ -55,7 +46,7 @@ const selectedType = computed({
   set: (val) => emit('update:modelValue', val),
 });
 
-const getServiceTypeDescription = (type: ServiceType): string => {
+const getTypeDescription = (type: ServiceType): string => {
   return ServiceTypeMeta[type]?.description || '';
 };
 
