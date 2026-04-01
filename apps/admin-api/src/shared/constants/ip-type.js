@@ -1,0 +1,201 @@
+"use strict";
+/**
+ * IP类型和线路类型常量定义
+ * 用于套餐服务体系升级
+ */
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PRESET_ISPS = exports.LineTypeMeta = exports.LineType = exports.IpTypeMeta = exports.IpType = void 0;
+exports.getIpTypeLabel = getIpTypeLabel;
+exports.getIpTypeDescription = getIpTypeDescription;
+exports.getIpTypePriceMultiplier = getIpTypePriceMultiplier;
+exports.isValidIpType = isValidIpType;
+exports.getLineTypeLabel = getLineTypeLabel;
+exports.getLineTypeDescription = getLineTypeDescription;
+exports.getLineTypePriority = getLineTypePriority;
+exports.isValidLineType = isValidLineType;
+exports.getAllIpTypes = getAllIpTypes;
+exports.getAllLineTypes = getAllLineTypes;
+exports.getISPById = getISPById;
+exports.getISPsByCountry = getISPsByCountry;
+/**
+ * IP类型枚举
+ */
+var IpType;
+(function (IpType) {
+    IpType["DATACENTER"] = "datacenter";
+    IpType["RESIDENTIAL_DYNAMIC"] = "residential_dynamic";
+    IpType["RESIDENTIAL_STATIC"] = "residential_static";
+    IpType["MOBILE"] = "mobile"; // 移动IP - 移动端业务
+})(IpType || (exports.IpType = IpType = {}));
+/**
+ * IP类型元数据
+ */
+exports.IpTypeMeta = {
+    [IpType.DATACENTER]: {
+        label: '机房',
+        description: '数据中心IP，适合大流量下载',
+        costLevel: 'low',
+        priceMultiplier: 1.0,
+        typicalBandwidth: '1000Mbps',
+        typicalTraffic: '1000GB+',
+        useCases: ['大流量下载', '视频观看', '日常代理']
+    },
+    [IpType.RESIDENTIAL_DYNAMIC]: {
+        label: '动态住宅',
+        description: '真实家庭宽带IP，24h自动更换',
+        costLevel: 'high',
+        priceMultiplier: 3.0,
+        typicalBandwidth: '100Mbps',
+        typicalTraffic: '200GB',
+        useCases: ['流媒体解锁', '防追踪', '隐私保护']
+    },
+    [IpType.RESIDENTIAL_STATIC]: {
+        label: '静态住宅',
+        description: '真实家庭宽带IP，固定不变',
+        costLevel: 'very_high',
+        priceMultiplier: 5.0,
+        typicalBandwidth: '100Mbps',
+        typicalTraffic: '100GB',
+        useCases: ['账号注册', '长期业务', 'IP敏感操作']
+    },
+    [IpType.MOBILE]: {
+        label: '移动',
+        description: '移动网络IP',
+        costLevel: 'high',
+        priceMultiplier: 3.5,
+        typicalBandwidth: '50Mbps',
+        typicalTraffic: '100GB',
+        useCases: ['移动端业务', '验证码接收', 'APP测试']
+    }
+};
+/**
+ * 线路类型枚举
+ */
+var LineType;
+(function (LineType) {
+    LineType["STANDARD"] = "standard";
+    LineType["CN2"] = "cn2";
+    LineType["IEPL"] = "iepl";
+    LineType["IPLC"] = "iplc"; // IPLC专线
+})(LineType || (exports.LineType = LineType = {}));
+/**
+ * 线路类型元数据
+ */
+exports.LineTypeMeta = {
+    [LineType.STANDARD]: {
+        label: '标准线路',
+        description: '普通国际线路',
+        priority: 1,
+        costMultiplier: 1.0,
+        sla: '99%',
+        typicalLatency: '150-300ms'
+    },
+    [LineType.CN2]: {
+        label: 'CN2',
+        description: '中国电信下一代承载网',
+        priority: 2,
+        costMultiplier: 1.5,
+        sla: '99.5%',
+        typicalLatency: '80-150ms'
+    },
+    [LineType.IEPL]: {
+        label: 'IEPL',
+        description: '国际以太网专线',
+        priority: 3,
+        costMultiplier: 2.0,
+        sla: '99.9%',
+        typicalLatency: '50-100ms'
+    },
+    [LineType.IPLC]: {
+        label: 'IPLC',
+        description: '国际私有租用电路',
+        priority: 4,
+        costMultiplier: 3.0,
+        sla: '99.99%',
+        typicalLatency: '30-80ms'
+    }
+};
+/**
+ * 预设ISP列表
+ */
+exports.PRESET_ISPS = [
+    { id: 'starlink', name: 'Starlink', country: 'US', type: 'starlink', reputation: 95, features: ['卫星网络', '全球覆盖'] },
+    { id: 'comcast', name: 'Comcast', country: 'US', type: 'cable', reputation: 90, features: ['美国最大有线运营商'] },
+    { id: 'att', name: 'AT&T', country: 'US', type: 'fiber', reputation: 92, features: ['光纤网络'] },
+    { id: 'verizon', name: 'Verizon', country: 'US', type: 'fiber', reputation: 93, features: ['企业级服务'] },
+    { id: 'ucom', name: 'Ucom', country: 'JP', type: 'fiber', reputation: 88, features: ['日本本土运营商'] },
+    { id: 'ntt', name: 'NTT', country: 'JP', type: 'fiber', reputation: 94, features: ['日本最大运营商'] }
+];
+/**
+ * 获取IP类型标签
+ */
+function getIpTypeLabel(type) {
+    return exports.IpTypeMeta[type]?.label || type;
+}
+/**
+ * 获取IP类型描述
+ */
+function getIpTypeDescription(type) {
+    return exports.IpTypeMeta[type]?.description || '';
+}
+/**
+ * 获取IP类型价格系数
+ */
+function getIpTypePriceMultiplier(type) {
+    return exports.IpTypeMeta[type]?.priceMultiplier || 1.0;
+}
+/**
+ * 验证IP类型是否有效
+ */
+function isValidIpType(type) {
+    return Object.values(IpType).includes(type);
+}
+/**
+ * 获取线路类型标签
+ */
+function getLineTypeLabel(type) {
+    return exports.LineTypeMeta[type]?.label || type;
+}
+/**
+ * 获取线路类型描述
+ */
+function getLineTypeDescription(type) {
+    return exports.LineTypeMeta[type]?.description || '';
+}
+/**
+ * 获取线路类型优先级
+ */
+function getLineTypePriority(type) {
+    return exports.LineTypeMeta[type]?.priority || 0;
+}
+/**
+ * 验证线路类型是否有效
+ */
+function isValidLineType(type) {
+    return Object.values(LineType).includes(type);
+}
+/**
+ * 获取所有IP类型列表
+ */
+function getAllIpTypes() {
+    return Object.values(IpType);
+}
+/**
+ * 获取所有线路类型列表
+ */
+function getAllLineTypes() {
+    return Object.values(LineType);
+}
+/**
+ * 根据ID获取ISP信息
+ */
+function getISPById(id) {
+    return exports.PRESET_ISPS.find(isp => isp.id === id);
+}
+/**
+ * 根据国家获取ISP列表
+ */
+function getISPsByCountry(country) {
+    return exports.PRESET_ISPS.filter(isp => isp.country === country);
+}
+//# sourceMappingURL=ip-type.js.map

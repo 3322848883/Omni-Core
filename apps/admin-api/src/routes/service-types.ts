@@ -12,7 +12,7 @@ import {
   ServiceTypeMeta,
   isValidServiceType,
   PLAN_GROUPS
-} from '@shared/constants';
+} from '../shared/constants';
 import { ValidationError } from '../utils/errors';
 
 const router = Router();

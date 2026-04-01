@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { sendSuccess, sendError } from '../utils/response';
 import { authMiddleware } from '../middlewares/auth';
-import { ErrorCode, HttpStatus } from '@shared/constants';
+import { ErrorCode, HttpStatus } from '../shared/constants';
 
 const router = Router();
 

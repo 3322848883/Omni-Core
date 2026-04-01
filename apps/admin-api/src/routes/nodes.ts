@@ -7,7 +7,7 @@ import { getNodeConfigCache } from '../services/cache';
 import { XrayConfigGenerator } from '../services/xray/config';
 import { authMiddleware } from '../middlewares/auth';
 import { validate, NodeValidation } from '../middlewares/validation';
-import { ServiceType, isValidServiceType } from '@shared/constants';
+import { ServiceType, isValidServiceType } from '../shared/constants';
 import {
   IpType,
   LineType,

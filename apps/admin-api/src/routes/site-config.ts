@@ -3,7 +3,7 @@ import { authMiddleware, requireAdmin } from '../middlewares/auth';
 import { db } from '../database';
 import { AppError } from '../utils/errors';
 import { logger } from '../utils/logger';
-import { ErrorCode, HttpStatus } from '@shared/constants';
+import { ErrorCode, HttpStatus } from '../shared/constants';
 
 const router = Router();
 

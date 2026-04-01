@@ -10,7 +10,7 @@ import {
   ServiceType,
   isValidServiceType,
   ServiceTypeMeta
-} from '@shared/constants';
+} from '../shared/constants';
 import {
   getPlans,
   getPlanById,

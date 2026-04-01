@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 import { createRequestId } from '../utils/response';
-import { ErrorCode, HttpStatus } from '@shared/constants';
+import { ErrorCode, HttpStatus } from '../shared/constants';
 import { AppError, ValidationError } from '../utils/errors';
 
 export interface ApiError extends Error {

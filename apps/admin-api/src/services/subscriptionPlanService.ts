@@ -19,8 +19,8 @@ import {
   ServiceType,
   isValidServiceType,
   PLAN_GROUPS
-} from '@shared/constants';
-import { IpType, LineType } from '@shared/constants/ip-type';
+} from '../shared/constants';
+import { IpType, LineType } from '../shared/constants/ip-type';
 
 /**
  * 生成唯一 ID

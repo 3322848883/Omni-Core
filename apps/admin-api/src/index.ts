@@ -12,7 +12,7 @@ import { createRequestId } from './utils/response';
 import { requestLogger } from './middlewares/requestLogger';
 import { initializeXrayService, shutdownXrayService } from './services/xray';
 import { initializePaymentProviders } from './services/payment';
-import { ErrorCode } from '@shared/constants';
+import { ErrorCode } from './shared/constants';
 
 // Routes
 import { authRoutes } from './routes/auth';
