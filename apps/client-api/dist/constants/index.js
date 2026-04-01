@@ -1,0 +1,72 @@
+"use strict";
+// Client API Constants
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.SUBSCRIPTION_STATUS = exports.USER_STATUS = exports.DEFAULTS = exports.ErrorCode = exports.HttpStatus = void 0;
+// HTTP Status Codes
+exports.HttpStatus = {
+    OK: 200,
+    CREATED: 201,
+    ACCEPTED: 202,
+    NO_CONTENT: 204,
+    BAD_REQUEST: 400,
+    UNAUTHORIZED: 401,
+    FORBIDDEN: 403,
+    NOT_FOUND: 404,
+    CONFLICT: 409,
+    UNPROCESSABLE_ENTITY: 422,
+    TOO_MANY_REQUESTS: 429,
+    INTERNAL_ERROR: 500,
+    BAD_GATEWAY: 502,
+    SERVICE_UNAVAILABLE: 503,
+};
+// Error Codes
+exports.ErrorCode = {
+    // General
+    INTERNAL_ERROR: 'INTERNAL_ERROR',
+    BAD_REQUEST: 'BAD_REQUEST',
+    VALIDATION_ERROR: 'VALIDATION_ERROR',
+    NOT_FOUND: 'NOT_FOUND',
+    UNAUTHORIZED: 'UNAUTHORIZED',
+    FORBIDDEN: 'FORBIDDEN',
+    RATE_LIMITED: 'RATE_LIMITED',
+    // Auth
+    INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
+    TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+    TOKEN_INVALID: 'TOKEN_INVALID',
+    INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
+    // User
+    USER_NOT_FOUND: 'USER_NOT_FOUND',
+    USER_ALREADY_EXISTS: 'USER_ALREADY_EXISTS',
+    USER_INACTIVE: 'USER_INACTIVE',
+    USER_BANNED: 'USER_BANNED',
+    // Subscription
+    SUBSCRIPTION_EXPIRED: 'SUBSCRIPTION_EXPIRED',
+    TRAFFIC_EXCEEDED: 'TRAFFIC_EXCEEDED',
+    // Payment
+    PAYMENT_FAILED: 'PAYMENT_FAILED',
+    ORDER_NOT_FOUND: 'ORDER_NOT_FOUND',
+    ORDER_ALREADY_PAID: 'ORDER_ALREADY_PAID',
+};
+// Default Values
+exports.DEFAULTS = {
+    PAGE_SIZE: 20,
+    MAX_PAGE_SIZE: 100,
+    JWT_EXPIRES_IN: '15m',
+    JWT_REFRESH_EXPIRES_IN: '7d',
+    RATE_LIMIT_WINDOW_MS: 60000,
+    RATE_LIMIT_MAX_REQUESTS: 100,
+};
+// User Status
+exports.USER_STATUS = {
+    ACTIVE: 1,
+    INACTIVE: 0,
+    BANNED: 2,
+};
+// Subscription Status
+exports.SUBSCRIPTION_STATUS = {
+    ACTIVE: 1,
+    INACTIVE: 0,
+    EXPIRED: 2,
+    CANCELLED: 3,
+};
+//# sourceMappingURL=index.js.map

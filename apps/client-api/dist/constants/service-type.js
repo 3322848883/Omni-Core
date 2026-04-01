@@ -1,0 +1,164 @@
+"use strict";
+// Service Type Constants
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.ServiceTypeMeta = exports.ServiceType = void 0;
+exports.getServiceTypeLabel = getServiceTypeLabel;
+exports.getServiceTypeDescription = getServiceTypeDescription;
+exports.getServiceTypeFeatures = getServiceTypeFeatures;
+exports.getServiceTypeCategory = getServiceTypeCategory;
+exports.isValidServiceType = isValidServiceType;
+exports.getAllServiceTypes = getAllServiceTypes;
+exports.getServiceTypesByCategory = getServiceTypesByCategory;
+/**
+ * 服务类型枚举
+ * 定义系统支持的所有服务类型
+ */
+var ServiceType;
+(function (ServiceType) {
+    // 标准VPN服务
+    ServiceType["VPN_BASIC"] = "vpn_basic";
+    ServiceType["VPN_PREMIUM"] = "vpn_premium";
+    ServiceType["VPN_ENTERPRISE"] = "vpn_enterprise";
+    // 专线服务
+    ServiceType["DEDICATED_LINE"] = "dedicated_line";
+    ServiceType["CN2_LINE"] = "cn2_line";
+    ServiceType["IEPL_LINE"] = "iepl_line";
+    ServiceType["IPLC_LINE"] = "iplc_line";
+    // 静态IP服务
+    ServiceType["STATIC_IP"] = "static_ip";
+    ServiceType["RESIDENTIAL_STATIC"] = "residential_static";
+    // 动态IP服务
+    ServiceType["DYNAMIC_IP"] = "dynamic_ip";
+    ServiceType["RESIDENTIAL_DYNAMIC"] = "residential_dynamic";
+    // 特殊服务
+    ServiceType["CUSTOM"] = "custom";
+    ServiceType["TRIAL"] = "trial";
+})(ServiceType || (exports.ServiceType = ServiceType = {}));
+/**
+ * 服务类型元数据
+ */
+exports.ServiceTypeMeta = {
+    [ServiceType.VPN_BASIC]: {
+        label: '基础VPN',
+        description: '标准VPN服务，适合日常使用',
+        features: ['多节点', '标准速度', '基础支持'],
+        category: 'vpn'
+    },
+    [ServiceType.VPN_PREMIUM]: {
+        label: '高级VPN',
+        description: '高级VPN服务，优先线路',
+        features: ['多节点', '优先线路', '高速通道', '优先支持'],
+        category: 'vpn'
+    },
+    [ServiceType.VPN_ENTERPRISE]: {
+        label: '企业VPN',
+        description: '企业级VPN服务，专线品质',
+        features: ['专属节点', '专线品质', '最高速度', '24/7支持'],
+        category: 'vpn'
+    },
+    [ServiceType.DEDICATED_LINE]: {
+        label: '专线服务',
+        description: '独享专线，稳定低延迟',
+        features: ['独享带宽', '低延迟', '高稳定性'],
+        category: 'dedicated'
+    },
+    [ServiceType.CN2_LINE]: {
+        label: 'CN2专线',
+        description: '中国电信CN2专线',
+        features: ['CN2 GIA', '优质路由', '低丢包'],
+        category: 'dedicated'
+    },
+    [ServiceType.IEPL_LINE]: {
+        label: 'IEPL专线',
+        description: '国际以太网专线',
+        features: ['IEPL专线', '企业级品质', '全球覆盖'],
+        category: 'dedicated'
+    },
+    [ServiceType.IPLC_LINE]: {
+        label: 'IPLC专线',
+        description: '国际私人租用线路',
+        features: ['IPLC专线', '物理隔离', '最高安全'],
+        category: 'dedicated'
+    },
+    [ServiceType.STATIC_IP]: {
+        label: '静态IP',
+        description: '固定IP地址服务',
+        features: ['固定IP', '长期稳定', '适合业务'],
+        category: 'ip'
+    },
+    [ServiceType.RESIDENTIAL_STATIC]: {
+        label: '住宅静态IP',
+        description: '住宅网络静态IP',
+        features: ['住宅IP', '静态地址', '高匿名性'],
+        category: 'ip'
+    },
+    [ServiceType.DYNAMIC_IP]: {
+        label: '动态IP',
+        description: '动态IP地址服务',
+        features: ['动态IP', '自动更换', '性价比高'],
+        category: 'ip'
+    },
+    [ServiceType.RESIDENTIAL_DYNAMIC]: {
+        label: '住宅动态IP',
+        description: '住宅网络动态IP',
+        features: ['住宅IP', '动态更换', '高匿名性'],
+        category: 'ip'
+    },
+    [ServiceType.CUSTOM]: {
+        label: '定制服务',
+        description: '根据需求定制',
+        features: ['灵活配置', '专属方案', '一对一服务'],
+        category: 'custom'
+    },
+    [ServiceType.TRIAL]: {
+        label: '试用服务',
+        description: '限时试用体验',
+        features: ['限时体验', '功能完整', '免费试用'],
+        category: 'trial'
+    }
+};
+/**
+ * 获取服务类型标签
+ */
+function getServiceTypeLabel(type) {
+    return exports.ServiceTypeMeta[type]?.label || type;
+}
+/**
+ * 获取服务类型描述
+ */
+function getServiceTypeDescription(type) {
+    return exports.ServiceTypeMeta[type]?.description || '';
+}
+/**
+ * 获取服务类型特性列表
+ */
+function getServiceTypeFeatures(type) {
+    return exports.ServiceTypeMeta[type]?.features || [];
+}
+/**
+ * 获取服务类型分类
+ */
+function getServiceTypeCategory(type) {
+    return exports.ServiceTypeMeta[type]?.category || 'other';
+}
+/**
+ * 验证是否为有效的服务类型
+ */
+function isValidServiceType(type) {
+    return Object.values(ServiceType).includes(type);
+}
+/**
+ * 获取所有服务类型
+ */
+function getAllServiceTypes() {
+    return Object.values(ServiceType);
+}
+/**
+ * 按分类获取服务类型
+ */
+function getServiceTypesByCategory(category) {
+    return Object.values(ServiceType).filter(type => exports.ServiceTypeMeta[type]?.category === category);
+}
+// 默认导出
+exports.default = ServiceType;
+//# sourceMappingURL=service-type.js.map

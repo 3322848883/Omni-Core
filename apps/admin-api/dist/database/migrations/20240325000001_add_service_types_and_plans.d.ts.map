@@ -1,0 +1,1 @@
+{"version":3,"file":"20240325000001_add_service_types_and_plans.d.ts","sourceRoot":"","sources":["../../../src/database/migrations/20240325000001_add_service_types_and_plans.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,IAAI,EAAE,MAAM,MAAM,CAAC;AAE5B,wBAAsB,EAAE,CAAC,IAAI,EAAE,IAAI,GAAG,OAAO,CAAC,IAAI,CAAC,CA0BlD;AAED,wBAAsB,IAAI,CAAC,IAAI,EAAE,IAAI,GAAG,OAAO,CAAC,IAAI,CAAC,CAMpD"}
