@@ -1,0 +1,451 @@
+// ============================================
+// FGVPN Client Web - Modern UI/UX Design System
+// 现代化设计系统 - 深色科技主题
+// ============================================
+
+// ============================================
+// 1. 色彩系统 (Color System)
+// ============================================
+
+:root {
+  // ----- 主色调 - 科技蓝紫渐变 (Primary Colors) -----
+  --brand-primary: #6366f1;
+  --brand-secondary: #8b5cf6;
+  --brand-tertiary: #06b6d4;
+  --brand-primary-hover: #4f46e5;
+  --brand-secondary-hover: #7c3aed;
+
+  // 主渐变
+  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
+  --gradient-glow: linear-gradient(135deg, rgba(99, 102, 241, 0.4) 0%, rgba(139, 92, 246, 0.4) 100%);
+  --gradient-subtle: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+
+  // ----- 深色主题背景层级 (Dark Theme Backgrounds) -----
+  --bg-deep: #0a0a0f;
+  --bg-dark: #12121a;
+  --bg-card: #1a1a25;
+  --bg-elevated: #222230;
+  --bg-overlay: rgba(18, 18, 26, 0.9);
+
+  // 玻璃拟态背景
+  --glass-bg: rgba(26, 26, 37, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-blur: blur(20px);
+
+  // ----- 功能色 - 霓虹效果 (Functional Colors with Neon Glow) -----
+  // 成功 - 霓虹绿
+  --color-success: #10b981;
+  --color-success-light: rgba(16, 185, 129, 0.15);
+  --color-success-glow: rgba(16, 185, 129, 0.4);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+
+  // 警告 - 琥珀
+  --color-warning: #f59e0b;
+  --color-warning-light: rgba(245, 158, 11, 0.15);
+  --color-warning-glow: rgba(245, 158, 11, 0.4);
+  --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+
+  // 危险 - 玫瑰红
+  --color-danger: #f43f5e;
+  --color-danger-light: rgba(244, 63, 94, 0.15);
+  --color-danger-glow: rgba(244, 63, 94, 0.4);
+  --gradient-danger: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
+
+  // 信息 - 天蓝
+  --color-info: #0ea5e9;
+  --color-info-light: rgba(14, 165, 233, 0.15);
+  --color-info-glow: rgba(14, 165, 233, 0.4);
+  --gradient-info: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
+
+  // ----- 文本色彩层级 (Text Colors) -----
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --text-muted: #475569;
+  --text-disabled: #334155;
+
+  // 品牌文本
+  --text-brand: #818cf8;
+  --text-gradient: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+
+  // ----- 边框与分隔线 (Borders) -----
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  --border-glow: rgba(99, 102, 241, 0.3);
+
+  // ----- 节点状态色 (Node Status) -----
+  --node-online: #10b981;
+  --node-offline: #f43f5e;
+  --node-busy: #f59e0b;
+  --node-maintenance: #64748b;
+
+  // ----- 订单状态色 (Order Status) -----
+  --order-pending: #f59e0b;
+  --order-paid: #6366f1;
+  --order-completed: #10b981;
+  --order-cancelled: #64748b;
+}
+
+// ============================================
+// 2. 排版系统 (Typography)
+// ============================================
+
+:root {
+  // ----- 字体族 (Font Families) -----
+  --font-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, 'Courier New', monospace;
+  --font-chinese: 'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'WenQuanYi Micro Hei', sans-serif;
+
+  // ----- 字号层级 (Font Sizes) -----
+  --text-h1: 2.5rem;
+  --text-h2: 2rem;
+  --text-h3: 1.5rem;
+  --text-h4: 1.25rem;
+  --text-h5: 1.125rem;
+  --text-h6: 1rem;
+
+  --text-lg: 1.125rem;
+  --text-base: 1rem;
+  --text-sm: 0.875rem;
+  --text-xs: 0.75rem;
+
+  // 数据展示
+  --text-data-lg: 2.25rem;
+  --text-data: 1.875rem;
+  --text-data-sm: 1.5rem;
+
+  // ----- 字重 (Font Weights) -----
+  --font-light: 300;
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  --font-extrabold: 800;
+
+  // ----- 行高 (Line Heights) -----
+  --leading-none: 1;
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+  --leading-loose: 2;
+
+  // ----- 字间距 (Letter Spacing) -----
+  --tracking-tight: -0.025em;
+  --tracking-normal: 0;
+  --tracking-wide: 0.025em;
+  --tracking-wider: 0.05em;
+}
+
+// ============================================
+// 3. 间距系统 (Spacing System)
+// ============================================
+
+:root {
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-20: 5rem;
+  --space-24: 6rem;
+
+  // 布局间距
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 64px;
+  --header-height: 64px;
+  --page-padding: 1.5rem;
+  --content-max-width: 1440px;
+}
+
+// ============================================
+// 4. 圆角系统 (Border Radius)
+// ============================================
+
+:root {
+  --radius-none: 0;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
+}
+
+// ============================================
+// 5. 阴影与光效 (Shadows & Glow Effects)
+// ============================================
+
+:root {
+  // 基础阴影
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+
+  // 发光效果
+  --glow-primary: 0 0 20px rgba(99, 102, 241, 0.4);
+  --glow-success: 0 0 20px rgba(16, 185, 129, 0.4);
+  --glow-warning: 0 0 20px rgba(245, 158, 11, 0.4);
+  --glow-danger: 0 0 20px rgba(244, 63, 94, 0.4);
+  --glow-inner: inset 0 0 20px rgba(99, 102, 241, 0.1);
+
+  // 卡片阴影
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-card-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(99, 102, 241, 0.2), 0 0 20px rgba(99, 102, 241, 0.15);
+
+  // 按钮阴影
+  --shadow-button: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
+  --shadow-button-hover: 0 6px 20px 0 rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.3);
+}
+
+// ============================================
+// 6. 过渡与动画 (Transitions & Animations)
+// ============================================
+
+:root {
+  // 过渡时间函数
+  --ease-default: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  // 动画时长
+  --duration-instant: 0ms;
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 350ms;
+  --duration-slower: 500ms;
+
+  // 常用过渡
+  --transition-colors: color var(--duration-fast) var(--ease-default),
+    background-color var(--duration-fast) var(--ease-default),
+    border-color var(--duration-fast) var(--ease-default);
+  --transition-transform: transform var(--duration-normal) var(--ease-default);
+  --transition-opacity: opacity var(--duration-fast) var(--ease-default);
+  --transition-shadow: box-shadow var(--duration-fast) var(--ease-default);
+  --transition-all: all var(--duration-normal) var(--ease-default);
+}
+
+// ============================================
+// 7. Z-Index 层级 (Z-Index Scale)
+// ============================================
+
+:root {
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  --z-toast: 1080;
+  --z-loading: 1090;
+}
+
+// ============================================
+// 8. 响应式断点 (Responsive Breakpoints)
+// ============================================
+
+$breakpoint-xs: 480px;
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;
+
+:root {
+  --breakpoint-xs: #{$breakpoint-xs};
+  --breakpoint-sm: #{$breakpoint-sm};
+  --breakpoint-md: #{$breakpoint-md};
+  --breakpoint-lg: #{$breakpoint-lg};
+  --breakpoint-xl: #{$breakpoint-xl};
+  --breakpoint-2xl: #{$breakpoint-2xl};
+}
+
+// ============================================
+// 9. SCSS Mixins
+// ============================================
+
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == xs {
+    @media (max-width: #{$breakpoint-xs - 1px}) {
+      @content;
+    }
+  } @else if $breakpoint == sm {
+    @media (min-width: #{$breakpoint-xs}) and (max-width: #{$breakpoint-sm - 1px}) {
+      @content;
+    }
+  } @else if $breakpoint == md {
+    @media (min-width: #{$breakpoint-sm}) and (max-width: #{$breakpoint-md - 1px}) {
+      @content;
+    }
+  } @else if $breakpoint == lg {
+    @media (min-width: #{$breakpoint-md}) and (max-width: #{$breakpoint-lg - 1px}) {
+      @content;
+    }
+  } @else if $breakpoint == xl {
+    @media (min-width: #{$breakpoint-lg}) {
+      @content;
+    }
+  } @else if $breakpoint == mobile {
+    @media (max-width: #{$breakpoint-md - 1px}) {
+      @content;
+    }
+  } @else if $breakpoint == tablet {
+    @media (min-width: #{$breakpoint-md}) and (max-width: #{$breakpoint-lg - 1px}) {
+      @content;
+    }
+  } @else if $breakpoint == desktop {
+    @media (min-width: #{$breakpoint-lg}) {
+      @content;
+    }
+  }
+}
+
+// 玻璃拟态 mixin
+@mixin glass-effect($opacity: 0.7, $blur: 20px) {
+  background: rgba(26, 26, 37, $opacity);
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+// 渐变文字 mixin
+@mixin gradient-text($gradient: var(--gradient-primary)) {
+  background: $gradient;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// 发光效果 mixin
+@mixin glow-effect($color: var(--brand-primary), $intensity: 0.4) {
+  box-shadow: 0 0 20px rgba($color, $intensity);
+}
+
+// ============================================
+// 10. Element Plus 主题变量映射
+// ============================================
+
+:root {
+  // Element Plus 主色映射
+  --el-color-primary: var(--brand-primary);
+  --el-color-primary-light-3: var(--brand-secondary);
+  --el-color-primary-light-5: #a78bfa;
+  --el-color-primary-light-7: #c4b5fd;
+  --el-color-primary-light-8: #ddd6fe;
+  --el-color-primary-light-9: rgba(99, 102, 241, 0.1);
+  --el-color-primary-dark-2: var(--brand-primary-hover);
+
+  // Element Plus 辅助色映射
+  --el-color-success: var(--color-success);
+  --el-color-success-light-3: #34d399;
+  --el-color-success-light-5: #6ee7b7;
+  --el-color-success-light-7: #a7f3d0;
+  --el-color-success-light-8: #d1fae5;
+  --el-color-success-light-9: rgba(16, 185, 129, 0.1);
+  --el-color-success-dark-2: #059669;
+
+  --el-color-warning: var(--color-warning);
+  --el-color-warning-light-3: #fbbf24;
+  --el-color-warning-light-5: #fcd34d;
+  --el-color-warning-light-7: #fde68a;
+  --el-color-warning-light-8: #fef3c7;
+  --el-color-warning-light-9: rgba(245, 158, 11, 0.1);
+  --el-color-warning-dark-2: #d97706;
+
+  --el-color-danger: var(--color-danger);
+  --el-color-danger-light-3: #fb7185;
+  --el-color-danger-light-5: #fda4af;
+  --el-color-danger-light-7: #fecdd3;
+  --el-color-danger-light-8: #ffe4e6;
+  --el-color-danger-light-9: rgba(244, 63, 94, 0.1);
+  --el-color-danger-dark-2: #e11d48;
+
+  --el-color-info: var(--color-info);
+  --el-color-info-light-3: #38bdf8;
+  --el-color-info-light-5: #7dd3fc;
+  --el-color-info-light-7: #bae6fd;
+  --el-color-info-light-8: #e0f2fe;
+  --el-color-info-light-9: rgba(14, 165, 233, 0.1);
+  --el-color-info-dark-2: #0284c7;
+
+  // Element Plus 文本色映射
+  --el-text-color-primary: var(--text-primary);
+  --el-text-color-regular: var(--text-secondary);
+  --el-text-color-secondary: var(--text-tertiary);
+  --el-text-color-placeholder: var(--text-muted);
+  --el-text-color-disabled: var(--text-disabled);
+
+  // Element Plus 边框色映射
+  --el-border-color: var(--border-default);
+  --el-border-color-light: var(--border-subtle);
+  --el-border-color-lighter: rgba(255, 255, 255, 0.03);
+  --el-border-color-extra-light: rgba(255, 255, 255, 0.02);
+  --el-border-color-dark: var(--border-strong);
+  --el-border-color-darker: var(--border-strong);
+
+  // Element Plus 背景色映射
+  --el-bg-color: var(--bg-card);
+  --el-bg-color-page: var(--bg-dark);
+  --el-bg-color-overlay: var(--bg-overlay);
+
+  // Element Plus 填充色映射
+  --el-fill-color: var(--bg-elevated);
+  --el-fill-color-light: rgba(255, 255, 255, 0.05);
+  --el-fill-color-lighter: rgba(255, 255, 255, 0.03);
+  --el-fill-color-extra-light: rgba(255, 255, 255, 0.02);
+  --el-fill-color-dark: rgba(255, 255, 255, 0.1);
+  --el-fill-color-darker: rgba(255, 255, 255, 0.15);
+  --el-fill-color-blank: var(--bg-card);
+
+  // Element Plus 圆角映射
+  --el-border-radius-base: var(--radius-md);
+  --el-border-radius-small: var(--radius-sm);
+  --el-border-radius-round: var(--radius-full);
+  --el-border-radius-circle: 50%;
+
+  // Element Plus 字体映射
+  --el-font-size-extra-large: var(--text-lg);
+  --el-font-size-large: var(--text-base);
+  --el-font-size-medium: var(--text-sm);
+  --el-font-size-base: var(--text-sm);
+  --el-font-size-small: var(--text-xs);
+  --el-font-size-extra-small: var(--text-xs);
+
+  --el-font-family: var(--font-primary);
+  --el-font-weight-primary: var(--font-normal);
+
+  // Element Plus 间距映射
+  --el-index-normal: 1;
+  --el-index-top: 1000;
+  --el-index-popper: 2000;
+
+  // Element Plus 禁用状态
+  --el-disabled-bg-color: rgba(255, 255, 255, 0.05);
+  --el-disabled-text-color: var(--text-disabled);
+  --el-disabled-border-color: var(--border-subtle);
+
+  // Element Plus 遮罩
+  --el-overlay-color: rgba(0, 0, 0, 0.7);
+  --el-overlay-color-light: rgba(0, 0, 0, 0.5);
+  --el-overlay-color-lighter: rgba(0, 0, 0, 0.3);
+
+  // Element Plus 阴影映射
+  --el-box-shadow: var(--shadow-md);
+  --el-box-shadow-light: var(--shadow-sm);
+  --el-box-shadow-lighter: var(--shadow-sm);
+  --el-box-shadow-dark: var(--shadow-lg);
+}

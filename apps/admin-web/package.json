@@ -1,0 +1,53 @@
+{
+  "name": "@omnicore/admin-web",
+  "version": "1.0.0",
+  "description": "Omni Core Admin Web Application",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext .vue,.ts,.tsx --fix",
+    "lint:check": "eslint . --ext .vue,.ts,.tsx",
+    "format": "prettier --write \"src/**/*.{ts,vue,css,scss}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,vue,css,scss}\"",
+    "type-check": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.6.7",
+    "dayjs": "^1.11.10",
+    "echarts": "^5.4.3",
+    "element-plus": "^2.5.3",
+    "js-cookie": "^3.0.5",
+    "nprogress": "^0.2.0",
+    "pinia": "^2.1.7",
+    "screenfull": "^6.0.2",
+    "vue": "^3.4.15",
+    "vue-echarts": "^6.6.8",
+    "vue-router": "^4.2.5"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^29.0.2",
+    "@types/js-cookie": "^3.0.6",
+    "@types/node": "^20.11.16",
+    "@types/nprogress": "^0.2.3",
+    "@typescript-eslint/eslint-plugin": "^6.20.0",
+    "@typescript-eslint/parser": "^6.20.0",
+    "@vitejs/plugin-vue": "^5.0.3",
+    "@vitejs/plugin-vue-jsx": "^3.1.0",
+    "autoprefixer": "^10.4.17",
+    "eslint": "^8.56.0",
+    "eslint-plugin-vue": "^9.21.1",
+    "postcss": "^8.4.33",
+    "prettier": "^3.2.5",
+    "sass": "^1.70.0",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.12",
+    "vue-tsc": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

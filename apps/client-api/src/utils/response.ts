@@ -1,0 +1,94 @@
+import { Response } from 'express';
+import { v4 as uuidv4 } from 'uuid';
+
+/**
+ * Generate a unique request ID
+ */
+export function createRequestId(): string {
+  return uuidv4();
+}
+
+/**
+ * Standard API response structure
+ */
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  code?: string | number;
+  requestId: string;
+  timestamp: number;
+}
+
+/**
+ * Send success response
+ */
+export function sendSuccess<T>(
+  res: Response,
+  data: T,
+  message?: string,
+  statusCode: number = 200
+): void {
+  const response: ApiResponse<T> = {
+    success: true,
+    data,
+    message,
+    requestId: (res.req as any).requestId || createRequestId(),
+    timestamp: Date.now(),
+  };
+  res.status(statusCode).json(response);
+}
+
+/**
+ * Alias for sendSuccess - for backward compatibility
+ */
+export const successResponse = sendSuccess;
+
+/**
+ * Send created response (201)
+ */
+export function createdResponse<T>(
+  res: Response,
+  data: T,
+  message?: string
+): void {
+  const response: ApiResponse<T> = {
+    success: true,
+    data,
+    message,
+    requestId: (res.req as any).requestId || createRequestId(),
+    timestamp: Date.now(),
+  };
+  res.status(201).json(response);
+}
+
+/**
+ * Send error response
+ */
+export function sendError(
+  res: Response,
+  message: string,
+  code: string | number = 'INTERNAL_ERROR',
+  statusCode: number = 500,
+  errors?: any[]
+): void {
+  const response: ApiResponse = {
+    success: false,
+    message,
+    code,
+    requestId: (res.req as any).requestId || createRequestId(),
+    timestamp: Date.now(),
+  };
+  res.status(statusCode).json(response);
+}
+
+/**
+ * Alias for sendError - for backward compatibility
+ */
+export const errorResponse = sendError;
+
+export default {
+  createRequestId,
+  sendSuccess,
+  sendError,
+};

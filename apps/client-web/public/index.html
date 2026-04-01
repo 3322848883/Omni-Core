@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>Omni Core - 安全、快速、匿名的网络体验</title>
+  <meta name="description" content="Omni Core 提供军事级加密、全球节点覆盖、零日志政策的 VPN 服务，保护您的网络隐私和安全。立即注册开始体验！">
+  <meta name="keywords" content="VPN, 虚拟专用网络, 网络安全, 隐私保护, 翻墙, 科学上网, Omni Core">
+  <meta name="author" content="Omni Core">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Omni Core - 安全、快速、匿名的网络体验">
+  <meta property="og:description" content="Omni Core 提供军事级加密、全球节点覆盖、零日志政策的 VPN 服务">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://omnicore.vpn">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Omni Core - 安全、快速、匿名的网络体验">
+  <meta name="twitter:description" content="Omni Core 提供军事级加密、全球节点覆盖、零日志政策的 VPN 服务">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="landing.css">
+
+  <!-- Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Omni Core",
+    "url": "https://omnicore.vpn",
+    "logo": "https://omnicore.vpn/omnicore-liquid-logo.svg",
+    "description": "提供军事级加密、全球节点覆盖、零日志政策的 VPN 服务",
+    "sameAs": [
+      "https://t.me/omnicore"
+    ]
+  }
+  </script>
+</head>
+<body>
+  <!-- 1. 导航栏 -->
+  <nav id="navbar" class="navbar">
+    <div class="nav-container">
+      <a href="#" class="nav-logo">
+        <img src="omnicore-liquid-logo.svg" alt="Omni Core Logo" class="logo-img">
+        <div class="logo-text">
+          <span class="logo-main">Omni Core</span>
+        </div>
+      </a>
+
+      <div class="nav-links">
+        <a href="#features" class="nav-link">功能</a>
+        <a href="#servers" class="nav-link">节点</a>
+        <a href="#faq" class="nav-link">FAQ</a>
+      </div>
+
+      <div class="nav-actions">
+        <button class="btn btn-outline" onclick="scrollToAuth('login')">登录</button>
+        <button class="btn btn-primary" onclick="scrollToAuth('register')">注册</button>
+      </div>
+
+      <button class="mobile-menu-btn" aria-label="菜单">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+
+    <!-- 移动端菜单 -->
+    <div class="mobile-menu">
+      <div class="mobile-nav-links">
+        <a href="#features" class="mobile-nav-link">功能</a>
+        <a href="#servers" class="mobile-nav-link">节点</a>
+        <a href="#faq" class="mobile-nav-link">FAQ</a>
+      </div>
+      <div class="mobile-nav-actions">
+        <button class="btn btn-outline btn-full" onclick="scrollToAuth('login')">登录</button>
+        <button class="btn btn-primary btn-full" onclick="scrollToAuth('register')">注册</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Global Particle Canvas -->
+  <canvas id="particle-canvas" class="particle-canvas-global"></canvas>
+
+  <!-- 2. Hero 区域 -->
+  <header id="hero" class="hero">
+    <div class="hero-content">
+      <div class="hero-logo">
+        <img src="omnicore-liquid-logo.svg" alt="Omni Core Logo" class="hero-logo-img">
+      </div>
+      <h1 class="hero-title">安全、快速、匿名的网络体验</h1>
+      <p class="hero-subtitle">Omni Core 提供军事级加密保护，让您自由访问全球网络</p>
+      <div class="hero-actions">
+        <button class="btn btn-primary btn-lg" onclick="scrollToAuth('register')">立即开始</button>
+        <button class="btn btn-outline btn-lg" onclick="scrollToSection('features')">了解更多</button>
+      </div>
+    </div>
+    <div class="scroll-indicator" onclick="scrollToSection('auth')">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M19 12l-7 7-7-7"/>
+      </svg>
+    </div>
+  </header>
+
+  <!-- 3. 登录/注册区域 -->
+  <section id="auth" class="auth-section">
+    <div class="container">
+      <div class="auth-card glass-card">
+        <!-- 登录表单 -->
+        <div id="login-form" class="auth-form">
+          <h2 class="auth-title">欢迎回来</h2>
+          <form onsubmit="handleLogin(event)">
+            <div class="form-group">
+              <label class="form-label">邮箱 / 用户名</label>
+              <input type="text" class="form-input" name="username" placeholder="请输入邮箱或用户名" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">密码</label>
+              <input type="password" class="form-input" name="password" placeholder="请输入密码" required>
+            </div>
+            <div class="form-options">
+              <label class="checkbox-label">
+                <input type="checkbox" name="remember">
+                <span>记住我</span>
+              </label>
+              <a href="#" class="form-link">忘记密码？</a>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full btn-submit">
+              <span class="btn-text">登录</span>
+              <span class="btn-loader" style="display: none;">
+                <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" stroke-dasharray="60" stroke-dashoffset="20"/>
+                </svg>
+              </span>
+            </button>
+          </form>
+          <p class="auth-switch">
+            还没有账号？<a href="#" class="form-link" onclick="switchAuthForm('register')">立即注册</a>
+          </p>
+        </div>
+
+        <!-- 注册表单 -->
+        <div id="register-form" class="auth-form" style="display: none;">
+          <h2 class="auth-title">创建账号</h2>
+          <form onsubmit="handleRegister(event)">
+            <div class="form-group">
+              <label class="form-label">邮箱</label>
+              <input type="email" class="form-input" name="email" placeholder="请输入邮箱" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">用户名</label>
+              <input type="text" class="form-input" name="username" placeholder="请输入用户名" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">密码</label>
+              <input type="password" class="form-input" name="password" placeholder="请输入密码（至少8位）" minlength="8" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">确认密码</label>
+              <input type="password" class="form-input" name="confirmPassword" placeholder="请再次输入密码" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">邀请码（可选）</label>
+              <input type="text" class="form-input" name="inviteCode" placeholder="如有邀请码请输入">
+            </div>
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" name="agree" required>
+                <span>我已阅读并同意<a href="#" class="form-link">服务条款</a></span>
+              </label>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full btn-submit">
+              <span class="btn-text">注册</span>
+              <span class="btn-loader" style="display: none;">
+                <svg class="spinner" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" stroke-dasharray="60" stroke-dashoffset="20"/>
+                </svg>
+              </span>
+            </button>
+          </form>
+          <p class="auth-switch">
+            已有账号？<a href="#" class="form-link" onclick="switchAuthForm('login')">立即登录</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. 功能特性 -->
+  <section id="features" class="features-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">为什么选择 Omni Core</h2>
+        <p class="section-subtitle">我们致力于为您提供最优质的 VPN 服务体验</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">军事级加密</h3>
+          <p class="feature-desc">采用 AES-256 加密算法，保护您的数据安全</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">全球节点</h3>
+          <p class="feature-desc">50+ 国家/地区，200+ 服务器节点</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">极速连接</h3>
+          <p class="feature-desc">专线优化，延迟低至 10ms</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" y1="18" x2="12" y2="12"/>
+              <line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">零日志政策</h3>
+          <p class="feature-desc">不记录任何用户活动日志，保护隐私</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+          </div>
+          <h3 class="feature-title">多平台支持</h3>
+          <p class="feature-desc">支持 Windows、Mac、iOS、Android、Linux</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 服务器节点 -->
+  <section id="servers" class="servers-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">全球服务器节点</h2>
+        <p class="section-subtitle">覆盖全球主要地区，为您提供稳定的连接</p>
+      </div>
+      <div class="servers-stats">
+        <div class="stat-item">
+          <span class="stat-number">50+</span>
+          <span class="stat-label">国家/地区</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">200+</span>
+          <span class="stat-label">服务器节点</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">99.9%</span>
+          <span class="stat-label">在线率</span>
+        </div>
+      </div>
+      <div class="servers-grid">
+        <div class="server-card">
+          <div class="server-info">
+            <span class="server-flag">🇭🇰</span>
+            <span class="server-name">香港</span>
+          </div>
+          <span class="server-latency latency-good">12ms</span>
+        </div>
+        <div class="server-card">
+          <div class="server-info">
+            <span class="server-flag">🇯🇵</span>
+            <span class="server-name">日本</span>
+          </div>
+          <span class="server-latency latency-good">25ms</span>
+        </div>
+        <div class="server-card">
+          <div class="server-info">
+            <span class="server-flag">🇸🇬</span>
+            <span class="server-name">新加坡</span>
+          </div>
+          <span class="server-latency latency-good">35ms</span>
+        </div>
+        <div class="server-card">
+          <div class="server-info">
+            <span class="server-flag">🇺🇸</span>
+            <span class="server-name">美国（洛杉矶）</span>
+          </div>
+          <span class="server-latency latency-medium">120ms</span>
+        </div>
+        <div class="server-card">
+          <div class="server-info">
+            <span class="server-flag">🇺🇸</span>
+            <span class="server-name">美国（纽约）</span>
+          </div>
+          <span class="server-latency latency-medium">150ms</span>
+        </div>
+        <div class="server-card">
+          <div class="server-info">
+            <span class="server-flag">🇬🇧</span>
+            <span class="server-name">英国</span>
+          </div>
+          <span class="server-latency latency-medium">180ms</span>
+        </div>
+        <div class="server-card">
+          <div class="server-info">
+            <span class="server-flag">🇩🇪</span>
+            <span class="server-name">德国</span>
+          </div>
+          <span class="server-latency latency-medium">200ms</span>
+        </div>
+        <div class="server-card">
+          <div class="server-info">
+            <span class="server-flag">🇦🇺</span>
+            <span class="server-name">澳大利亚</span>
+          </div>
+          <span class="server-latency latency-high">220ms</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. 定价方案 -->
+  <section id="pricing" class="pricing-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">选择适合您的方案</h2>
+        <p class="section-subtitle">灵活的套餐选择，满足不同需求</p>
+      </div>
+      <div class="pricing-grid">
+        <!-- 月付套餐 -->
+        <div class="pricing-card" data-plan="monthly">
+          <div class="pricing-header">
+            <h3 class="pricing-name">月付套餐</h3>
+            <div class="pricing-price">
+              <span class="price-currency">¥</span>
+              <span class="price-amount" data-price="monthly">--</span>
+              <span class="price-period">/月</span>
+            </div>
+          </div>
+          <ul class="pricing-features">
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>多台设备同时在线</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>200+ 服务器节点</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>不限流量</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>24/7 客服支持</span>
+            </li>
+          </ul>
+          <button class="btn btn-outline btn-full" onclick="selectPlan('monthly')">选择月付</button>
+        </div>
+
+        <!-- 季付套餐 - 推荐 -->
+        <div class="pricing-card pricing-popular" data-plan="quarterly">
+          <div class="popular-badge">推荐</div>
+          <div class="pricing-header">
+            <h3 class="pricing-name">季付套餐</h3>
+            <div class="pricing-price">
+              <span class="price-currency">¥</span>
+              <span class="price-amount" data-price="quarterly">--</span>
+              <span class="price-period">/季</span>
+            </div>
+            <div class="price-save">省 <span data-save="quarterly">--</span></div>
+          </div>
+          <ul class="pricing-features">
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>更多设备同时在线</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>200+ 服务器节点</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>不限流量</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>24/7 客服支持</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>优先节点选择</span>
+            </li>
+          </ul>
+          <button class="btn btn-primary btn-full" onclick="selectPlan('quarterly')">选择季付</button>
+        </div>
+
+        <!-- 年付套餐 -->
+        <div class="pricing-card" data-plan="yearly">
+          <div class="pricing-header">
+            <h3 class="pricing-name">年付套餐</h3>
+            <div class="pricing-price">
+              <span class="price-currency">¥</span>
+              <span class="price-amount" data-price="yearly">--</span>
+              <span class="price-period">/年</span>
+            </div>
+            <div class="price-save">省 <span data-save="yearly">--</span></div>
+          </div>
+          <ul class="pricing-features">
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>最多设备同时在线</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>200+ 服务器节点</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>不限流量</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>24/7 客服支持</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>优先节点选择</span>
+            </li>
+            <li>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+              <span>专属客服通道</span>
+            </li>
+          </ul>
+          <button class="btn btn-outline btn-full" onclick="selectPlan('yearly')">选择年付</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. 使用流程 -->
+  <section id="how-it-works" class="how-it-works-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">三步开始使用</h2>
+      </div>
+      <div class="steps-container">
+        <div class="step-item">
+          <div class="step-circle">
+            <span class="step-number">01</span>
+            <div class="step-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="8.5" cy="7" r="4"/>
+                <line x1="20" y1="8" x2="20" y2="14"/>
+                <line x1="23" y1="11" x2="17" y2="11"/>
+              </svg>
+            </div>
+          </div>
+          <h3 class="step-title">注册账号</h3>
+          <p class="step-desc">填写邮箱和密码，30秒完成注册</p>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+          <div class="step-circle">
+            <span class="step-number">02</span>
+            <div class="step-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </div>
+          </div>
+          <h3 class="step-title">下载客户端</h3>
+          <p class="step-desc">选择适合您设备的客户端下载安装</p>
+        </div>
+        <div class="step-connector"></div>
+        <div class="step-item">
+          <div class="step-circle">
+            <span class="step-number">03</span>
+            <div class="step-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12.55a11 11 0 0 1 14.08 0"/>
+                <path d="M1.42 9a16 16 0 0 1 21.16 0"/>
+                <path d="M8.53 16.11a6 6 0 0 1 6.95 0"/>
+                <line x1="12" y1="20" x2="12.01" y2="20"/>
+              </svg>
+            </div>
+          </div>
+          <h3 class="step-title">开始连接</h3>
+          <p class="step-desc">一键连接，畅享自由网络</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. FAQ -->
+  <section id="faq" class="faq-section">
+    <div class="container">
+      <div class="section-header">
+        <h2 class="section-title">常见问题</h2>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>Omni Core 支持哪些设备？</span>
+            <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="faq-answer">
+            <p>我们支持 Windows、Mac、iOS、Android、Linux 等多种平台，您可以在任何设备上使用 Omni Core。</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>如何申请退款？</span>
+            <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="faq-answer">
+            <p>如需退款，请联系客服处理。</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>Omni Core 会记录我的上网日志吗？</span>
+            <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="faq-answer">
+            <p>绝对不会。我们采用零日志政策，不记录用户的任何上网活动。</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>一个账号可以在多台设备上使用吗？</span>
+            <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="faq-answer">
+            <p>可以。根据您的套餐不同，支持 3-10 台设备同时在线。</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>如何联系客服？</span>
+            <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="faq-answer">
+            <p>您可以通过发送邮件至 support@omnicore.vpn 或加入我们的 Telegram 群组联系客服。</p>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>支持哪些支付方式？</span>
+            <svg class="faq-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </button>
+          <div class="faq-answer">
+            <p>我们支持支付宝、微信支付、信用卡、PayPal 等多种支付方式。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8. CTA 区域 -->
+  <section id="cta" class="cta-section">
+    <div class="container">
+      <h2 class="cta-title">准备好开始了吗？</h2>
+      <p class="cta-subtitle">立即注册，开启安全网络之旅</p>
+      <button class="btn btn-primary btn-xl" onclick="scrollToAuth('register')">免费开始</button>
+    </div>
+  </section>
+
+  <!-- 9. 页脚 -->
+  <footer id="footer" class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="footer-logo">
+            <img src="omnicore-liquid-logo.svg" alt="Omni Core Logo" class="footer-logo-img">
+            <div class="footer-logo-text">
+              <span class="footer-logo-main">Omni Core</span>
+            </div>
+          </div>
+          <p class="footer-desc">安全、快速、匿名的网络体验</p>
+          <div class="footer-social">
+            <a href="#" class="social-link" aria-label="Telegram">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+              </svg>
+            </a>
+            <a href="#" class="social-link" aria-label="Twitter">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+            </a>
+            <a href="#" class="social-link" aria-label="GitHub">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h4 class="footer-title">快速链接</h4>
+          <ul class="footer-list">
+            <li><a href="#hero">首页</a></li>
+            <li><a href="#features">功能</a></li>
+            <li><a href="#servers">节点</a></li>
+            <li><a href="#">下载</a></li>
+            <li><a href="#">帮助中心</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4 class="footer-title">法律信息</h4>
+          <ul class="footer-list">
+            <li><a href="#">隐私政策</a></li>
+            <li><a href="#">服务条款</a></li>
+            <li><a href="#">使用协议</a></li>
+            <li><a href="#">退款政策</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h4 class="footer-title">联系我们</h4>
+          <ul class="footer-list">
+            <li><a href="mailto:support@omnicore.vpn">support@omnicore.vpn</a></li>
+            <li><a href="#">Telegram</a></li>
+            <li>工作时间: 24/7</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 Omni Core. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="landing.js"></script>
+</body>
+</html>
