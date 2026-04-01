@@ -1,0 +1,174 @@
+/**
+ * 性能优化索引迁移
+ * 为套餐服务体系升级添加数据库索引
+ */
+
+import { Knex } from 'knex';
+
+export async function up(knex: Knex): Promise<void> {
+  // IP池表索引
+  await knex.schema.alterTable('ip_pools', (table) => {
+    // 节点ID索引 - 加速按节点查询IP池
+    table.index('node_id', 'idx_ip_pools_node_id');
+    // IP类型索引 - 加速按类型筛选
+    table.index('ip_type', 'idx_ip_pools_ip_type');
+    // 激活状态索引 - 加速获取活跃池
+    table.index('is_active', 'idx_ip_pools_is_active');
+    // 复合索引 - 活跃节点池查询
+    table.index(['is_active', 'node_id'], 'idx_ip_pools_active_node');
+  });
+
+  // IP池IP表索引
+  await knex.schema.alterTable('ip_pool_ips', (table) => {
+    // 池ID索引 - 加速获取池内IP
+    table.index('pool_id', 'idx_ip_pool_ips_pool_id');
+    // 状态索引 - 加速筛选活跃IP
+    table.index('status', 'idx_ip_pool_ips_status');
+    // IP地址索引 - 加速IP查找
+    table.index('ip', 'idx_ip_pool_ips_ip');
+    // 复合索引 - 活跃IP查询
+    table.index(['pool_id', 'status'], 'idx_ip_pool_ips_pool_status');
+    // 评分索引 - 加速质量优先策略
+    table.index('score', 'idx_ip_pool_ips_score');
+  });
+
+  // IP声誉缓存表索引
+  await knex.schema.alterTable('ip_reputation_cache', (table) => {
+    // IP唯一索引已存在，添加过期时间索引
+    table.index('expires_at', 'idx_ip_reputation_expires');
+    // 评分索引 - 加速低分查询
+    table.index('score', 'idx_ip_reputation_score');
+    // 复合索引 - 有效的高分IP查询
+    table.index(['expires_at', 'score'], 'idx_ip_reputation_valid_score');
+  });
+
+  // 套餐表索引
+  await knex.schema.alterTable('subscription_plans', (table) => {
+    // 服务类型索引 - 加速按服务类型筛选
+    table.index('primary_service_type', 'idx_plans_service_type');
+    // 套餐组索引 - 加速按组筛选
+    table.index('group_id', 'idx_plans_group_id');
+    // 激活状态索引 - 加速获取活跃套餐
+    table.index('is_active', 'idx_plans_is_active');
+    // 排序索引 - 加速排序查询
+    table.index('sort_order', 'idx_plans_sort_order');
+    // 复合索引 - 活跃套餐按服务类型查询
+    table.index(['is_active', 'primary_service_type'], 'idx_plans_active_service');
+    // 复合索引 - 活跃套餐按组查询
+    table.index(['is_active', 'group_id'], 'idx_plans_active_group');
+  });
+
+  // 用户订阅表索引
+  await knex.schema.alterTable('user_subscriptions', (table) => {
+    // 用户ID索引 - 加速获取用户订阅
+    table.index('user_id', 'idx_subscriptions_user_id');
+    // 套餐ID索引 - 加速获取套餐订阅
+    table.index('plan_id', 'idx_subscriptions_plan_id');
+    // 状态索引 - 加速筛选活跃订阅
+    table.index('status', 'idx_subscriptions_status');
+    // 结束日期索引 - 加速过期检查
+    table.index('end_date', 'idx_subscriptions_end_date');
+    // 复合索引 - 用户活跃订阅
+    table.index(['user_id', 'status'], 'idx_subscriptions_user_status');
+    // 复合索引 - 套餐活跃订阅统计
+    table.index(['plan_id', 'status'], 'idx_subscriptions_plan_status');
+  });
+
+  // 节点表索引
+  await knex.schema.alterTable('nodes', (table) => {
+    // 服务类型索引 - 加速按服务类型筛选
+    table.index('service_type', 'idx_nodes_service_type');
+    // IP池ID索引 - 加速关联查询
+    table.index('ip_pool_id', 'idx_nodes_ip_pool_id');
+    // IP类型索引 - 加速按IP类型筛选
+    table.index('ip_type', 'idx_nodes_ip_type');
+    // 状态索引 - 加速在线节点查询
+    table.index('status', 'idx_nodes_status');
+    // IP评分索引 - 加速低分节点查询
+    table.index('ip_score', 'idx_nodes_ip_score');
+    // 复合索引 - 在线节点按服务类型
+    table.index(['status', 'service_type'], 'idx_nodes_status_service');
+    // 复合索引 - 住宅IP节点
+    table.index(['ip_type', 'status'], 'idx_nodes_ip_type_status');
+  });
+
+  // 订单表索引
+  await knex.schema.alterTable('orders', (table) => {
+    // 套餐ID索引 - 加速套餐收入统计
+    table.index('plan_id', 'idx_orders_plan_id');
+    // 状态索引 - 加速已完成订单查询
+    table.index('status', 'idx_orders_status');
+    // 创建时间索引 - 加速时间范围查询
+    table.index('created_at', 'idx_orders_created_at');
+    // 复合索引 - 套餐已完成订单
+    table.index(['plan_id', 'status'], 'idx_orders_plan_status');
+    // 复合索引 - 套餐近期订单
+    table.index(['plan_id', 'created_at'], 'idx_orders_plan_created');
+  });
+}
+
+export async function down(knex: Knex): Promise<void> {
+  // 删除IP池表索引
+  await knex.schema.alterTable('ip_pools', (table) => {
+    table.dropIndex('node_id', 'idx_ip_pools_node_id');
+    table.dropIndex('ip_type', 'idx_ip_pools_ip_type');
+    table.dropIndex('is_active', 'idx_ip_pools_is_active');
+    table.dropIndex(['is_active', 'node_id'], 'idx_ip_pools_active_node');
+  });
+
+  // 删除IP池IP表索引
+  await knex.schema.alterTable('ip_pool_ips', (table) => {
+    table.dropIndex('pool_id', 'idx_ip_pool_ips_pool_id');
+    table.dropIndex('status', 'idx_ip_pool_ips_status');
+    table.dropIndex('ip', 'idx_ip_pool_ips_ip');
+    table.dropIndex(['pool_id', 'status'], 'idx_ip_pool_ips_pool_status');
+    table.dropIndex('score', 'idx_ip_pool_ips_score');
+  });
+
+  // 删除IP声誉缓存表索引
+  await knex.schema.alterTable('ip_reputation_cache', (table) => {
+    table.dropIndex('expires_at', 'idx_ip_reputation_expires');
+    table.dropIndex('score', 'idx_ip_reputation_score');
+    table.dropIndex(['expires_at', 'score'], 'idx_ip_reputation_valid_score');
+  });
+
+  // 删除套餐表索引
+  await knex.schema.alterTable('subscription_plans', (table) => {
+    table.dropIndex('primary_service_type', 'idx_plans_service_type');
+    table.dropIndex('group_id', 'idx_plans_group_id');
+    table.dropIndex('is_active', 'idx_plans_is_active');
+    table.dropIndex('sort_order', 'idx_plans_sort_order');
+    table.dropIndex(['is_active', 'primary_service_type'], 'idx_plans_active_service');
+    table.dropIndex(['is_active', 'group_id'], 'idx_plans_active_group');
+  });
+
+  // 删除用户订阅表索引
+  await knex.schema.alterTable('user_subscriptions', (table) => {
+    table.dropIndex('user_id', 'idx_subscriptions_user_id');
+    table.dropIndex('plan_id', 'idx_subscriptions_plan_id');
+    table.dropIndex('status', 'idx_subscriptions_status');
+    table.dropIndex('end_date', 'idx_subscriptions_end_date');
+    table.dropIndex(['user_id', 'status'], 'idx_subscriptions_user_status');
+    table.dropIndex(['plan_id', 'status'], 'idx_subscriptions_plan_status');
+  });
+
+  // 删除节点表索引
+  await knex.schema.alterTable('nodes', (table) => {
+    table.dropIndex('service_type', 'idx_nodes_service_type');
+    table.dropIndex('ip_pool_id', 'idx_nodes_ip_pool_id');
+    table.dropIndex('ip_type', 'idx_nodes_ip_type');
+    table.dropIndex('status', 'idx_nodes_status');
+    table.dropIndex('ip_score', 'idx_nodes_ip_score');
+    table.dropIndex(['status', 'service_type'], 'idx_nodes_status_service');
+    table.dropIndex(['ip_type', 'status'], 'idx_nodes_ip_type_status');
+  });
+
+  // 删除订单表索引
+  await knex.schema.alterTable('orders', (table) => {
+    table.dropIndex('plan_id', 'idx_orders_plan_id');
+    table.dropIndex('status', 'idx_orders_status');
+    table.dropIndex('created_at', 'idx_orders_created_at');
+    table.dropIndex(['plan_id', 'status'], 'idx_orders_plan_status');
+    table.dropIndex(['plan_id', 'created_at'], 'idx_orders_plan_created');
+  });
+}
