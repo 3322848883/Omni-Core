@@ -34,6 +34,8 @@ import { ispRoutes } from './routes/isps';
 import { metaRoutes } from './routes/meta';
 import paymentChannelsRoutes from './routes/payment-channels';
 import reconciliationRoutes from './routes/reconciliation';
+import { merchantRoutes } from './routes/merchants';
+import { projectRoutes } from './routes/projects';
 
 dotenv.config();
 
@@ -170,6 +172,8 @@ app.use(`${apiPrefix}/isps`, ispRoutes);
 app.use(`${apiPrefix}/meta`, metaRoutes);
 app.use(`${apiPrefix}/payment-channels`, paymentChannelsRoutes);
 app.use(`${apiPrefix}/reconciliation`, reconciliationRoutes);
+app.use(`${apiPrefix}/merchants`, merchantRoutes);
+app.use(`${apiPrefix}/projects`, projectRoutes);
 
 // Webhook routes (no API prefix, separate path)
 app.use('/webhooks', webhookRoutes);

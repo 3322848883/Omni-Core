@@ -9,6 +9,7 @@ import inviteRoutes from './invites';
 import { xrayRoutes } from './xray';
 import devicesRoutes from './devices';
 import siteConfigRoutes from './site-config';
+import cryptoRoutes from './crypto';
 
 const router = Router();
 
@@ -25,6 +26,7 @@ router.use('/nodes', nodeRoutes);
 router.use('/traffic', trafficRoutes);
 router.use('/orders', orderRoutes);
 router.use('/invites', inviteRoutes);
+router.use('/crypto', cryptoRoutes);
 
 // Xray routes
 router.use('/xray', xrayRoutes);

@@ -62,8 +62,14 @@ export const ValidationRules = {
 
   // 支付方式验证
   paymentMethod: {
-    values: ['stripe', 'paypal', 'alipay', 'wechat', 'alipay_merchant', 'wechat_merchant'],
+    values: ['stripe', 'paypal', 'alipay', 'wechat', 'alipay_merchant', 'wechat_merchant', 'crypto'],
     message: '无效的支付方式',
+  },
+
+  // 加密货币验证
+  cryptoCurrency: {
+    values: ['BTC', 'ETH', 'USDT', 'BCH', 'LTC'],
+    message: '无效的加密货币类型',
   },
 
   // 正整数验证
@@ -565,6 +571,69 @@ export const InviteValidation = {
         type: 'number',
         min: 1,
         max: 365,
+      },
+    },
+  } as ValidationSchema,
+};
+
+/**
+ * 预定义的验证模式 - 加密货币相关
+ */
+export const CryptoValidation = {
+  // 创建加密货币钱包
+  createWallet: {
+    body: {
+      orderId: {
+        required: true,
+        type: 'string',
+        min: 1,
+        max: 100,
+      },
+      currency: {
+        required: true,
+        type: 'string',
+        values: ValidationRules.cryptoCurrency.values,
+        message: ValidationRules.cryptoCurrency.message,
+      },
+    },
+  } as ValidationSchema,
+
+  // 模拟交易
+  simulateTransaction: {
+    body: {
+      walletId: {
+        required: true,
+        type: 'string',
+        min: 1,
+        max: 100,
+      },
+      amount: {
+        type: 'number',
+        min: 0,
+      },
+    },
+  } as ValidationSchema,
+
+  // 钱包ID参数
+  walletId: {
+    params: {
+      walletId: {
+        required: true,
+        type: 'string',
+        min: 1,
+        max: 100,
+      },
+    },
+  } as ValidationSchema,
+
+  // 支付ID参数
+  paymentId: {
+    params: {
+      paymentId: {
+        required: true,
+        type: 'string',
+        min: 1,
+        max: 100,
       },
     },
   } as ValidationSchema,

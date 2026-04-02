@@ -37,6 +37,8 @@ const isps_1 = require("./routes/isps");
 const meta_1 = require("./routes/meta");
 const payment_channels_1 = __importDefault(require("./routes/payment-channels"));
 const reconciliation_1 = __importDefault(require("./routes/reconciliation"));
+const merchants_1 = require("./routes/merchants");
+const projects_1 = require("./routes/projects");
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 // Security middleware
@@ -156,6 +158,8 @@ app.use(`${apiPrefix}/isps`, isps_1.ispRoutes);
 app.use(`${apiPrefix}/meta`, meta_1.metaRoutes);
 app.use(`${apiPrefix}/payment-channels`, payment_channels_1.default);
 app.use(`${apiPrefix}/reconciliation`, reconciliation_1.default);
+app.use(`${apiPrefix}/merchants`, merchants_1.merchantRoutes);
+app.use(`${apiPrefix}/projects`, projects_1.projectRoutes);
 // Webhook routes (no API prefix, separate path)
 app.use('/webhooks', webhooks_1.webhookRoutes);
 // 404 handler

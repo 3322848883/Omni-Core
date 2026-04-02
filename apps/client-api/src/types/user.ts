@@ -112,3 +112,110 @@ export interface UserWithProfile extends User {
   settings?: UserSettings;
   subscription?: UserSubscription;
 }
+
+// Order Types
+export interface Order {
+  id: string;
+  orderNo: string;
+  userId: string;
+  planId: string | null;
+  orderType: string;
+  status: string;
+  amount: number;
+  trafficLimit: number | null;
+  durationDays: number | null;
+  startDate: Date | null;
+  endDate: Date | null;
+  paymentMethod: string | null;
+  paymentTime: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreateOrderData {
+  planId: string;
+  paymentMethod?: string;
+  cryptoCurrency?: string;
+}
+
+export interface PaymentInfo {
+  orderId: string;
+  orderNo: string;
+  amount: number;
+  paymentMethod: string;
+  paymentUrl?: string;
+  qrCode?: string;
+  expiresAt: string;
+  cryptoPayment?: CryptoPaymentInfo;
+}
+
+// Crypto Types
+export interface CryptoWallet {
+  id: string;
+  walletId: string;
+  userId: string;
+  orderId: string | null;
+  currency: string;
+  address: string;
+  privateKey?: string;
+  expectedAmount: number;
+  receivedAmount: number;
+  status: string;
+  expiresAt: Date;
+  confirmedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CryptoPayment {
+  id: string;
+  cryptoPaymentId: string;
+  walletId: string;
+  orderId: string;
+  userId: string;
+  transactionId?: string;
+  currency: string;
+  amount: number;
+  fiatAmount: number;
+  fiatCurrency: string;
+  exchangeRate: number;
+  confirmations: number;
+  requiredConfirmations: number;
+  status: string;
+  transactionAt?: Date;
+  confirmedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CryptoExchangeRate {
+  id: string;
+  currency: string;
+  fiatCurrency: string;
+  rate: number;
+  source: string;
+  createdAt: Date;
+}
+
+export interface CryptoPaymentInfo {
+  walletId: string;
+  currency: string;
+  address: string;
+  expectedAmount: number;
+  fiatAmount: number;
+  fiatCurrency: string;
+  exchangeRate: number;
+  qrCode?: string;
+  expiresAt: string;
+  status: string;
+}
+
+export interface CreateCryptoPaymentRequest {
+  orderId: string;
+  currency: string;
+}
+
+export interface VerifyCryptoPaymentRequest {
+  walletId: string;
+}
+

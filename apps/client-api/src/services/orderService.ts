@@ -1,9 +1,12 @@
 import db from '@/config/database';
 import { generateOrderId, generateOrderNo } from '@/utils/crypto';
 import { NotFoundError, ValidationError, ConflictError, ForbiddenError } from '@/errors/AppError';
-import { ORDER_STATUS, PAYMENT_STATUS } from '@/constants';
+import { ORDER_STATUS, PAYMENT_STATUS, PAYMENT_METHODS, CRYPTO_CONFIG, CRYPTO_WALLET_STATUS } from '@/constants';
 import { Order, CreateOrderData, PaymentInfo } from '@/types/user';
 import { ServiceType } from '@/constants/service-type';
+import { createCryptoWallet, getCryptoWalletByOrderId } from './cryptoWalletService';
+import { getExchangeRate, convertFiatToCrypto } from './cryptoExchangeRateService';
+import qrcode from 'qrcode';
 
 /**
  * 验证分页参数
@@ -208,7 +211,8 @@ export const cancelOrder = async (orderId: string, userId: string): Promise<Orde
  */
 export const getPaymentInfo = async (
   orderId: string,
-  userId: string
+  userId: string,
+  cryptoCurrency?: string
 ): Promise<PaymentInfo> => {
   const order = await db('orders')
     .where({ order_id: orderId, user_id: userId })
@@ -218,41 +222,76 @@ export const getPaymentInfo = async (
     throw new NotFoundError('Order', orderId);
   }
 
-  // Check if order can be paid
   if (order.status !== ORDER_STATUS.PENDING) {
     throw new ValidationError([
       { field: 'status', message: `Order is not in pending status: ${order.status}` },
     ]);
   }
 
-  const paymentMethod = order.payment_method || 'stripe';
-
-  // Generate payment URL based on payment method
+  const paymentMethod = order.payment_method || PAYMENT_METHODS.STRIPE;
   let paymentUrl: string | undefined;
   let qrCode: string | undefined;
+  let cryptoPayment: any = undefined;
 
-  const basePaymentUrl = process.env.PAYMENT_BASE_URL || 'https://pay.embarks.uk';
+  if (paymentMethod === PAYMENT_METHODS.CRYPTO) {
+    const currency = cryptoCurrency || CRYPTO_CONFIG.DEFAULT_CURRENCY;
+    
+    let wallet = await getCryptoWalletByOrderId(orderId, userId);
+    
+    if (!wallet || wallet.status === CRYPTO_WALLET_STATUS.EXPIRED) {
+      wallet = await createCryptoWallet(
+        userId,
+        orderId,
+        currency,
+        parseFloat(order.amount),
+        CRYPTO_CONFIG.DEFAULT_FIAT_CURRENCY
+      );
+    }
 
-  switch (paymentMethod) {
-    case 'stripe':
-      paymentUrl = `${basePaymentUrl}/stripe/${order.order_no}`;
-      break;
-    case 'paypal':
-      paymentUrl = `${basePaymentUrl}/paypal/${order.order_no}`;
-      break;
-    case 'alipay':
-      qrCode = `${basePaymentUrl}/alipay/qr/${order.order_no}`;
-      break;
-    case 'wechat':
-      qrCode = `${basePaymentUrl}/wechat/qr/${order.order_no}`;
-      break;
-    default:
-      paymentUrl = `${basePaymentUrl}/pay/${order.order_no}`;
+    const exchangeRate = await getExchangeRate(wallet.currency);
+    const cryptoAmount = await convertFiatToCrypto(parseFloat(order.amount), wallet.currency);
+
+    try {
+      qrCode = await qrcode.toDataURL(`${wallet.currency}:${wallet.address}?amount=${wallet.expectedAmount}`);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+    }
+
+    cryptoPayment = {
+      walletId: wallet.walletId,
+      currency: wallet.currency,
+      address: wallet.address,
+      expectedAmount: wallet.expectedAmount,
+      fiatAmount: parseFloat(order.amount),
+      fiatCurrency: CRYPTO_CONFIG.DEFAULT_FIAT_CURRENCY,
+      exchangeRate,
+      qrCode,
+      expiresAt: wallet.expiresAt.toISOString(),
+      status: wallet.status,
+    };
+  } else {
+    const basePaymentUrl = process.env.PAYMENT_BASE_URL || 'https://pay.embarks.uk';
+
+    switch (paymentMethod) {
+      case PAYMENT_METHODS.STRIPE:
+        paymentUrl = `${basePaymentUrl}/stripe/${order.order_no}`;
+        break;
+      case PAYMENT_METHODS.PAYPAL:
+        paymentUrl = `${basePaymentUrl}/paypal/${order.order_no}`;
+        break;
+      case PAYMENT_METHODS.ALIPAY:
+        qrCode = `${basePaymentUrl}/alipay/qr/${order.order_no}`;
+        break;
+      case PAYMENT_METHODS.WECHAT:
+        qrCode = `${basePaymentUrl}/wechat/qr/${order.order_no}`;
+        break;
+      default:
+        paymentUrl = `${basePaymentUrl}/pay/${order.order_no}`;
+    }
   }
 
-  // Set expiration to 30 minutes from now
   const expiresAt = new Date();
-  expiresAt.setMinutes(expiresAt.getMinutes() + 30);
+  expiresAt.setMinutes(expiresAt.getMinutes() + CRYPTO_CONFIG.WALLET_EXPIRY_MINUTES);
 
   return {
     orderId: order.order_id,
@@ -262,6 +301,7 @@ export const getPaymentInfo = async (
     paymentUrl,
     qrCode,
     expiresAt: expiresAt.toISOString(),
+    cryptoPayment,
   };
 };
 
