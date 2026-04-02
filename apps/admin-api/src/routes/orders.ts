@@ -805,4 +805,320 @@ router.get('/stats/overview', authMiddleware, async (req: Request, res: Response
   }
 });
 
+// GET /api/v1/orders/stats/time-series - Get time series data
+router.get('/stats/time-series', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { period = 'day', startDate, endDate } = req.query;
+    const validPeriods = ['day', 'week', 'month', 'quarter', 'year'];
+    
+    if (!validPeriods.includes(period as string)) {
+      throw new ValidationError('Invalid period', [
+        { field: 'period', message: 'Invalid period. Must be one of: day, week, month, quarter, year' }
+      ]);
+    }
+
+    let dateFormat = '';
+    switch (period) {
+      case 'day':
+        dateFormat = '%Y-%m-%d';
+        break;
+      case 'week':
+        dateFormat = '%Y-%u'; // ISO week number
+        break;
+      case 'month':
+        dateFormat = '%Y-%m';
+        break;
+      case 'quarter':
+        dateFormat = '%Y-%m'; // We'll group by quarter later
+        break;
+      case 'year':
+        dateFormat = '%Y';
+        break;
+    }
+
+    let query = db('orders')
+      .select(
+        db.raw(`DATE_FORMAT(created_at, '${dateFormat}') as period`),
+        db.raw('SUM(amount) as revenue'),
+        db.raw('COUNT(*) as orderCount')
+      )
+      .where('status', 'completed');
+
+    if (startDate) {
+      query = query.where('created_at', '>=', startDate);
+    }
+
+    if (endDate) {
+      query = query.where('created_at', '<=', endDate);
+    }
+
+    if (period === 'quarter') {
+      // For quarter, we need to extract quarter from date
+      query = db('orders')
+        .select(
+          db.raw('CONCAT(YEAR(created_at), "-Q", QUARTER(created_at)) as period'),
+          db.raw('SUM(amount) as revenue'),
+          db.raw('COUNT(*) as orderCount')
+        )
+        .where('status', 'completed');
+
+      if (startDate) {
+        query = query.where('created_at', '>=', startDate);
+      }
+
+      if (endDate) {
+        query = query.where('created_at', '<=', endDate);
+      }
+    }
+
+    const results = await query
+      .groupBy('period')
+      .orderBy('period');
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: {
+        period: period as string,
+        series: results.map(item => ({
+          period: item.period,
+          revenue: parseFloat(item.revenue as string) || 0,
+          orderCount: parseInt(item.orderCount as string) || 0
+        }))
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/v1/orders/stats/payment-methods - Get payment method analysis
+router.get('/stats/payment-methods', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    let query = db('orders')
+      .select(
+        'payment_method',
+        db.raw('SUM(amount) as revenue'),
+        db.raw('COUNT(*) as orderCount')
+      )
+      .where('status', 'completed')
+      .whereNotNull('payment_method');
+
+    if (startDate) {
+      query = query.where('created_at', '>=', startDate);
+    }
+
+    if (endDate) {
+      query = query.where('created_at', '<=', endDate);
+    }
+
+    const results = await query
+      .groupBy('payment_method')
+      .orderBy('revenue', 'desc');
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: {
+        paymentMethods: results.map(item => ({
+          paymentMethod: item.payment_method,
+          revenue: parseFloat(item.revenue as string) || 0,
+          orderCount: parseInt(item.orderCount as string) || 0
+        }))
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/v1/orders/stats/order-types - Get order type analysis
+router.get('/stats/order-types', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    let query = db('orders')
+      .select(
+        'order_type',
+        db.raw('SUM(amount) as revenue'),
+        db.raw('COUNT(*) as orderCount')
+      )
+      .where('status', 'completed');
+
+    if (startDate) {
+      query = query.where('created_at', '>=', startDate);
+    }
+
+    if (endDate) {
+      query = query.where('created_at', '<=', endDate);
+    }
+
+    const results = await query
+      .groupBy('order_type')
+      .orderBy('revenue', 'desc');
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: {
+        orderTypes: results.map(item => ({
+          orderType: item.order_type,
+          revenue: parseFloat(item.revenue as string) || 0,
+          orderCount: parseInt(item.orderCount as string) || 0
+        }))
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/v1/orders/stats/users - Get user analysis
+router.get('/stats/users', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { startDate, endDate, limit = 10 } = req.query;
+
+    let query = db('orders')
+      .select(
+        'user_id',
+        db.raw('SUM(amount) as totalSpent'),
+        db.raw('COUNT(*) as orderCount')
+      )
+      .where('status', 'completed');
+
+    if (startDate) {
+      query = query.where('created_at', '>=', startDate);
+    }
+
+    if (endDate) {
+      query = query.where('created_at', '<=', endDate);
+    }
+
+    const topUsers = await query
+      .groupBy('user_id')
+      .orderBy('totalSpent', 'desc')
+      .limit(parseInt(limit as string));
+
+    // Get new user count (users who made their first order in the period)
+    let newUserQuery = db('orders as o1')
+      .select(
+        'o1.user_id',
+        db.raw('MIN(o1.created_at) as firstOrderDate')
+      )
+      .where('o1.status', 'completed');
+
+    if (startDate) {
+      newUserQuery = newUserQuery.where('o1.created_at', '>=', startDate);
+    }
+
+    if (endDate) {
+      newUserQuery = newUserQuery.where('o1.created_at', '<=', endDate);
+    }
+
+    const newUsers = await newUserQuery
+      .groupBy('o1.user_id')
+      .having(db.raw('MIN(o1.created_at) >= ?', [startDate || '2000-01-01']));
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: {
+        topUsers: topUsers.map(user => ({
+          userId: user.user_id,
+          totalSpent: parseFloat(user.totalSpent as string) || 0,
+          orderCount: parseInt(user.orderCount as string) || 0
+        })),
+        newUserCount: newUsers.length
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/v1/orders/stats/detailed - Get detailed stats with filters
+router.get('/stats/detailed', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { startDate, endDate, paymentMethod, orderType, status } = req.query;
+
+    let query = db('orders');
+
+    if (startDate) {
+      query = query.where('created_at', '>=', startDate);
+    }
+
+    if (endDate) {
+      query = query.where('created_at', '<=', endDate);
+    }
+
+    if (paymentMethod) {
+      query = query.where('payment_method', paymentMethod);
+    }
+
+    if (orderType) {
+      query = query.where('order_type', orderType);
+    }
+
+    if (status) {
+      query = query.where('status', status);
+    }
+
+    const stats = await query
+      .sum('amount as totalRevenue')
+      .count('* as totalOrders')
+      .first();
+
+    const statusDistribution = await query
+      .select('status')
+      .count('* as count')
+      .groupBy('status');
+
+    const paymentMethodDistribution = await query
+      .select('payment_method')
+      .count('* as count')
+      .whereNotNull('payment_method')
+      .groupBy('payment_method');
+
+    const orderTypeDistribution = await query
+      .select('order_type')
+      .count('* as count')
+      .groupBy('order_type');
+
+    const totalRevenue = stats ? parseFloat(stats.totalRevenue as string) || 0 : 0;
+    const totalOrders = stats ? parseInt(stats.totalOrders as string) || 0 : 0;
+    const averageOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: {
+        totalRevenue,
+        totalOrders,
+        averageOrderValue,
+        statusDistribution: statusDistribution.reduce((acc, curr) => {
+          acc[curr.status] = parseInt(curr.count as string);
+          return acc;
+        }, {} as Record<string, number>),
+        paymentMethodDistribution: paymentMethodDistribution.reduce((acc, curr) => {
+          acc[curr.payment_method] = parseInt(curr.count as string);
+          return acc;
+        }, {} as Record<string, number>),
+        orderTypeDistribution: orderTypeDistribution.reduce((acc, curr) => {
+          acc[curr.order_type] = parseInt(curr.count as string);
+          return acc;
+        }, {} as Record<string, number>)
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export { router as orderRoutes };

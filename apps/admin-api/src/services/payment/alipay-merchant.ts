@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { logger } from '../../utils/logger';
 import { config } from '../../config';
+import { EncryptionUtil } from '../../utils/encryption';
 import {
   IPaymentProvider,
   PaymentProvider,
@@ -53,6 +54,7 @@ export class AlipayMerchantProvider implements IPaymentProvider {
       logger.warn('Alipay merchant credentials are not configured');
     } else {
       logger.info('Alipay merchant payment provider initialized');
+      logger.debug(`Alipay appId: ${EncryptionUtil.mask(this.appId)}`);
     }
   }
 

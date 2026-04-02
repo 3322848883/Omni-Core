@@ -9,13 +9,15 @@
     "start": "node dist/index.js",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
-    "test": "jest",
-    "test:coverage": "jest --coverage",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
     "db:migrate": "knex migrate:latest",
     "db:rollback": "knex migrate:rollback",
     "db:seed": "knex seed:run"
   },
   "dependencies": {
+    "@fgvpn/shared": "file:../../shared",
     "@grpc/grpc-js": "^1.14.3",
     "@grpc/proto-loader": "^0.8.0",
     "axios": "^1.6.7",
@@ -54,13 +56,17 @@
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.14",
     "@types/speakeasy": "^2.0.10",
+    "@types/supertest": "^7.2.0",
     "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^6.20.0",
     "@typescript-eslint/parser": "^6.20.0",
+    "better-sqlite3": "^12.8.0",
+    "supertest": "^7.2.2",
     "ts-jest": "^29.1.2",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.7.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^4.1.2"
   },
   "engines": {
     "node": ">=18.0.0"

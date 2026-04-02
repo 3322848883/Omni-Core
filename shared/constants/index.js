@@ -1,29 +1,12 @@
-"use strict";
 // Shared constants for Omni Core project
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.SUBSCRIPTION_STATUS = exports.INVITE_CODE_STATUS = exports.USER_STATUS = exports.TIME = exports.PATHS = exports.SUBSCRIPTION_FORMATS = exports.XRAY_CONFIG = exports.CACHE_KEYS = exports.DEFAULTS = exports.API_ENDPOINTS = void 0;
 // Service Types
-__exportStar(require("./service-type"), exports);
+export * from './service-type';
 // IP Types and Line Types
-__exportStar(require("./ip-type"), exports);
+export * from './ip-type';
 // Error Codes - 统一从 errors.ts 导出
-__exportStar(require("./errors"), exports);
+export * from './errors';
 // API Endpoints
-exports.API_ENDPOINTS = {
+export const API_ENDPOINTS = {
     AUTH: {
         LOGIN: '/auth/login',
         LOGOUT: '/auth/logout',
@@ -66,7 +49,7 @@ exports.API_ENDPOINTS = {
     },
 };
 // Default Values
-exports.DEFAULTS = {
+export const DEFAULTS = {
     PAGE_SIZE: 20,
     MAX_PAGE_SIZE: 100,
     JWT_EXPIRES_IN: '15m',
@@ -81,7 +64,7 @@ exports.DEFAULTS = {
     },
 };
 // Cache Keys
-exports.CACHE_KEYS = {
+export const CACHE_KEYS = {
     USER: (id) => `user:${id}`,
     USER_SESSION: (token) => `session:${token}`,
     NODE_LIST: 'nodes:list',
@@ -90,7 +73,7 @@ exports.CACHE_KEYS = {
     RATE_LIMIT: (ip) => `ratelimit:${ip}`,
 };
 // Xray Configuration
-exports.XRAY_CONFIG = {
+export const XRAY_CONFIG = {
     DEFAULT_PORTS: {
         VLESS_REALITY: 443,
         VLESS_WS: 8443,
@@ -107,21 +90,21 @@ exports.XRAY_CONFIG = {
     },
 };
 // Subscription Formats
-exports.SUBSCRIPTION_FORMATS = {
+export const SUBSCRIPTION_FORMATS = {
     V2RAY: 'v2ray',
     CLASH: 'clash',
     SURGE: 'surge',
     QUANTUMULT: 'quantumult',
 };
 // File Paths
-exports.PATHS = {
+export const PATHS = {
     LOGS: './logs',
     BACKUP: '/backup/mysql',
     CONFIG: '/etc/xray',
     CERTS: '/etc/xray/certs',
 };
 // Time Constants (in milliseconds)
-exports.TIME = {
+export const TIME = {
     SECOND: 1000,
     MINUTE: 60 * 1000,
     HOUR: 60 * 60 * 1000,
@@ -129,19 +112,19 @@ exports.TIME = {
     WEEK: 7 * 24 * 60 * 60 * 1000,
 };
 // User Status
-exports.USER_STATUS = {
+export const USER_STATUS = {
     ACTIVE: 1,
     INACTIVE: 0,
     BANNED: 2,
 };
 // Invite Code Status
-exports.INVITE_CODE_STATUS = {
+export const INVITE_CODE_STATUS = {
     ACTIVE: 1,
     USED: 2,
     EXPIRED: 3,
 };
 // Subscription Status
-exports.SUBSCRIPTION_STATUS = {
+export const SUBSCRIPTION_STATUS = {
     ACTIVE: 1,
     INACTIVE: 0,
     EXPIRED: 2,

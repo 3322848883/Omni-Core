@@ -1,4 +1,3 @@
-"use strict";
 /**
  * FGVPN Unified Error Code System
  * 统一的错误码体系，用于 admin-api 和 client-api
@@ -6,12 +5,8 @@
  * 错误码格式：大写下划线分隔（如 VALIDATION_ERROR）
  * 每个错误码包含：code, message, httpStatus
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.ValidationError = exports.AppError = exports.HTTP_STATUS = exports.ERROR_CODES = exports.ErrorInfoMap = exports.ErrorCode = exports.HttpStatus = void 0;
-exports.getErrorInfo = getErrorInfo;
-exports.createErrorResponse = createErrorResponse;
 // HTTP 状态码映射
-exports.HttpStatus = {
+export const HttpStatus = {
     OK: 200,
     CREATED: 201,
     NO_CONTENT: 204,
@@ -23,9 +18,8 @@ exports.HttpStatus = {
     RATE_LIMITED: 429,
     INTERNAL_ERROR: 500,
 };
-exports.HTTP_STATUS = exports.HttpStatus;
 // 业务错误码定义
-exports.ErrorCode = {
+export const ErrorCode = {
     // 通用错误 (1xxx)
     BAD_REQUEST: 'BAD_REQUEST',
     VALIDATION_ERROR: 'VALIDATION_ERROR',
@@ -75,216 +69,215 @@ exports.ErrorCode = {
     XRAY_API_ERROR: 'XRAY_API_ERROR',
     EMAIL_SEND_ERROR: 'EMAIL_SEND_ERROR',
 };
-exports.ERROR_CODES = exports.ErrorCode;
 // 错误信息映射表
-exports.ErrorInfoMap = {
+export const ErrorInfoMap = {
     // 通用错误
-    [exports.ErrorCode.BAD_REQUEST]: {
-        code: exports.ErrorCode.BAD_REQUEST,
+    [ErrorCode.BAD_REQUEST]: {
+        code: ErrorCode.BAD_REQUEST,
         message: 'Bad request',
-        httpStatus: exports.HttpStatus.BAD_REQUEST,
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
-    [exports.ErrorCode.VALIDATION_ERROR]: {
-        code: exports.ErrorCode.VALIDATION_ERROR,
+    [ErrorCode.VALIDATION_ERROR]: {
+        code: ErrorCode.VALIDATION_ERROR,
         message: 'Validation failed',
-        httpStatus: exports.HttpStatus.BAD_REQUEST,
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
-    [exports.ErrorCode.UNAUTHORIZED]: {
-        code: exports.ErrorCode.UNAUTHORIZED,
+    [ErrorCode.UNAUTHORIZED]: {
+        code: ErrorCode.UNAUTHORIZED,
         message: 'Unauthorized',
-        httpStatus: exports.HttpStatus.UNAUTHORIZED,
+        httpStatus: HttpStatus.UNAUTHORIZED,
     },
-    [exports.ErrorCode.FORBIDDEN]: {
-        code: exports.ErrorCode.FORBIDDEN,
+    [ErrorCode.FORBIDDEN]: {
+        code: ErrorCode.FORBIDDEN,
         message: 'Forbidden',
-        httpStatus: exports.HttpStatus.FORBIDDEN,
+        httpStatus: HttpStatus.FORBIDDEN,
     },
-    [exports.ErrorCode.NOT_FOUND]: {
-        code: exports.ErrorCode.NOT_FOUND,
+    [ErrorCode.NOT_FOUND]: {
+        code: ErrorCode.NOT_FOUND,
         message: 'Resource not found',
-        httpStatus: exports.HttpStatus.NOT_FOUND,
+        httpStatus: HttpStatus.NOT_FOUND,
     },
-    [exports.ErrorCode.CONFLICT]: {
-        code: exports.ErrorCode.CONFLICT,
+    [ErrorCode.CONFLICT]: {
+        code: ErrorCode.CONFLICT,
         message: 'Resource conflict',
-        httpStatus: exports.HttpStatus.CONFLICT,
+        httpStatus: HttpStatus.CONFLICT,
     },
-    [exports.ErrorCode.RATE_LIMITED]: {
-        code: exports.ErrorCode.RATE_LIMITED,
+    [ErrorCode.RATE_LIMITED]: {
+        code: ErrorCode.RATE_LIMITED,
         message: 'Too many requests',
-        httpStatus: exports.HttpStatus.RATE_LIMITED,
+        httpStatus: HttpStatus.RATE_LIMITED,
     },
-    [exports.ErrorCode.INTERNAL_ERROR]: {
-        code: exports.ErrorCode.INTERNAL_ERROR,
+    [ErrorCode.INTERNAL_ERROR]: {
+        code: ErrorCode.INTERNAL_ERROR,
         message: 'Internal server error',
-        httpStatus: exports.HttpStatus.INTERNAL_ERROR,
+        httpStatus: HttpStatus.INTERNAL_ERROR,
     },
     // 认证相关错误
-    [exports.ErrorCode.TOKEN_EXPIRED]: {
-        code: exports.ErrorCode.TOKEN_EXPIRED,
+    [ErrorCode.TOKEN_EXPIRED]: {
+        code: ErrorCode.TOKEN_EXPIRED,
         message: 'Token has expired',
-        httpStatus: exports.HttpStatus.UNAUTHORIZED,
+        httpStatus: HttpStatus.UNAUTHORIZED,
     },
-    [exports.ErrorCode.TOKEN_INVALID]: {
-        code: exports.ErrorCode.TOKEN_INVALID,
+    [ErrorCode.TOKEN_INVALID]: {
+        code: ErrorCode.TOKEN_INVALID,
         message: 'Invalid token',
-        httpStatus: exports.HttpStatus.UNAUTHORIZED,
+        httpStatus: HttpStatus.UNAUTHORIZED,
     },
-    [exports.ErrorCode.TOKEN_REVOKED]: {
-        code: exports.ErrorCode.TOKEN_REVOKED,
+    [ErrorCode.TOKEN_REVOKED]: {
+        code: ErrorCode.TOKEN_REVOKED,
         message: 'Token has been revoked',
-        httpStatus: exports.HttpStatus.UNAUTHORIZED,
+        httpStatus: HttpStatus.UNAUTHORIZED,
     },
-    [exports.ErrorCode.INVALID_CREDENTIALS]: {
-        code: exports.ErrorCode.INVALID_CREDENTIALS,
+    [ErrorCode.INVALID_CREDENTIALS]: {
+        code: ErrorCode.INVALID_CREDENTIALS,
         message: 'Invalid credentials',
-        httpStatus: exports.HttpStatus.UNAUTHORIZED,
+        httpStatus: HttpStatus.UNAUTHORIZED,
     },
-    [exports.ErrorCode.DEVICE_LIMIT_EXCEEDED]: {
-        code: exports.ErrorCode.DEVICE_LIMIT_EXCEEDED,
+    [ErrorCode.DEVICE_LIMIT_EXCEEDED]: {
+        code: ErrorCode.DEVICE_LIMIT_EXCEEDED,
         message: 'Device limit exceeded',
-        httpStatus: exports.HttpStatus.FORBIDDEN,
+        httpStatus: HttpStatus.FORBIDDEN,
     },
     // 用户相关错误
-    [exports.ErrorCode.USER_NOT_FOUND]: {
-        code: exports.ErrorCode.USER_NOT_FOUND,
+    [ErrorCode.USER_NOT_FOUND]: {
+        code: ErrorCode.USER_NOT_FOUND,
         message: 'User not found',
-        httpStatus: exports.HttpStatus.NOT_FOUND,
+        httpStatus: HttpStatus.NOT_FOUND,
     },
-    [exports.ErrorCode.USER_ALREADY_EXISTS]: {
-        code: exports.ErrorCode.USER_ALREADY_EXISTS,
+    [ErrorCode.USER_ALREADY_EXISTS]: {
+        code: ErrorCode.USER_ALREADY_EXISTS,
         message: 'User already exists',
-        httpStatus: exports.HttpStatus.CONFLICT,
+        httpStatus: HttpStatus.CONFLICT,
     },
-    [exports.ErrorCode.USER_DISABLED]: {
-        code: exports.ErrorCode.USER_DISABLED,
+    [ErrorCode.USER_DISABLED]: {
+        code: ErrorCode.USER_DISABLED,
         message: 'Account has been disabled',
-        httpStatus: exports.HttpStatus.FORBIDDEN,
+        httpStatus: HttpStatus.FORBIDDEN,
     },
-    [exports.ErrorCode.USER_BANNED]: {
-        code: exports.ErrorCode.USER_BANNED,
+    [ErrorCode.USER_BANNED]: {
+        code: ErrorCode.USER_BANNED,
         message: 'Account has been banned',
-        httpStatus: exports.HttpStatus.FORBIDDEN,
+        httpStatus: HttpStatus.FORBIDDEN,
     },
     // 订单相关错误
-    [exports.ErrorCode.ORDER_NOT_FOUND]: {
-        code: exports.ErrorCode.ORDER_NOT_FOUND,
+    [ErrorCode.ORDER_NOT_FOUND]: {
+        code: ErrorCode.ORDER_NOT_FOUND,
         message: 'Order not found',
-        httpStatus: exports.HttpStatus.NOT_FOUND,
+        httpStatus: HttpStatus.NOT_FOUND,
     },
-    [exports.ErrorCode.ORDER_CANNOT_CANCEL]: {
-        code: exports.ErrorCode.ORDER_CANNOT_CANCEL,
+    [ErrorCode.ORDER_CANNOT_CANCEL]: {
+        code: ErrorCode.ORDER_CANNOT_CANCEL,
         message: 'Order cannot be cancelled',
-        httpStatus: exports.HttpStatus.BAD_REQUEST,
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
-    [exports.ErrorCode.ORDER_EXPIRED]: {
-        code: exports.ErrorCode.ORDER_EXPIRED,
+    [ErrorCode.ORDER_EXPIRED]: {
+        code: ErrorCode.ORDER_EXPIRED,
         message: 'Order has expired',
-        httpStatus: exports.HttpStatus.BAD_REQUEST,
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
     // 支付相关错误
-    [exports.ErrorCode.PAYMENT_FAILED]: {
-        code: exports.ErrorCode.PAYMENT_FAILED,
+    [ErrorCode.PAYMENT_FAILED]: {
+        code: ErrorCode.PAYMENT_FAILED,
         message: 'Payment failed',
-        httpStatus: exports.HttpStatus.BAD_REQUEST,
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
-    [exports.ErrorCode.PAYMENT_PENDING]: {
-        code: exports.ErrorCode.PAYMENT_PENDING,
+    [ErrorCode.PAYMENT_PENDING]: {
+        code: ErrorCode.PAYMENT_PENDING,
         message: 'Payment is pending',
-        httpStatus: exports.HttpStatus.BAD_REQUEST,
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
-    [exports.ErrorCode.INSUFFICIENT_BALANCE]: {
-        code: exports.ErrorCode.INSUFFICIENT_BALANCE,
+    [ErrorCode.INSUFFICIENT_BALANCE]: {
+        code: ErrorCode.INSUFFICIENT_BALANCE,
         message: 'Insufficient balance',
-        httpStatus: exports.HttpStatus.BAD_REQUEST,
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
     // 订阅套餐相关错误
-    [exports.ErrorCode.PLAN_NOT_FOUND]: {
-        code: exports.ErrorCode.PLAN_NOT_FOUND,
+    [ErrorCode.PLAN_NOT_FOUND]: {
+        code: ErrorCode.PLAN_NOT_FOUND,
         message: 'Subscription plan not found',
-        httpStatus: exports.HttpStatus.NOT_FOUND,
+        httpStatus: HttpStatus.NOT_FOUND,
     },
-    [exports.ErrorCode.PLAN_NOT_AVAILABLE]: {
-        code: exports.ErrorCode.PLAN_NOT_AVAILABLE,
+    [ErrorCode.PLAN_NOT_AVAILABLE]: {
+        code: ErrorCode.PLAN_NOT_AVAILABLE,
         message: 'Subscription plan is not available',
-        httpStatus: exports.HttpStatus.BAD_REQUEST,
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
     // 节点相关错误
-    [exports.ErrorCode.NODE_NOT_FOUND]: {
-        code: exports.ErrorCode.NODE_NOT_FOUND,
+    [ErrorCode.NODE_NOT_FOUND]: {
+        code: ErrorCode.NODE_NOT_FOUND,
         message: 'Node not found',
-        httpStatus: exports.HttpStatus.NOT_FOUND,
+        httpStatus: HttpStatus.NOT_FOUND,
     },
-    [exports.ErrorCode.NODE_OFFLINE]: {
-        code: exports.ErrorCode.NODE_OFFLINE,
+    [ErrorCode.NODE_OFFLINE]: {
+        code: ErrorCode.NODE_OFFLINE,
         message: 'Node is offline',
-        httpStatus: exports.HttpStatus.BAD_REQUEST,
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
-    [exports.ErrorCode.NODE_MAINTENANCE]: {
-        code: exports.ErrorCode.NODE_MAINTENANCE,
+    [ErrorCode.NODE_MAINTENANCE]: {
+        code: ErrorCode.NODE_MAINTENANCE,
         message: 'Node is under maintenance',
-        httpStatus: exports.HttpStatus.BAD_REQUEST,
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
     // 邀请码相关错误
-    [exports.ErrorCode.INVALID_INVITE_CODE]: {
-        code: exports.ErrorCode.INVALID_INVITE_CODE,
+    [ErrorCode.INVALID_INVITE_CODE]: {
+        code: ErrorCode.INVALID_INVITE_CODE,
         message: 'Invalid invite code',
-        httpStatus: exports.HttpStatus.BAD_REQUEST,
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
-    [exports.ErrorCode.INVITE_CODE_USED]: {
-        code: exports.ErrorCode.INVITE_CODE_USED,
+    [ErrorCode.INVITE_CODE_USED]: {
+        code: ErrorCode.INVITE_CODE_USED,
         message: 'Invite code has been used',
-        httpStatus: exports.HttpStatus.BAD_REQUEST,
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
-    [exports.ErrorCode.INVITE_CODE_EXPIRED]: {
-        code: exports.ErrorCode.INVITE_CODE_EXPIRED,
+    [ErrorCode.INVITE_CODE_EXPIRED]: {
+        code: ErrorCode.INVITE_CODE_EXPIRED,
         message: 'Invite code has expired',
-        httpStatus: exports.HttpStatus.BAD_REQUEST,
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
     // 流量相关错误
-    [exports.ErrorCode.TRAFFIC_EXCEEDED]: {
-        code: exports.ErrorCode.TRAFFIC_EXCEEDED,
+    [ErrorCode.TRAFFIC_EXCEEDED]: {
+        code: ErrorCode.TRAFFIC_EXCEEDED,
         message: 'Traffic limit exceeded',
-        httpStatus: exports.HttpStatus.FORBIDDEN,
+        httpStatus: HttpStatus.FORBIDDEN,
     },
-    [exports.ErrorCode.INSUFFICIENT_TRAFFIC]: {
-        code: exports.ErrorCode.INSUFFICIENT_TRAFFIC,
+    [ErrorCode.INSUFFICIENT_TRAFFIC]: {
+        code: ErrorCode.INSUFFICIENT_TRAFFIC,
         message: 'Insufficient traffic',
-        httpStatus: exports.HttpStatus.BAD_REQUEST,
+        httpStatus: HttpStatus.BAD_REQUEST,
     },
     // 系统错误
-    [exports.ErrorCode.DATABASE_ERROR]: {
-        code: exports.ErrorCode.DATABASE_ERROR,
+    [ErrorCode.DATABASE_ERROR]: {
+        code: ErrorCode.DATABASE_ERROR,
         message: 'Database error',
-        httpStatus: exports.HttpStatus.INTERNAL_ERROR,
+        httpStatus: HttpStatus.INTERNAL_ERROR,
     },
-    [exports.ErrorCode.CACHE_ERROR]: {
-        code: exports.ErrorCode.CACHE_ERROR,
+    [ErrorCode.CACHE_ERROR]: {
+        code: ErrorCode.CACHE_ERROR,
         message: 'Cache error',
-        httpStatus: exports.HttpStatus.INTERNAL_ERROR,
+        httpStatus: HttpStatus.INTERNAL_ERROR,
     },
-    [exports.ErrorCode.NETWORK_ERROR]: {
-        code: exports.ErrorCode.NETWORK_ERROR,
+    [ErrorCode.NETWORK_ERROR]: {
+        code: ErrorCode.NETWORK_ERROR,
         message: 'Network error',
-        httpStatus: exports.HttpStatus.INTERNAL_ERROR,
+        httpStatus: HttpStatus.INTERNAL_ERROR,
     },
-    [exports.ErrorCode.XRAY_API_ERROR]: {
-        code: exports.ErrorCode.XRAY_API_ERROR,
+    [ErrorCode.XRAY_API_ERROR]: {
+        code: ErrorCode.XRAY_API_ERROR,
         message: 'Xray API error',
-        httpStatus: exports.HttpStatus.INTERNAL_ERROR,
+        httpStatus: HttpStatus.INTERNAL_ERROR,
     },
-    [exports.ErrorCode.EMAIL_SEND_ERROR]: {
-        code: exports.ErrorCode.EMAIL_SEND_ERROR,
+    [ErrorCode.EMAIL_SEND_ERROR]: {
+        code: ErrorCode.EMAIL_SEND_ERROR,
         message: 'Failed to send email',
-        httpStatus: exports.HttpStatus.INTERNAL_ERROR,
+        httpStatus: HttpStatus.INTERNAL_ERROR,
     },
 };
 // 根据错误码获取错误信息
-function getErrorInfo(code) {
-    return exports.ErrorInfoMap[code] || exports.ErrorInfoMap[exports.ErrorCode.INTERNAL_ERROR];
+export function getErrorInfo(code) {
+    return ErrorInfoMap[code] || ErrorInfoMap[ErrorCode.INTERNAL_ERROR];
 }
 // 创建错误响应对象
-function createErrorResponse(code, customMessage, errors) {
+export function createErrorResponse(code, customMessage, errors) {
     const errorInfo = getErrorInfo(code);
     return {
         success: false,
@@ -295,13 +288,12 @@ function createErrorResponse(code, customMessage, errors) {
         timestamp: Date.now(),
     };
 }
+// 为了保持向后兼容，导出旧名称
+export { ErrorCode as ERROR_CODES };
+export { HttpStatus as HTTP_STATUS };
 // 错误类定义
-class AppError extends Error {
-    statusCode;
-    code;
-    details;
-    isOperational;
-    constructor(message, statusCode = exports.HttpStatus.INTERNAL_ERROR, code = exports.ErrorCode.INTERNAL_ERROR, details) {
+export class AppError extends Error {
+    constructor(message, statusCode = HttpStatus.INTERNAL_ERROR, code = ErrorCode.INTERNAL_ERROR, details) {
         super(message);
         this.name = 'AppError';
         this.statusCode = statusCode;
@@ -311,14 +303,11 @@ class AppError extends Error {
         Error.captureStackTrace(this, this.constructor);
     }
 }
-exports.AppError = AppError;
-class ValidationError extends AppError {
-    errors;
+export class ValidationError extends AppError {
     constructor(message, errors) {
-        super(message, exports.HttpStatus.BAD_REQUEST, exports.ErrorCode.VALIDATION_ERROR, { validationErrors: errors });
+        super(message, HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR, { validationErrors: errors });
         this.name = 'ValidationError';
         this.errors = errors;
     }
 }
-exports.ValidationError = ValidationError;
 //# sourceMappingURL=errors.js.map

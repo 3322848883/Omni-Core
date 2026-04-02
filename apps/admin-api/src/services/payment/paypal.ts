@@ -2,6 +2,7 @@ import axios, { AxiosInstance } from 'axios';
 import crypto from 'crypto';
 import { logger } from '../../utils/logger';
 import { config } from '../../config';
+import { EncryptionUtil } from '../../utils/encryption';
 import {
   IPaymentProvider,
   PaymentProvider,
@@ -88,6 +89,9 @@ export class PayPalPaymentProvider implements IPaymentProvider {
       const clientId = config.payment?.paypal?.clientId;
       const clientSecret = config.payment?.paypal?.clientSecret;
 
+      // 记录加密后的凭证信息
+      logger.debug(`PayPal clientId: ${EncryptionUtil.mask(clientId || '')}`);
+      
       const auth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
 
       const response = await this.client.post<PayPalAccessToken>(

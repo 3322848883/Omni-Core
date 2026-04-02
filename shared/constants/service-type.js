@@ -1,34 +1,21 @@
-"use strict";
 /**
  * 服务类型常量定义
  * 用于套餐服务类型支持功能
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PRESET_PLANS = exports.PLAN_GROUPS = exports.ServiceTypeMeta = exports.ServiceTypeGroups = exports.ServiceType = void 0;
-exports.getServiceTypeLabel = getServiceTypeLabel;
-exports.getServiceTypeDescription = getServiceTypeDescription;
-exports.getServiceTypeColor = getServiceTypeColor;
-exports.getServiceTypeBgColor = getServiceTypeBgColor;
-exports.getServiceTypeIcon = getServiceTypeIcon;
-exports.getServiceTypePriority = getServiceTypePriority;
-exports.isPremiumServiceType = isPremiumServiceType;
-exports.getPlanGroupByServiceType = getPlanGroupByServiceType;
-exports.getAllServiceTypes = getAllServiceTypes;
-exports.isValidServiceType = isValidServiceType;
 /**
  * 服务类型枚举
  */
-var ServiceType;
+export var ServiceType;
 (function (ServiceType) {
     ServiceType["STANDARD"] = "standard";
     ServiceType["DEDICATED_LINE"] = "dedicated_line";
     ServiceType["EXCLUSIVE"] = "exclusive";
     ServiceType["STATIC_RESIDENTIAL"] = "static_residential"; // 静态住宅IP - 固定住宅IP，高匿名性
-})(ServiceType || (exports.ServiceType = ServiceType = {}));
+})(ServiceType || (ServiceType = {}));
 /**
  * 服务类型分组
  */
-exports.ServiceTypeGroups = {
+export const ServiceTypeGroups = {
     BASIC: [ServiceType.STANDARD],
     PRO: [ServiceType.STANDARD, ServiceType.DEDICATED_LINE],
     ENTERPRISE: [ServiceType.STANDARD, ServiceType.DEDICATED_LINE, ServiceType.EXCLUSIVE],
@@ -37,7 +24,7 @@ exports.ServiceTypeGroups = {
 /**
  * 服务类型元数据
  */
-exports.ServiceTypeMeta = {
+export const ServiceTypeMeta = {
     [ServiceType.STANDARD]: {
         label: '标准',
         description: '普通共享节点，适合日常使用',
@@ -74,7 +61,7 @@ exports.ServiceTypeMeta = {
 /**
  * 套餐组配置
  */
-exports.PLAN_GROUPS = [
+export const PLAN_GROUPS = [
     {
         id: 'standard',
         name: '标准套餐',
@@ -115,7 +102,7 @@ exports.PLAN_GROUPS = [
 /**
  * 预设套餐配置
  */
-exports.PRESET_PLANS = [
+export const PRESET_PLANS = [
     // ========== 标准套餐组 ==========
     {
         id: 'standard-lite',
@@ -292,61 +279,61 @@ exports.PRESET_PLANS = [
 /**
  * 获取服务类型标签
  */
-function getServiceTypeLabel(type) {
-    return exports.ServiceTypeMeta[type]?.label || type;
+export function getServiceTypeLabel(type) {
+    return ServiceTypeMeta[type]?.label || type;
 }
 /**
  * 获取服务类型描述
  */
-function getServiceTypeDescription(type) {
-    return exports.ServiceTypeMeta[type]?.description || '';
+export function getServiceTypeDescription(type) {
+    return ServiceTypeMeta[type]?.description || '';
 }
 /**
  * 获取服务类型颜色
  */
-function getServiceTypeColor(type) {
-    return exports.ServiceTypeMeta[type]?.color || '#666666';
+export function getServiceTypeColor(type) {
+    return ServiceTypeMeta[type]?.color || '#666666';
 }
 /**
  * 获取服务类型背景色
  */
-function getServiceTypeBgColor(type) {
-    return exports.ServiceTypeMeta[type]?.bgColor || '#F3F4F6';
+export function getServiceTypeBgColor(type) {
+    return ServiceTypeMeta[type]?.bgColor || '#F3F4F6';
 }
 /**
  * 获取服务类型图标
  */
-function getServiceTypeIcon(type) {
-    return exports.ServiceTypeMeta[type]?.icon || 'circle';
+export function getServiceTypeIcon(type) {
+    return ServiceTypeMeta[type]?.icon || 'circle';
 }
 /**
  * 获取服务类型优先级
  */
-function getServiceTypePriority(type) {
-    return exports.ServiceTypeMeta[type]?.priority || 0;
+export function getServiceTypePriority(type) {
+    return ServiceTypeMeta[type]?.priority || 0;
 }
 /**
  * 判断是否为高级服务类型
  */
-function isPremiumServiceType(type) {
+export function isPremiumServiceType(type) {
     return type === ServiceType.DEDICATED_LINE || type === ServiceType.EXCLUSIVE || type === ServiceType.STATIC_RESIDENTIAL;
 }
 /**
  * 根据服务类型获取套餐组
  */
-function getPlanGroupByServiceType(type) {
-    return exports.PLAN_GROUPS.find(group => group.serviceTypes.includes(type));
+export function getPlanGroupByServiceType(type) {
+    return PLAN_GROUPS.find(group => group.serviceTypes.includes(type));
 }
 /**
  * 获取所有服务类型列表
  */
-function getAllServiceTypes() {
+export function getAllServiceTypes() {
     return Object.values(ServiceType);
 }
 /**
  * 验证服务类型是否有效
  */
-function isValidServiceType(type) {
+export function isValidServiceType(type) {
     return Object.values(ServiceType).includes(type);
 }
 //# sourceMappingURL=service-type.js.map

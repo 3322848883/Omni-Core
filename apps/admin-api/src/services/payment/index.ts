@@ -6,6 +6,8 @@ import { AlipayPaymentProvider } from './alipay';
 import { WechatPaymentProvider } from './wechat';
 import { AlipayMerchantProvider } from './alipay-merchant';
 import { WechatMerchantProvider } from './wechat-merchant';
+import { PaymentAggregator, paymentAggregator, initializePaymentAggregator } from './aggregator';
+import { PaymentFlowManager, paymentFlowManager, initializePaymentFlowManager } from './payment-flow-manager';
 import {
   IPaymentProvider,
   PaymentProvider,
@@ -86,6 +88,14 @@ export function initializePaymentProviders(): void {
     } else {
       logger.info(`Initialized payment providers: ${initializedProviders.join(', ')}`);
     }
+
+    // Initialize payment aggregator
+    initializePaymentAggregator();
+    logger.info('Payment aggregator initialized');
+
+    // Initialize payment flow manager
+    initializePaymentFlowManager();
+    logger.info('Payment flow manager initialized');
   } catch (error) {
     logger.error('Failed to initialize payment providers:', error);
   }
@@ -177,30 +187,8 @@ export async function createPayment(
   provider: PaymentProvider,
   request: CreatePaymentRequest
 ): Promise<CreatePaymentResponse> {
-  const paymentProvider = getPaymentProvider(provider);
-
-  // Update order with payment method
-  await db('orders')
-    .where('id', request.orderId)
-    .update({
-      payment_method: provider,
-      updated_at: new Date(),
-    });
-
-  // Create payment with provider
-  const response = await paymentProvider.createPayment(request);
-
-  // Store payment intent ID if available
-  if (response.paymentIntentId) {
-    await db('orders')
-      .where('id', request.orderId)
-      .update({
-        payment_id: response.paymentIntentId,
-        updated_at: new Date(),
-      });
-  }
-
-  return response;
+  // 使用支付流程管理器处理支付创建
+  return paymentFlowManager.createPaymentFlow(provider, request);
 }
 
 /**
@@ -210,63 +198,8 @@ export async function processPaymentSuccess(
   provider: PaymentProvider,
   event: PaymentWebhookEvent
 ): Promise<void> {
-  const paymentProvider = getPaymentProvider(provider);
-  const paymentData = await paymentProvider.handlePaymentSuccess(event);
-
-  // Find order by metadata or payment ID
-  const orderId = paymentData.metadata?.orderId;
-  if (!orderId) {
-    throw new Error('Order ID not found in payment metadata');
-  }
-
-  const order = await db('orders').where('id', orderId).first();
-  if (!order) {
-    throw new Error(`Order not found: ${orderId}`);
-  }
-
-  // Check if order can transition to paid status
-  if (!canTransitionOrderStatus(order.status as OrderStatus, 'paid')) {
-    logger.warn(`Order ${order.order_no} cannot transition from ${order.status} to paid`);
-    return;
-  }
-
-  const now = new Date();
-  const startDate = now;
-  const endDate = new Date(now);
-  endDate.setDate(endDate.getDate() + (order.duration_days || 30));
-
-  // Update order status
-  await db('orders')
-    .where('id', order.id)
-    .update({
-      status: 'paid',
-      payment_time: now,
-      start_date: startDate,
-      end_date: endDate,
-      updated_at: now,
-    });
-
-  // Log status change
-  await db('order_status_logs').insert({
-    order_id: order.id,
-    from_status: order.status,
-    to_status: 'paid',
-    changed_by: 'system',
-    reason: `Payment received via ${provider}`,
-  });
-
-  // Update user traffic limit and expire date
-  if (order.traffic_limit) {
-    await db('users')
-      .where('user_id', order.user_id)
-      .update({
-        traffic_limit: db.raw('traffic_limit + ?', [order.traffic_limit]),
-        expire_date: endDate,
-        updated_at: now,
-      });
-  }
-
-  logger.info(`Payment success processed for order: ${order.order_no}`);
+  // 直接使用支付聚合器处理支付成功
+  await paymentAggregator.processPaymentSuccess(provider, event);
 }
 
 /**
@@ -276,43 +209,8 @@ export async function processPaymentFailure(
   provider: PaymentProvider,
   event: PaymentWebhookEvent
 ): Promise<void> {
-  const paymentProvider = getPaymentProvider(provider);
-  const failureData = await paymentProvider.handlePaymentFailure(event);
-
-  // Find order by payment ID
-  const order = await db('orders')
-    .where('payment_id', failureData.providerOrderId)
-    .first();
-
-  if (!order) {
-    logger.warn(`Order not found for failed payment: ${failureData.providerOrderId}`);
-    return;
-  }
-
-  // Check if order can transition to cancelled status
-  if (!canTransitionOrderStatus(order.status as OrderStatus, 'cancelled')) {
-    logger.warn(`Order ${order.order_no} cannot transition from ${order.status} to cancelled`);
-    return;
-  }
-
-  // Update order status
-  await db('orders')
-    .where('id', order.id)
-    .update({
-      status: 'cancelled',
-      updated_at: new Date(),
-    });
-
-  // Log status change
-  await db('order_status_logs').insert({
-    order_id: order.id,
-    from_status: order.status,
-    to_status: 'cancelled',
-    changed_by: 'system',
-    reason: `Payment failed: ${failureData.reason || 'Unknown reason'}`,
-  });
-
-  logger.info(`Payment failure processed for order: ${order.order_no}`);
+  // 直接使用支付聚合器处理支付失败
+  await paymentAggregator.processPaymentFailure(provider, event);
 }
 
 /**
@@ -382,67 +280,8 @@ export async function processRefund(
   reason?: string,
   changedBy: string = 'system'
 ): Promise<RefundResponse> {
-  // Find order
-  const order = await db('orders').where('id', orderId).first();
-  if (!order) {
-    throw new Error(`Order not found: ${orderId}`);
-  }
-
-  // Check if order can be refunded
-  if (order.status !== 'paid' && order.status !== 'completed') {
-    throw new Error(`Order cannot be refunded. Current status: ${order.status}`);
-  }
-
-  if (!order.payment_method || !order.payment_id) {
-    throw new Error('Order does not have payment information');
-  }
-
-  const provider = order.payment_method as PaymentProvider;
-  const paymentProvider = getPaymentProvider(provider);
-
-  // Process refund with provider
-  const refundRequest: RefundRequest = {
-    paymentId: order.payment_id,
-    amount,
-    reason,
-  };
-
-  const refundResult = await paymentProvider.processRefund(refundRequest);
-
-  if (refundResult.success) {
-    const now = new Date();
-
-    // Update order status
-    await db('orders')
-      .where('id', order.id)
-      .update({
-        status: 'refunded',
-        updated_at: now,
-      });
-
-    // Log status change
-    await db('order_status_logs').insert({
-      order_id: order.id,
-      from_status: order.status,
-      to_status: 'refunded',
-      changed_by: changedBy,
-      reason: reason || 'Order refunded',
-    });
-
-    // Deduct user traffic limit
-    if (order.traffic_limit) {
-      await db('users')
-        .where('user_id', order.user_id)
-        .update({
-          traffic_limit: db.raw('GREATEST(traffic_limit - ?, 0)', [order.traffic_limit]),
-          updated_at: now,
-        });
-    }
-
-    logger.info(`Refund processed for order: ${order.order_no} by ${changedBy}`);
-  }
-
-  return refundResult;
+  // 使用支付流程管理器处理退款
+  return paymentFlowManager.processRefund(orderId, amount, reason, changedBy);
 }
 
 /**
@@ -452,8 +291,8 @@ export async function getPaymentStatus(
   provider: PaymentProvider,
   paymentId: string
 ): Promise<PaymentStatusResponse> {
-  const paymentProvider = getPaymentProvider(provider);
-  return paymentProvider.getPaymentStatus(paymentId);
+  // 使用支付流程管理器获取支付状态
+  return paymentFlowManager.getPaymentStatus(provider, paymentId);
 }
 
 /**
@@ -464,14 +303,8 @@ export function verifyWebhookSignature(
   payload: string,
   signature: string
 ): boolean {
-  try {
-    const paymentProvider = getPaymentProvider(provider);
-    const secret = getWebhookSecret(provider);
-    return paymentProvider.verifyWebhookSignature(payload, signature, secret);
-  } catch (error) {
-    logger.error(`Webhook signature verification failed for ${provider}:`, error);
-    return false;
-  }
+  // 使用支付聚合器验证签名
+  return paymentAggregator.verifyWebhookSignature(provider, payload, signature);
 }
 
 /**
@@ -482,8 +315,8 @@ export function parseWebhookEvent(
   rawBody: string,
   signature: string
 ): PaymentWebhookEvent {
-  const paymentProvider = getPaymentProvider(provider);
-  return paymentProvider.parseWebhookEvent(rawBody, signature);
+  // 使用支付聚合器解析事件
+  return paymentAggregator.parseWebhookEvent(provider, rawBody, signature);
 }
 
 /**
@@ -533,5 +366,8 @@ export async function completeOrder(orderId: string, changedBy: string = 'system
   logger.info(`Order completed: ${order.order_no} by ${changedBy}`);
 }
 
-// Re-export types
+// Re-export types, aggregator, and flow manager
 export * from './types';
+export { PaymentAggregator, paymentAggregator };
+export { PaymentFlowManager, paymentFlowManager };
+

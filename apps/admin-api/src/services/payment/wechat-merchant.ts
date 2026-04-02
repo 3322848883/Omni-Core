@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { logger } from '../../utils/logger';
 import { config } from '../../config';
+import { EncryptionUtil } from '../../utils/encryption';
 import {
   IPaymentProvider,
   PaymentProvider,
@@ -53,6 +54,7 @@ export class WechatMerchantProvider implements IPaymentProvider {
       logger.warn('WeChat merchant credentials are not configured');
     } else {
       logger.info('WeChat merchant payment provider initialized');
+      logger.debug(`WeChat mchId: ${EncryptionUtil.mask(this.mchId)}, appId: ${EncryptionUtil.mask(this.appId)}`);
     }
   }
 

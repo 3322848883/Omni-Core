@@ -1,36 +1,34 @@
-"use strict";
 /**
  * IP类型和线路类型常量定义
  * 用于套餐服务体系升级
  */
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.PRESET_ISPS = exports.LineTypeMeta = exports.LineType = exports.IpTypeMeta = exports.IpType = void 0;
-exports.getIpTypeLabel = getIpTypeLabel;
-exports.getIpTypeDescription = getIpTypeDescription;
-exports.getIpTypePriceMultiplier = getIpTypePriceMultiplier;
-exports.isValidIpType = isValidIpType;
-exports.getLineTypeLabel = getLineTypeLabel;
-exports.getLineTypeDescription = getLineTypeDescription;
-exports.getLineTypePriority = getLineTypePriority;
-exports.isValidLineType = isValidLineType;
-exports.getAllIpTypes = getAllIpTypes;
-exports.getAllLineTypes = getAllLineTypes;
-exports.getISPById = getISPById;
-exports.getISPsByCountry = getISPsByCountry;
+// Rotation Strategy Enum
+export var RotationStrategy;
+(function (RotationStrategy) {
+    RotationStrategy["FIXED"] = "fixed";
+    RotationStrategy["DAILY"] = "daily";
+    RotationStrategy["WEEKLY"] = "weekly";
+    RotationStrategy["MONTHLY"] = "monthly";
+    RotationStrategy["ON_DEMAND"] = "on_demand";
+    RotationStrategy["ROUND_ROBIN"] = "round_robin";
+    RotationStrategy["RANDOM"] = "random";
+    RotationStrategy["LEAST_USED"] = "least_used";
+    RotationStrategy["QUALITY_FIRST"] = "quality_first";
+})(RotationStrategy || (RotationStrategy = {}));
 /**
  * IP类型枚举
  */
-var IpType;
+export var IpType;
 (function (IpType) {
     IpType["DATACENTER"] = "datacenter";
     IpType["RESIDENTIAL_DYNAMIC"] = "residential_dynamic";
     IpType["RESIDENTIAL_STATIC"] = "residential_static";
     IpType["MOBILE"] = "mobile"; // 移动IP - 移动端业务
-})(IpType || (exports.IpType = IpType = {}));
+})(IpType || (IpType = {}));
 /**
  * IP类型元数据
  */
-exports.IpTypeMeta = {
+export const IpTypeMeta = {
     [IpType.DATACENTER]: {
         label: '机房',
         description: '数据中心IP，适合大流量下载',
@@ -71,17 +69,17 @@ exports.IpTypeMeta = {
 /**
  * 线路类型枚举
  */
-var LineType;
+export var LineType;
 (function (LineType) {
     LineType["STANDARD"] = "standard";
     LineType["CN2"] = "cn2";
     LineType["IEPL"] = "iepl";
     LineType["IPLC"] = "iplc"; // IPLC专线
-})(LineType || (exports.LineType = LineType = {}));
+})(LineType || (LineType = {}));
 /**
  * 线路类型元数据
  */
-exports.LineTypeMeta = {
+export const LineTypeMeta = {
     [LineType.STANDARD]: {
         label: '标准线路',
         description: '普通国际线路',
@@ -118,84 +116,84 @@ exports.LineTypeMeta = {
 /**
  * 预设ISP列表
  */
-exports.PRESET_ISPS = [
-    { id: 'starlink', name: 'Starlink', country: 'US', type: 'starlink', reputation: 95, features: ['卫星网络', '全球覆盖'] },
-    { id: 'comcast', name: 'Comcast', country: 'US', type: 'cable', reputation: 90, features: ['美国最大有线运营商'] },
-    { id: 'att', name: 'AT&T', country: 'US', type: 'fiber', reputation: 92, features: ['光纤网络'] },
-    { id: 'verizon', name: 'Verizon', country: 'US', type: 'fiber', reputation: 93, features: ['企业级服务'] },
-    { id: 'ucom', name: 'Ucom', country: 'JP', type: 'fiber', reputation: 88, features: ['日本本土运营商'] },
-    { id: 'ntt', name: 'NTT', country: 'JP', type: 'fiber', reputation: 94, features: ['日本最大运营商'] }
+export const PRESET_ISPS = [
+    { id: 'starlink', name: 'Starlink', displayName: 'Starlink', country: 'US', type: 'starlink', reputation: 95, features: ['卫星网络', '全球覆盖'] },
+    { id: 'comcast', name: 'Comcast', displayName: 'Comcast', country: 'US', type: 'cable', reputation: 90, features: ['美国最大有线运营商'] },
+    { id: 'att', name: 'AT&T', displayName: 'AT&T', country: 'US', type: 'fiber', reputation: 92, features: ['光纤网络'] },
+    { id: 'verizon', name: 'Verizon', displayName: 'Verizon', country: 'US', type: 'fiber', reputation: 93, features: ['企业级服务'] },
+    { id: 'ucom', name: 'Ucom', displayName: 'Ucom', country: 'JP', type: 'fiber', reputation: 88, features: ['日本本土运营商'] },
+    { id: 'ntt', name: 'NTT', displayName: 'NTT', country: 'JP', type: 'fiber', reputation: 94, features: ['日本最大运营商'] }
 ];
 /**
  * 获取IP类型标签
  */
-function getIpTypeLabel(type) {
-    return exports.IpTypeMeta[type]?.label || type;
+export function getIpTypeLabel(type) {
+    return IpTypeMeta[type]?.label || type;
 }
 /**
  * 获取IP类型描述
  */
-function getIpTypeDescription(type) {
-    return exports.IpTypeMeta[type]?.description || '';
+export function getIpTypeDescription(type) {
+    return IpTypeMeta[type]?.description || '';
 }
 /**
  * 获取IP类型价格系数
  */
-function getIpTypePriceMultiplier(type) {
-    return exports.IpTypeMeta[type]?.priceMultiplier || 1.0;
+export function getIpTypePriceMultiplier(type) {
+    return IpTypeMeta[type]?.priceMultiplier || 1.0;
 }
 /**
  * 验证IP类型是否有效
  */
-function isValidIpType(type) {
+export function isValidIpType(type) {
     return Object.values(IpType).includes(type);
 }
 /**
  * 获取线路类型标签
  */
-function getLineTypeLabel(type) {
-    return exports.LineTypeMeta[type]?.label || type;
+export function getLineTypeLabel(type) {
+    return LineTypeMeta[type]?.label || type;
 }
 /**
  * 获取线路类型描述
  */
-function getLineTypeDescription(type) {
-    return exports.LineTypeMeta[type]?.description || '';
+export function getLineTypeDescription(type) {
+    return LineTypeMeta[type]?.description || '';
 }
 /**
  * 获取线路类型优先级
  */
-function getLineTypePriority(type) {
-    return exports.LineTypeMeta[type]?.priority || 0;
+export function getLineTypePriority(type) {
+    return LineTypeMeta[type]?.priority || 0;
 }
 /**
  * 验证线路类型是否有效
  */
-function isValidLineType(type) {
+export function isValidLineType(type) {
     return Object.values(LineType).includes(type);
 }
 /**
  * 获取所有IP类型列表
  */
-function getAllIpTypes() {
+export function getAllIpTypes() {
     return Object.values(IpType);
 }
 /**
  * 获取所有线路类型列表
  */
-function getAllLineTypes() {
+export function getAllLineTypes() {
     return Object.values(LineType);
 }
 /**
  * 根据ID获取ISP信息
  */
-function getISPById(id) {
-    return exports.PRESET_ISPS.find(isp => isp.id === id);
+export function getISPById(id) {
+    return PRESET_ISPS.find(isp => isp.id === id);
 }
 /**
  * 根据国家获取ISP列表
  */
-function getISPsByCountry(country) {
-    return exports.PRESET_ISPS.filter(isp => isp.country === country);
+export function getISPsByCountry(country) {
+    return PRESET_ISPS.filter(isp => isp.country === country);
 }
 //# sourceMappingURL=ip-type.js.map

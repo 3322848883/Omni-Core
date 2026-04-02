@@ -32,6 +32,8 @@ import { serviceTypeRoutes } from './routes/service-types';
 import { ipPoolRoutes } from './routes/ip-pools';
 import { ispRoutes } from './routes/isps';
 import { metaRoutes } from './routes/meta';
+import paymentChannelsRoutes from './routes/payment-channels';
+import reconciliationRoutes from './routes/reconciliation';
 
 dotenv.config();
 
@@ -166,6 +168,8 @@ app.use(`${apiPrefix}/service-types`, serviceTypeRoutes);
 app.use(`${apiPrefix}/ip-pools`, ipPoolRoutes);
 app.use(`${apiPrefix}/isps`, ispRoutes);
 app.use(`${apiPrefix}/meta`, metaRoutes);
+app.use(`${apiPrefix}/payment-channels`, paymentChannelsRoutes);
+app.use(`${apiPrefix}/reconciliation`, reconciliationRoutes);
 
 // Webhook routes (no API prefix, separate path)
 app.use('/webhooks', webhookRoutes);
