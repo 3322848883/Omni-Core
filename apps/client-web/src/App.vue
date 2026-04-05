@@ -31,8 +31,8 @@
   right: 0;
   bottom: 0;
   background-image: 
-    linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px,
-    linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px;
+    linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
   background-size: 50px 50px;
   pointer-events: none;
   z-index: 1;
