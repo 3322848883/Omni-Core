@@ -64,7 +64,7 @@ router.post('/login', (0, validation_1.validate)(validation_1.AuthValidation.log
         // Check MFA if enabled
         if (admin.mfa_secret) {
             if (!mfaCode) {
-                throw new errors_1.ValidationError([
+                throw new errors_1.ValidationError('Validation failed', [
                     { field: 'mfaCode', message: 'MFA code is required' },
                 ]);
             }

@@ -215,7 +215,7 @@ router.get('/users/:userId', auth_1.authMiddleware, async (req, res, next) => {
             .where('status', '!=', 3)
             .first();
         if (!user) {
-            throw new errors_1.NotFoundError('User', userId);
+            throw new errors_1.NotFoundError(`User ${userId} not found`);
         }
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
@@ -346,7 +346,7 @@ router.get('/nodes/:nodeId', auth_1.authMiddleware, async (req, res, next) => {
             .orWhere('code', nodeId)
             .first();
         if (!node) {
-            throw new errors_1.NotFoundError('Node', nodeId);
+            throw new errors_1.NotFoundError(`Node ${nodeId} not found`);
         }
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);

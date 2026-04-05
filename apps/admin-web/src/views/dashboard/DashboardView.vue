@@ -172,9 +172,13 @@ const loadDashboardData = async () => {
     const dashboardStats: DashboardStats = await getDashboardStats();
     stats.value = [
       { title: '总用户数', value: dashboardStats.totalUsers.toString(), icon: 'User', color: '#409EFF' },
-      { title: '今日流量', value: '0 GB', icon: 'DataLine', color: '#67C23A' },
+      { title: '今日流量', value: formatBytes(dashboardStats.todayTotal), icon: 'DataLine', color: '#67C23A' },
       { title: '在线用户', value: dashboardStats.activeUsers.toString(), icon: 'UserFilled', color: '#E6A23C' },
       { title: '本月收入', value: `$${dashboardStats.monthlyRevenue}`, icon: 'Money', color: '#F56C6C' },
+      { title: '总节点数', value: dashboardStats.totalNodes.toString(), icon: 'Monitor', color: '#909399' },
+      { title: '在线节点', value: dashboardStats.onlineNodes.toString(), icon: 'Connection', color: '#67C23A' },
+      { title: '总订单数', value: dashboardStats.totalOrders.toString(), icon: 'ShoppingCart', color: '#E6A23C' },
+      { title: '待处理订单', value: dashboardStats.pendingOrders.toString(), icon: 'Timer', color: '#F56C6C' },
     ];
 
     // Load traffic trend
@@ -218,9 +222,28 @@ onMounted(() => {
 <style scoped lang="scss">
 .dashboard {
   min-height: calc(100vh - 120px);
+  background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+  padding: 20px;
 
   .el-card {
     height: 100%;
+    background: rgba(26, 26, 46, 0.8);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+
+    &:hover {
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+      border-color: rgba(0, 255, 255, 0.6);
+      transition: all 0.3s ease;
+    }
+
+    .el-card__header {
+      border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+      color: #00ffff;
+      font-weight: bold;
+    }
   }
 
   .stat-card {
@@ -238,18 +261,26 @@ onMounted(() => {
         align-items: center;
         justify-content: center;
         margin-right: 15px;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+
+        &:hover {
+          box-shadow: 0 0 25px rgba(0, 255, 255, 0.5);
+          transform: scale(1.05);
+          transition: all 0.3s ease;
+        }
       }
 
       .stat-info {
         .stat-value {
           font-size: 24px;
           font-weight: bold;
-          color: #303133;
+          color: #00ffff;
+          text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
         }
 
         .stat-title {
           font-size: 14px;
-          color: #909399;
+          color: #8a94a6;
           margin-top: 5px;
         }
       }
@@ -272,7 +303,26 @@ onMounted(() => {
   .activity-card {
     .el-timeline {
       padding-left: 10px;
+
+      .el-timeline-item {
+        .el-timeline-item__node {
+          background: #00ffff;
+          box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .el-timeline-item__content {
+          color: #e6e6e6;
+        }
+
+        .el-timeline-item__timestamp {
+          color: #8a94a6;
+        }
+      }
     }
+  }
+
+  .el-empty {
+    color: #8a94a6;
   }
 }
 </style>

@@ -82,7 +82,7 @@ router.get('/:id', auth_1.authMiddleware, (0, validation_1.validate)(validation_
             .where('status', '!=', 3)
             .first();
         if (!user) {
-            throw new errors_1.NotFoundError('User', id);
+            throw new errors_1.NotFoundError(`User ${id} not found`);
         }
         res.json({
             success: true,
@@ -117,7 +117,7 @@ router.post('/', auth_1.authMiddleware, (0, validation_1.validate)(validation_1.
             .orWhere('username', username)
             .first();
         if (existingUser) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'email', message: 'Email or username already exists' }
             ]);
         }
@@ -184,7 +184,7 @@ router.put('/:id', auth_1.authMiddleware, (0, validation_1.validate)(validation_
             .where('status', '!=', 3)
             .first();
         if (!user) {
-            throw new errors_1.NotFoundError('User', id);
+            throw new errors_1.NotFoundError(`User ${id} not found`);
         }
         const updateData = {
             updated_at: new Date(),
@@ -256,7 +256,7 @@ router.delete('/:id', auth_1.authMiddleware, (0, validation_1.validate)(validati
             .where('status', '!=', 3)
             .first();
         if (!user) {
-            throw new errors_1.NotFoundError('User', id);
+            throw new errors_1.NotFoundError(`User ${id} not found`);
         }
         await (0, database_1.db)('users')
             .where('user_id', id)
@@ -294,7 +294,7 @@ router.post('/:id/ban', auth_1.authMiddleware, (0, validation_1.validate)(valida
             .where('status', '!=', 3)
             .first();
         if (!user) {
-            throw new errors_1.NotFoundError('User', id);
+            throw new errors_1.NotFoundError(`User ${id} not found`);
         }
         await (0, database_1.db)('users')
             .where('user_id', id)
@@ -331,7 +331,7 @@ router.post('/:id/unban', auth_1.authMiddleware, (0, validation_1.validate)(vali
             .where('status', '!=', 3)
             .first();
         if (!user) {
-            throw new errors_1.NotFoundError('User', id);
+            throw new errors_1.NotFoundError(`User ${id} not found`);
         }
         await (0, database_1.db)('users')
             .where('user_id', id)
@@ -369,7 +369,7 @@ router.get('/:id/traffic', auth_1.authMiddleware, (0, validation_1.validate)(val
             .where('status', '!=', 3)
             .first();
         if (!user) {
-            throw new errors_1.NotFoundError('User', id);
+            throw new errors_1.NotFoundError(`User ${id} not found`);
         }
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
@@ -417,7 +417,7 @@ router.get('/:id/orders', auth_1.authMiddleware, (0, validation_1.validate)(vali
             .where('status', '!=', 3)
             .first();
         if (!user) {
-            throw new errors_1.NotFoundError('User', id);
+            throw new errors_1.NotFoundError(`User ${id} not found`);
         }
         const [countResult] = await (0, database_1.db)('orders')
             .where('user_id', id)

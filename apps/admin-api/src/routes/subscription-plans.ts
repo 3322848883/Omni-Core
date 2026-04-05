@@ -50,7 +50,7 @@ router.get('/', authMiddleware, async (req: Request, res: Response, next: NextFu
 
     // 验证 serviceType
     if (query.serviceType && !isValidServiceType(query.serviceType)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'serviceType', message: `Invalid service type. Must be one of: ${Object.values(ServiceType).join(', ')}` }
       ]);
     }
@@ -95,7 +95,7 @@ router.get('/options', authMiddleware, async (req: Request, res: Response, next:
 
     // 验证 serviceType
     if (serviceType && !isValidServiceType(serviceType)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'serviceType', message: `Invalid service type. Must be one of: ${Object.values(ServiceType).join(', ')}` }
       ]);
     }
@@ -162,37 +162,37 @@ router.post('/', authMiddleware, async (req: Request, res: Response, next: NextF
 
     // 基本验证
     if (!data.name || data.name.trim() === '') {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'name', message: 'Plan name is required' }
       ]);
     }
 
     if (data.price === undefined || data.price < 0) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'price', message: 'Price must be a non-negative number' }
       ]);
     }
 
     if (!data.durationDays || data.durationDays < 1) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'durationDays', message: 'Duration days must be at least 1' }
       ]);
     }
 
     if (!data.trafficLimit || data.trafficLimit < 1) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'trafficLimit', message: 'Traffic limit must be at least 1 byte' }
       ]);
     }
 
-    if (!data.serviceTypes || !Array.isArray(data.serviceTypes) || data.serviceTypes.length === 0) {
-      throw new ValidationError([
-        { field: 'serviceTypes', message: 'At least one service type is required' }
+    if (!data.allowedServiceTypes || !Array.isArray(data.allowedServiceTypes) || data.allowedServiceTypes.length === 0) {
+      throw new ValidationError('Validation failed', [
+        { field: 'allowedServiceTypes', message: 'At least one service type is required' }
       ]);
     }
 
     if (!data.primaryServiceType) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'primaryServiceType', message: 'Primary service type is required' }
       ]);
     }
@@ -220,19 +220,19 @@ router.put('/:id', authMiddleware, async (req: Request, res: Response, next: Nex
 
     // 验证数值字段
     if (data.price !== undefined && data.price < 0) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'price', message: 'Price must be a non-negative number' }
       ]);
     }
 
     if (data.durationDays !== undefined && data.durationDays < 1) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'durationDays', message: 'Duration days must be at least 1' }
       ]);
     }
 
     if (data.trafficLimit !== undefined && data.trafficLimit < 1) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'trafficLimit', message: 'Traffic limit must be at least 1 byte' }
       ]);
     }
@@ -337,13 +337,13 @@ router.put('/sort-order', authMiddleware, async (req: Request, res: Response, ne
     const { sortData } = req.body;
 
     if (!Array.isArray(sortData)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'sortData', message: 'sortData must be an array' }
       ]);
     }
 
     if (sortData.some(item => !item.id || typeof item.sortOrder !== 'number')) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'sortData', message: 'Each item must have id and sortOrder' }
       ]);
     }

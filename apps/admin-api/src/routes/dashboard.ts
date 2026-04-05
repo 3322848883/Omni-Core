@@ -14,6 +14,9 @@ interface DashboardStats {
   pendingOrders: number;
   totalRevenue: number;
   monthlyRevenue: number;
+  todayUpload: number;
+  todayDownload: number;
+  todayTotal: number;
 }
 
 interface ChartDataPoint {
@@ -45,11 +48,14 @@ router.get('/stats', authMiddleware, async (req: Request, res: Response, next: N
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
     const [
       userStats,
       nodeStats,
       orderStats,
-      revenueStats
+      revenueStats,
+      todayTrafficStats
     ] = await Promise.all([
       db('users')
         .count('* as total')
@@ -67,6 +73,11 @@ router.get('/stats', authMiddleware, async (req: Request, res: Response, next: N
       db('orders')
         .where('status', 'completed')
         .sum('amount as total')
+        .first(),
+      db('user_traffic')
+        .where('created_at', '>=', startOfDay.toISOString())
+        .sum('upload as upload')
+        .sum('download as download')
         .first()
     ]);
 
@@ -81,6 +92,10 @@ router.get('/stats', authMiddleware, async (req: Request, res: Response, next: N
       .sum('amount as monthly')
       .first();
 
+    const todayUpload = parseFloat(todayTrafficStats?.upload as string) || 0;
+    const todayDownload = parseFloat(todayTrafficStats?.download as string) || 0;
+    const todayTotal = todayUpload + todayDownload;
+
     const stats: DashboardStats = {
       totalUsers: parseInt(userStats?.total as string) || 0,
       activeUsers: parseInt(activeUsersResult?.active as string) || 0,
@@ -90,6 +105,9 @@ router.get('/stats', authMiddleware, async (req: Request, res: Response, next: N
       pendingOrders: parseInt(orderStats?.pending as string) || 0,
       totalRevenue: parseFloat(revenueStats?.total as string) || 0,
       monthlyRevenue: parseFloat(monthlyRevenueResult?.monthly as string) || 0,
+      todayUpload,
+      todayDownload,
+      todayTotal,
     };
 
     res.json({

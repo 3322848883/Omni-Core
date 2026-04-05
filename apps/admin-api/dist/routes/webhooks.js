@@ -15,7 +15,7 @@ router.post('/stripe', async (req, res, next) => {
     try {
         const signature = req.headers['stripe-signature'];
         if (!signature) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'stripe-signature', message: 'Missing Stripe signature header' }
             ]);
         }
@@ -82,7 +82,7 @@ router.post('/paypal', async (req, res, next) => {
         const transmissionTime = req.headers['paypal-transmission-time'];
         const signature = req.headers['paypal-transmission-sig'];
         if (!signature || !transmissionId) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'paypal-signature', message: 'Missing PayPal signature headers' }
             ]);
         }

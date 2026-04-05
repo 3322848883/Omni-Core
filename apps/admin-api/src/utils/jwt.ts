@@ -1,14 +1,17 @@
-import jwt from 'jsonwebtoken';
+import jwt, { SignOptions } from 'jsonwebtoken';
 import { config } from '../config';
 
 export interface TokenPayload {
-  userId: string;
-  email: string;
+  sub: string;
+  username: string;
   role?: string;
+  type?: string;
+  userId?: string;
+  email?: string;
 }
 
 export interface DecodedToken {
-  userId: string;
+  sub: string;
   username: string;
   role: string;
   type: string;
@@ -18,13 +21,13 @@ export interface DecodedToken {
 
 export function generateAccessToken(payload: TokenPayload): string {
   return jwt.sign(payload, config.jwt.secret, {
-    expiresIn: config.jwt.expiresIn || '15m',
+    expiresIn: config.jwt.expiresIn as any || '15m',
   });
 }
 
 export function generateRefreshToken(payload: TokenPayload): string {
-  return jwt.sign(payload, config.jwt.secret, {
-    expiresIn: config.jwt.refreshExpiresIn || '7d',
+  return jwt.sign({ ...payload, type: 'refresh' }, config.jwt.secret, {
+    expiresIn: config.jwt.refreshExpiresIn as any || '7d',
   });
 }
 
@@ -62,7 +65,7 @@ export function decodeToken(token: string): TokenPayload | null {
 export function extractTokenFromHeader(authHeader: string | undefined): string | null {
   if (!authHeader) return null;
   const parts = authHeader.split(' ');
-  if (parts.length !== 2 || parts[0] !== 'Bearer') return null;
+  if (parts.length !== 2 || parts[0] !== 'Bearer' || !parts[1]) return null;
   return parts[1];
 }
 

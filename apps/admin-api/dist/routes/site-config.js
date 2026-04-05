@@ -42,7 +42,7 @@ router.get('/public', async (req, res) => {
     }
     catch (error) {
         logger_1.logger.error('Error fetching public config:', error);
-        throw new errors_1.AppError(constants_1.ErrorCode.INTERNAL_ERROR, 'Failed to fetch configuration', constants_1.HttpStatus.INTERNAL_ERROR);
+        throw new errors_1.AppError('Failed to fetch configuration', constants_1.HttpStatus.INTERNAL_ERROR, constants_1.ErrorCode.INTERNAL_ERROR);
     }
 });
 // Public API: Get pricing configuration (for frontend)
@@ -64,7 +64,7 @@ router.get('/pricing', async (req, res) => {
     }
     catch (error) {
         logger_1.logger.error('Error fetching pricing config:', error);
-        throw new errors_1.AppError(constants_1.ErrorCode.INTERNAL_ERROR, 'Failed to fetch pricing configuration', constants_1.HttpStatus.INTERNAL_ERROR);
+        throw new errors_1.AppError('Failed to fetch pricing configuration', constants_1.HttpStatus.INTERNAL_ERROR, constants_1.ErrorCode.INTERNAL_ERROR);
     }
 });
 // Admin API: Get all configurations (requires admin)
@@ -86,7 +86,7 @@ router.get('/', auth_1.authMiddleware, auth_1.requireAdmin, async (req, res) => 
     }
     catch (error) {
         logger_1.logger.error('Error fetching config:', error);
-        throw new errors_1.AppError(constants_1.ErrorCode.INTERNAL_ERROR, 'Failed to fetch configuration', constants_1.HttpStatus.INTERNAL_ERROR);
+        throw new errors_1.AppError('Failed to fetch configuration', constants_1.HttpStatus.INTERNAL_ERROR, constants_1.ErrorCode.INTERNAL_ERROR);
     }
 });
 // Admin API: Get single configuration
@@ -97,7 +97,7 @@ router.get('/:key', auth_1.authMiddleware, auth_1.requireAdmin, async (req, res)
             .where('config_key', key)
             .first();
         if (!config) {
-            throw new errors_1.AppError(constants_1.ErrorCode.NOT_FOUND, 'Configuration not found', constants_1.HttpStatus.NOT_FOUND);
+            throw new errors_1.AppError('Configuration not found', constants_1.HttpStatus.NOT_FOUND, constants_1.ErrorCode.NOT_FOUND);
         }
         res.json({
             success: true,
@@ -111,7 +111,7 @@ router.get('/:key', auth_1.authMiddleware, auth_1.requireAdmin, async (req, res)
         if (error?.name === 'AppError')
             throw error;
         logger_1.logger.error('Error fetching config:', error);
-        throw new errors_1.AppError(constants_1.ErrorCode.INTERNAL_ERROR, 'Failed to fetch configuration', constants_1.HttpStatus.INTERNAL_ERROR);
+        throw new errors_1.AppError('Failed to fetch configuration', constants_1.HttpStatus.INTERNAL_ERROR, constants_1.ErrorCode.INTERNAL_ERROR);
     }
 });
 // Admin API: Update configuration
@@ -124,12 +124,12 @@ router.put('/:key', auth_1.authMiddleware, auth_1.requireAdmin, async (req, res)
             .where('config_key', key)
             .first();
         if (!existing) {
-            throw new errors_1.AppError(constants_1.ErrorCode.NOT_FOUND, 'Configuration not found', constants_1.HttpStatus.NOT_FOUND);
+            throw new errors_1.AppError('Configuration not found', constants_1.HttpStatus.NOT_FOUND, constants_1.ErrorCode.NOT_FOUND);
         }
         // Validate config_type
         const validTypes = ['string', 'number', 'boolean', 'json'];
         if (config_type && !validTypes.includes(config_type)) {
-            throw new errors_1.AppError(constants_1.ErrorCode.VALIDATION_ERROR, 'Invalid config_type', constants_1.HttpStatus.BAD_REQUEST);
+            throw new errors_1.AppError('Invalid config_type', constants_1.HttpStatus.BAD_REQUEST, constants_1.ErrorCode.VALIDATION_ERROR);
         }
         // Validate JSON type
         if (config_type === 'json' && config_value) {
@@ -137,7 +137,7 @@ router.put('/:key', auth_1.authMiddleware, auth_1.requireAdmin, async (req, res)
                 JSON.parse(config_value);
             }
             catch {
-                throw new errors_1.AppError(constants_1.ErrorCode.VALIDATION_ERROR, 'Invalid JSON value', constants_1.HttpStatus.BAD_REQUEST);
+                throw new errors_1.AppError('Invalid JSON value', constants_1.HttpStatus.BAD_REQUEST, constants_1.ErrorCode.VALIDATION_ERROR);
             }
         }
         const updateData = {
@@ -171,7 +171,7 @@ router.put('/:key', auth_1.authMiddleware, auth_1.requireAdmin, async (req, res)
         if (error?.name === 'AppError')
             throw error;
         logger_1.logger.error('Error updating config:', error);
-        throw new errors_1.AppError(constants_1.ErrorCode.INTERNAL_ERROR, 'Failed to update configuration', constants_1.HttpStatus.INTERNAL_ERROR);
+        throw new errors_1.AppError('Failed to update configuration', constants_1.HttpStatus.INTERNAL_ERROR, constants_1.ErrorCode.INTERNAL_ERROR);
     }
 });
 // Admin API: Batch update configurations
@@ -179,7 +179,7 @@ router.put('/', auth_1.authMiddleware, auth_1.requireAdmin, async (req, res) => 
     try {
         const { configs } = req.body;
         if (!Array.isArray(configs)) {
-            throw new errors_1.AppError(constants_1.ErrorCode.VALIDATION_ERROR, 'Configs must be an array', constants_1.HttpStatus.BAD_REQUEST);
+            throw new errors_1.AppError('Configs must be an array', constants_1.HttpStatus.BAD_REQUEST, constants_1.ErrorCode.VALIDATION_ERROR);
         }
         const results = [];
         for (const config of configs) {
@@ -193,7 +193,7 @@ router.put('/', auth_1.authMiddleware, auth_1.requireAdmin, async (req, res) => 
                     JSON.parse(config_value);
                 }
                 catch {
-                    throw new errors_1.AppError(constants_1.ErrorCode.VALIDATION_ERROR, `Invalid JSON value for ${config_key}`, constants_1.HttpStatus.BAD_REQUEST);
+                    throw new errors_1.AppError(`Invalid JSON value for ${config_key}`, constants_1.HttpStatus.BAD_REQUEST, constants_1.ErrorCode.VALIDATION_ERROR);
                 }
             }
             const existing = await (0, database_1.db)('site_config')
@@ -234,7 +234,7 @@ router.put('/', auth_1.authMiddleware, auth_1.requireAdmin, async (req, res) => 
         if (error?.name === 'AppError')
             throw error;
         logger_1.logger.error('Error batch updating config:', error);
-        throw new errors_1.AppError(constants_1.ErrorCode.INTERNAL_ERROR, 'Failed to update configurations', constants_1.HttpStatus.INTERNAL_ERROR);
+        throw new errors_1.AppError('Failed to update configurations', constants_1.HttpStatus.INTERNAL_ERROR, constants_1.ErrorCode.INTERNAL_ERROR);
     }
 });
 // Admin API: Create new configuration
@@ -242,19 +242,19 @@ router.post('/', auth_1.authMiddleware, auth_1.requireAdmin, async (req, res) =>
     try {
         const { config_key, config_value, config_type, category, description, is_public } = req.body;
         if (!config_key || config_value === undefined) {
-            throw new errors_1.AppError(constants_1.ErrorCode.VALIDATION_ERROR, 'config_key and config_value are required', constants_1.HttpStatus.BAD_REQUEST);
+            throw new errors_1.AppError('config_key and config_value are required', constants_1.HttpStatus.BAD_REQUEST, constants_1.ErrorCode.VALIDATION_ERROR);
         }
         // Check if key already exists
         const existing = await (0, database_1.db)('site_config')
             .where('config_key', config_key)
             .first();
         if (existing) {
-            throw new errors_1.AppError(constants_1.ErrorCode.CONFLICT, 'Configuration key already exists', constants_1.HttpStatus.CONFLICT);
+            throw new errors_1.AppError('Configuration key already exists', constants_1.HttpStatus.CONFLICT, constants_1.ErrorCode.CONFLICT);
         }
         // Validate config_type
         const validTypes = ['string', 'number', 'boolean', 'json'];
         if (config_type && !validTypes.includes(config_type)) {
-            throw new errors_1.AppError(constants_1.ErrorCode.VALIDATION_ERROR, 'Invalid config_type', constants_1.HttpStatus.BAD_REQUEST);
+            throw new errors_1.AppError('Invalid config_type', constants_1.HttpStatus.BAD_REQUEST, constants_1.ErrorCode.VALIDATION_ERROR);
         }
         // Validate JSON type
         if (config_type === 'json' && config_value) {
@@ -262,7 +262,7 @@ router.post('/', auth_1.authMiddleware, auth_1.requireAdmin, async (req, res) =>
                 JSON.parse(config_value);
             }
             catch {
-                throw new errors_1.AppError(constants_1.ErrorCode.VALIDATION_ERROR, 'Invalid JSON value', constants_1.HttpStatus.BAD_REQUEST);
+                throw new errors_1.AppError('Invalid JSON value', constants_1.HttpStatus.BAD_REQUEST, constants_1.ErrorCode.VALIDATION_ERROR);
             }
         }
         const [id] = await (0, database_1.db)('site_config').insert({
@@ -291,7 +291,7 @@ router.post('/', auth_1.authMiddleware, auth_1.requireAdmin, async (req, res) =>
         if (error?.name === 'AppError')
             throw error;
         logger_1.logger.error('Error creating config:', error);
-        throw new errors_1.AppError(constants_1.ErrorCode.INTERNAL_ERROR, 'Failed to create configuration', constants_1.HttpStatus.INTERNAL_ERROR);
+        throw new errors_1.AppError('Failed to create configuration', constants_1.HttpStatus.INTERNAL_ERROR, constants_1.ErrorCode.INTERNAL_ERROR);
     }
 });
 // Admin API: Delete configuration
@@ -302,7 +302,7 @@ router.delete('/:key', auth_1.authMiddleware, auth_1.requireAdmin, async (req, r
             .where('config_key', key)
             .first();
         if (!existing) {
-            throw new errors_1.AppError(constants_1.ErrorCode.NOT_FOUND, 'Configuration not found', constants_1.HttpStatus.NOT_FOUND);
+            throw new errors_1.AppError('Configuration not found', constants_1.HttpStatus.NOT_FOUND, constants_1.ErrorCode.NOT_FOUND);
         }
         await (0, database_1.db)('site_config')
             .where('config_key', key)
@@ -316,7 +316,7 @@ router.delete('/:key', auth_1.authMiddleware, auth_1.requireAdmin, async (req, r
         if (error?.name === 'AppError')
             throw error;
         logger_1.logger.error('Error deleting config:', error);
-        throw new errors_1.AppError(constants_1.ErrorCode.INTERNAL_ERROR, 'Failed to delete configuration', constants_1.HttpStatus.INTERNAL_ERROR);
+        throw new errors_1.AppError('Failed to delete configuration', constants_1.HttpStatus.INTERNAL_ERROR, constants_1.ErrorCode.INTERNAL_ERROR);
     }
 });
 exports.default = router;

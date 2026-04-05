@@ -111,7 +111,7 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response, next: Nex
     const poolStatus = await ipPoolService.getIPPoolStatus(id);
 
     if (!poolStatus) {
-      throw new NotFoundError('IP Pool', id);
+      throw new NotFoundError(`IP Pool with ID "${id}" not found`);
     }
 
     const node = await db('nodes')
@@ -181,7 +181,7 @@ router.post('/', authMiddleware, async (req: Request, res: Response, next: NextF
 
     // 验证必填字段
     if (!name || !nodeId || !ipType || !ips || !Array.isArray(ips) || ips.length === 0) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'name', message: 'Name is required' },
         { field: 'nodeId', message: 'Node ID is required' },
         { field: 'ipType', message: 'IP type is required' },
@@ -197,14 +197,14 @@ router.post('/', authMiddleware, async (req: Request, res: Response, next: NextF
 
     // 验证IP类型
     if (!isValidIpType(ipType)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'ipType', message: `Invalid IP type. Must be one of: ${Object.values(IpType).join(', ')}` }
       ]);
     }
 
     // 验证轮换策略
     if (!isValidRotationStrategy(rotationStrategy)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'rotationStrategy', message: `Invalid rotation strategy. Must be one of: ${Object.values(RotationStrategy).join(', ')}` }
       ]);
     }
@@ -215,12 +215,12 @@ router.post('/', authMiddleware, async (req: Request, res: Response, next: NextF
       .first();
 
     if (!node) {
-      throw new NotFoundError('Node', nodeId);
+      throw new NotFoundError(`Node with ID "${nodeId}" not found`);
     }
 
     // 检查节点是否已有IP池
     if (node.ip_pool_id) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'nodeId', message: 'Node already has an IP pool. Please delete the existing pool first.' }
       ]);
     }
@@ -228,7 +228,7 @@ router.post('/', authMiddleware, async (req: Request, res: Response, next: NextF
     // 验证IP格式
     const invalidIps = ips.filter(ip => !isValidIP(ip));
     if (invalidIps.length > 0) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'ips', message: `Invalid IP addresses: ${invalidIps.join(', ')}` }
       ]);
     }
@@ -277,12 +277,12 @@ router.put('/:id', authMiddleware, async (req: Request, res: Response, next: Nex
 
     const pool = await ipPoolService.getIPPool(id);
     if (!pool) {
-      throw new NotFoundError('IP Pool', id);
+      throw new NotFoundError(`IP Pool with ID "${id}" not found`);
     }
 
     // 验证轮换策略
     if (rotationStrategy !== undefined && !isValidRotationStrategy(rotationStrategy)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'rotationStrategy', message: `Invalid rotation strategy. Must be one of: ${Object.values(RotationStrategy).join(', ')}` }
       ]);
     }
@@ -334,7 +334,7 @@ router.delete('/:id', authMiddleware, async (req: Request, res: Response, next: 
 
     const pool = await ipPoolService.getIPPool(id);
     if (!pool) {
-      throw new NotFoundError('IP Pool', id);
+      throw new NotFoundError(`IP Pool with ID "${id}" not found`);
     }
 
     await ipPoolService.deleteIPPool(id);
@@ -360,7 +360,7 @@ router.post('/:id/rotate', authMiddleware, async (req: Request, res: Response, n
 
     const pool = await ipPoolService.getIPPool(id);
     if (!pool) {
-      throw new NotFoundError('IP Pool', id);
+      throw new NotFoundError(`IP Pool with ID "${id}" not found`);
     }
 
     const result = await ipPoolService.manualRotate(id);
@@ -400,20 +400,20 @@ router.post('/:id/ips', authMiddleware, async (req: Request, res: Response, next
     const { ip } = req.body;
 
     if (!ip) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'ip', message: 'IP address is required' }
       ]);
     }
 
     if (!isValidIP(ip)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'ip', message: 'Invalid IP address format' }
       ]);
     }
 
     const pool = await ipPoolService.getIPPool(id);
     if (!pool) {
-      throw new NotFoundError('IP Pool', id);
+      throw new NotFoundError(`IP Pool with ID "${id}" not found`);
     }
 
     const ipRecord = await ipPoolService.addIPToPool(id, ip);
@@ -447,7 +447,7 @@ router.delete('/:id/ips/:ipId', authMiddleware, async (req: Request, res: Respon
 
     const pool = await ipPoolService.getIPPool(id);
     if (!pool) {
-      throw new NotFoundError('IP Pool', id);
+      throw new NotFoundError(`IP Pool with ID "${id}" not found`);
     }
 
     // 获取IP地址
@@ -456,7 +456,7 @@ router.delete('/:id/ips/:ipId', authMiddleware, async (req: Request, res: Respon
       .first('ip');
 
     if (!ipRecord) {
-      throw new NotFoundError('IP Record', ipId);
+      throw new NotFoundError(`IP Record with ID "${ipId}" not found`);
     }
 
     await ipPoolService.removeIPFromPool(id, ipRecord.ip);
@@ -482,7 +482,7 @@ router.post('/:id/refresh-scores', authMiddleware, async (req: Request, res: Res
 
     const pool = await ipPoolService.getIPPool(id);
     if (!pool) {
-      throw new NotFoundError('IP Pool', id);
+      throw new NotFoundError(`IP Pool with ID "${id}" not found`);
     }
 
     await ipPoolService.refreshIPScores(id);

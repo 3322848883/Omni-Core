@@ -81,7 +81,7 @@ router.get('/:id', auth_1.authMiddleware, async (req, res, next) => {
             .where('id', id)
             .first();
         if (!invite) {
-            throw new errors_1.NotFoundError('Invite code', id);
+            throw new errors_1.NotFoundError(`Invite code "${id}" not found`);
         }
         // Get usage history
         const usageHistory = await (0, database_1.db)('invite_usage_history')
@@ -174,7 +174,7 @@ router.delete('/:id', auth_1.authMiddleware, async (req, res, next) => {
             .where('id', id)
             .first();
         if (!invite) {
-            throw new errors_1.NotFoundError('Invite code', id);
+            throw new errors_1.NotFoundError(`Invite code "${id}" not found`);
         }
         await (0, database_1.db)('invite_codes')
             .where('id', id)
@@ -198,7 +198,7 @@ router.post('/:id/disable', auth_1.authMiddleware, async (req, res, next) => {
             .where('id', id)
             .first();
         if (!invite) {
-            throw new errors_1.NotFoundError('Invite code', id);
+            throw new errors_1.NotFoundError(`Invite code "${id}" not found`);
         }
         await (0, database_1.db)('invite_codes')
             .where('id', id)
@@ -272,7 +272,7 @@ router.post('/validate', auth_1.authMiddleware, async (req, res, next) => {
     try {
         const { code, userId } = req.body;
         if (!code || !userId) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'code', message: 'Invite code is required' },
                 { field: 'userId', message: 'User ID is required' }
             ]);
@@ -281,21 +281,21 @@ router.post('/validate', auth_1.authMiddleware, async (req, res, next) => {
             .where('code', code)
             .first();
         if (!invite) {
-            throw new errors_1.NotFoundError('Invite code', code);
+            throw new errors_1.NotFoundError(`Invite code "${code}" not found`);
         }
         // Check if code is active
         if (invite.status === 'used' && invite.used_count >= invite.max_uses) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'code', message: 'Invite code has been fully used' }
             ]);
         }
         if (invite.status === 'disabled') {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'code', message: 'Invite code has been disabled' }
             ]);
         }
         if (invite.status === 'expired' || (invite.expire_at && new Date(invite.expire_at) < new Date())) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'code', message: 'Invite code has expired' }
             ]);
         }
@@ -307,7 +307,7 @@ router.post('/validate', auth_1.authMiddleware, async (req, res, next) => {
         })
             .first();
         if (existingUsage) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'code', message: 'You have already used this invite code' }
             ]);
         }

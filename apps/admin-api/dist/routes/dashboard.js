@@ -11,7 +11,8 @@ router.get('/stats', auth_1.authMiddleware, async (req, res, next) => {
         const now = new Date();
         const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const [userStats, nodeStats, orderStats, revenueStats] = await Promise.all([
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const [userStats, nodeStats, orderStats, revenueStats, todayTrafficStats] = await Promise.all([
             (0, database_1.db)('users')
                 .count('* as total')
                 .first(),
@@ -28,6 +29,11 @@ router.get('/stats', auth_1.authMiddleware, async (req, res, next) => {
             (0, database_1.db)('orders')
                 .where('status', 'completed')
                 .sum('amount as total')
+                .first(),
+            (0, database_1.db)('user_traffic')
+                .where('created_at', '>=', startOfDay.toISOString())
+                .sum('upload as upload')
+                .sum('download as download')
                 .first()
         ]);
         const activeUsersResult = await (0, database_1.db)('users')
@@ -39,6 +45,9 @@ router.get('/stats', auth_1.authMiddleware, async (req, res, next) => {
             .where('payment_time', '>=', startOfMonth.toISOString())
             .sum('amount as monthly')
             .first();
+        const todayUpload = parseFloat(todayTrafficStats?.upload) || 0;
+        const todayDownload = parseFloat(todayTrafficStats?.download) || 0;
+        const todayTotal = todayUpload + todayDownload;
         const stats = {
             totalUsers: parseInt(userStats?.total) || 0,
             activeUsers: parseInt(activeUsersResult?.active) || 0,
@@ -48,6 +57,9 @@ router.get('/stats', auth_1.authMiddleware, async (req, res, next) => {
             pendingOrders: parseInt(orderStats?.pending) || 0,
             totalRevenue: parseFloat(revenueStats?.total) || 0,
             monthlyRevenue: parseFloat(monthlyRevenueResult?.monthly) || 0,
+            todayUpload,
+            todayDownload,
+            todayTotal,
         };
         res.json({
             success: true,

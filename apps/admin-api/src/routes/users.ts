@@ -85,7 +85,7 @@ router.get('/:id', authMiddleware, validate(UserValidation.byId), async (req: Re
       .first();
 
     if (!user) {
-      throw new NotFoundError('User', id);
+      throw new NotFoundError(`User ${id} not found`);
     }
 
     res.json({
@@ -123,7 +123,7 @@ router.post('/', authMiddleware, validate(UserValidation.create), async (req: Re
       .first();
 
     if (existingUser) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'email', message: 'Email or username already exists' }
       ]);
     }
@@ -199,7 +199,7 @@ router.put('/:id', authMiddleware, validate(UserValidation.update), async (req: 
       .first();
 
     if (!user) {
-      throw new NotFoundError('User', id);
+      throw new NotFoundError(`User ${id} not found`);
     }
 
     const updateData: any = {
@@ -272,7 +272,7 @@ router.delete('/:id', authMiddleware, validate(UserValidation.byId), async (req:
       .first();
 
     if (!user) {
-      throw new NotFoundError('User', id);
+      throw new NotFoundError(`User ${id} not found`);
     }
 
     await db('users')
@@ -316,7 +316,7 @@ router.post('/:id/ban', authMiddleware, validate(UserValidation.ban), async (req
       .first();
 
     if (!user) {
-      throw new NotFoundError('User', id);
+      throw new NotFoundError(`User ${id} not found`);
     }
 
     await db('users')
@@ -359,7 +359,7 @@ router.post('/:id/unban', authMiddleware, validate(UserValidation.byId), async (
       .first();
 
     if (!user) {
-      throw new NotFoundError('User', id);
+      throw new NotFoundError(`User ${id} not found`);
     }
 
     await db('users')
@@ -403,7 +403,7 @@ router.get('/:id/traffic', authMiddleware, validate(UserValidation.traffic), asy
       .first();
 
     if (!user) {
-      throw new NotFoundError('User', id);
+      throw new NotFoundError(`User ${id} not found`);
     }
 
     const startDate = new Date();
@@ -457,7 +457,7 @@ router.get('/:id/orders', authMiddleware, validate(UserValidation.byId), async (
       .first();
 
     if (!user) {
-      throw new NotFoundError('User', id);
+      throw new NotFoundError(`User ${id} not found`);
     }
 
     const [countResult] = await db('orders')

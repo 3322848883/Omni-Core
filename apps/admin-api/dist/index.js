@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
-const compression_1 = __importDefault(require("compression"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const config_1 = require("./config");
@@ -14,6 +13,7 @@ const logger_1 = require("./utils/logger");
 const errorHandler_1 = require("./middlewares/errorHandler");
 const response_1 = require("./utils/response");
 const requestLogger_1 = require("./middlewares/requestLogger");
+const performance_1 = require("./middlewares/performance");
 const xray_1 = require("./services/xray");
 const payment_1 = require("./services/payment");
 const constants_1 = require("@shared/constants");
@@ -45,6 +45,10 @@ app.use((0, helmet_1.default)({
             styleSrc: ["'self'", "'unsafe-inline'"],
             scriptSrc: ["'self'"],
             imgSrc: ["'self'", "data:", "https:"],
+            connectSrc: ["'self'"],
+            fontSrc: ["'self'"],
+            objectSrc: ["'none'"],
+            upgradeInsecureRequests: [],
         },
     },
     hsts: {
@@ -52,6 +56,17 @@ app.use((0, helmet_1.default)({
         includeSubDomains: true,
         preload: true,
     },
+    xssFilter: true,
+    noSniff: true,
+    frameguard: {
+        action: 'deny',
+    },
+    dnsPrefetchControl: {
+        allow: false,
+    },
+    hidePoweredBy: true,
+    ieNoOpen: true,
+    noCache: true,
 }));
 // CORS middleware with multi-environment support
 app.use((0, cors_1.default)({
@@ -84,7 +99,10 @@ app.use((0, cors_1.default)({
     methods: config_1.config.cors.methods,
     allowedHeaders: config_1.config.cors.allowedHeaders,
 }));
-app.use((0, compression_1.default)());
+// Performance middleware
+app.use((0, performance_1.requestTimer)());
+app.use((0, performance_1.smartCompression)());
+app.use(performance_1.connectionPoolMonitor);
 // Rate limiting
 const limiter = (0, express_rate_limit_1.default)({
     windowMs: config_1.config.rateLimitWindowMs,
@@ -109,6 +127,9 @@ app.use(express_1.default.json({ limit: '10mb' }));
 app.use(express_1.default.urlencoded({ extended: true, limit: '10mb' }));
 // Request logging
 app.use(requestLogger_1.requestLogger);
+// Performance optimizations
+app.use(performance_1.queryOptimizer);
+app.use(performance_1.responseOptimizer);
 // Health check endpoint
 app.get('/health', (req, res) => {
     const startTime = Date.now();

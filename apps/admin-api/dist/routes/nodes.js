@@ -164,7 +164,7 @@ router.get('/:id', auth_1.authMiddleware, (0, validation_1.validate)(validation_
             .orWhere('code', id)
             .first();
         if (!node) {
-            throw new errors_1.NotFoundError('Node', id);
+            throw new errors_1.NotFoundError(`Node with ID or code "${id}" not found`);
         }
         // 获取IP池信息（如果有）
         let ipPoolInfo = null;
@@ -252,42 +252,42 @@ router.post('/', auth_1.authMiddleware, (0, validation_1.validate)(validation_1.
         ipType = ip_assets_1.IpType.DATACENTER, lineType = ip_assets_1.LineType.STANDARD, ispName, supportsIPv6 = false, ipPoolConfig } = req.body;
         // 验证 serviceType 是否有效
         if (!(0, constants_1.isValidServiceType)(serviceType)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'serviceType', message: `Invalid service type. Must be one of: ${Object.values(constants_1.ServiceType).join(', ')}` }
             ]);
         }
         // 验证 ipType 是否有效
         if (!(0, ip_assets_1.isValidIpType)(ipType)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'ipType', message: `Invalid IP type. Must be one of: ${Object.values(ip_assets_1.IpType).join(', ')}` }
             ]);
         }
         // 验证 lineType 是否有效
         if (!(0, ip_assets_1.isValidLineType)(lineType)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'lineType', message: `Invalid line type. Must be one of: ${Object.values(ip_assets_1.LineType).join(', ')}` }
             ]);
         }
         // 验证数值字段
         if (bandwidthLimit !== undefined && (typeof bandwidthLimit !== 'number' || bandwidthLimit < 0)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'bandwidthLimit', message: 'Bandwidth limit must be a non-negative number' }
             ]);
         }
         if (qosLevel !== undefined && (typeof qosLevel !== 'number' || qosLevel < 1 || qosLevel > 5)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'qosLevel', message: 'QoS level must be between 1 and 5' }
             ]);
         }
         if (maxUsers !== undefined && (typeof maxUsers !== 'number' || maxUsers < 1)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'maxUsers', message: 'Max users must be a positive number' }
             ]);
         }
         // 验证IP池配置
         if (ipPoolConfig && ipPoolConfig.enabled) {
             if (!ipPoolConfig.ips || !Array.isArray(ipPoolConfig.ips) || ipPoolConfig.ips.length === 0) {
-                throw new errors_1.ValidationError([
+                throw new errors_1.ValidationError('Validation failed', [
                     { field: 'ipPoolConfig.ips', message: 'IP pool must contain at least one IP address' }
                 ]);
             }
@@ -296,7 +296,7 @@ router.post('/', auth_1.authMiddleware, (0, validation_1.validate)(validation_1.
             .where('code', code)
             .first();
         if (existingNode) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'code', message: 'Node code already exists' }
             ]);
         }
@@ -448,39 +448,39 @@ router.put('/:id', auth_1.authMiddleware, (0, validation_1.validate)(validation_
             .orWhere('code', id)
             .first();
         if (!node) {
-            throw new errors_1.NotFoundError('Node', id);
+            throw new errors_1.NotFoundError(`Node with ID or code "${id}" not found`);
         }
         // 验证 serviceType 是否有效
         if (serviceType !== undefined && !(0, constants_1.isValidServiceType)(serviceType)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'serviceType', message: `Invalid service type. Must be one of: ${Object.values(constants_1.ServiceType).join(', ')}` }
             ]);
         }
         // 验证 ipType 是否有效
         if (ipType !== undefined && !(0, ip_assets_1.isValidIpType)(ipType)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'ipType', message: `Invalid IP type. Must be one of: ${Object.values(ip_assets_1.IpType).join(', ')}` }
             ]);
         }
         // 验证 lineType 是否有效
         if (lineType !== undefined && !(0, ip_assets_1.isValidLineType)(lineType)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'lineType', message: `Invalid line type. Must be one of: ${Object.values(ip_assets_1.LineType).join(', ')}` }
             ]);
         }
         // 验证数值字段
         if (bandwidthLimit !== undefined && (typeof bandwidthLimit !== 'number' || bandwidthLimit < 0)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'bandwidthLimit', message: 'Bandwidth limit must be a non-negative number' }
             ]);
         }
         if (qosLevel !== undefined && (typeof qosLevel !== 'number' || qosLevel < 1 || qosLevel > 5)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'qosLevel', message: 'QoS level must be between 1 and 5' }
             ]);
         }
         if (maxUsers !== undefined && (typeof maxUsers !== 'number' || maxUsers < 1)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'maxUsers', message: 'Max users must be a positive number' }
             ]);
         }
@@ -622,7 +622,7 @@ router.delete('/:id', auth_1.authMiddleware, (0, validation_1.validate)(validati
             .orWhere('code', id)
             .first();
         if (!node) {
-            throw new errors_1.NotFoundError('Node', id);
+            throw new errors_1.NotFoundError(`Node with ID or code "${id}" not found`);
         }
         // 如果节点有关联的IP池，先删除IP池
         if (node.ip_pool_id) {
@@ -659,7 +659,7 @@ router.post('/:id/enable', auth_1.authMiddleware, (0, validation_1.validate)(val
             .orWhere('code', id)
             .first();
         if (!node) {
-            throw new errors_1.NotFoundError('Node', id);
+            throw new errors_1.NotFoundError(`Node with ID or code "${id}" not found`);
         }
         await (0, database_1.db)('nodes')
             .where('id', node.id)
@@ -690,7 +690,7 @@ router.post('/:id/disable', auth_1.authMiddleware, (0, validation_1.validate)(va
             .orWhere('code', id)
             .first();
         if (!node) {
-            throw new errors_1.NotFoundError('Node', id);
+            throw new errors_1.NotFoundError(`Node with ID or code "${id}" not found`);
         }
         await (0, database_1.db)('nodes')
             .where('id', node.id)
@@ -722,12 +722,12 @@ router.post('/:id/check-ip', auth_1.authMiddleware, (0, validation_1.validate)(v
             .orWhere('code', id)
             .first();
         if (!node) {
-            throw new errors_1.NotFoundError('Node', id);
+            throw new errors_1.NotFoundError(`Node with ID or code "${id}" not found`);
         }
         // 使用自定义IP或节点的当前IP/主机地址
         const ipToCheck = customIp || node.current_ip || node.host;
         if (!ipToCheck) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'ip', message: 'No IP address available to check. Please provide an IP or ensure node has a host.' }
             ]);
         }
@@ -741,13 +741,13 @@ router.post('/:id/check-ip', auth_1.authMiddleware, (0, validation_1.validate)(v
             data: {
                 success: true,
                 ipAddress: reputation.ip,
-                ipType: reputation.isResidential ? ip_assets_1.IpType.STATIC_RESIDENTIAL : (reputation.isDatacenter ? ip_assets_1.IpType.DATACENTER : ip_assets_1.IpType.DATACENTER),
+                ipType: reputation.isResidential ? ip_assets_1.IpType.RESIDENTIAL_STATIC : (reputation.isDatacenter ? ip_assets_1.IpType.DATACENTER : ip_assets_1.IpType.DATACENTER),
                 isp: reputation.isp || 'Unknown',
                 country: reputation.country || 'Unknown',
                 region: reputation.country || 'Unknown',
                 city: 'Unknown',
                 score: reputation.score,
-                reputationStatus: scoreLabel.status,
+                reputationStatus: scoreLabel.label,
                 blacklistCount: reputation.abuseRecords || 0,
                 latency: 0,
                 message: `IP检测完成: ${reputation.ip} - 评分: ${reputation.score}`
@@ -767,11 +767,11 @@ router.post('/:id/refresh-ip-score', auth_1.authMiddleware, (0, validation_1.val
             .orWhere('code', id)
             .first();
         if (!node) {
-            throw new errors_1.NotFoundError('Node', id);
+            throw new errors_1.NotFoundError(`Node with ID or code "${id}" not found`);
         }
         const ipToCheck = node.current_ip || node.host;
         if (!ipToCheck) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'ip', message: 'No IP address available to check' }
             ]);
         }
@@ -790,7 +790,7 @@ router.post('/:id/refresh-ip-score', auth_1.authMiddleware, (0, validation_1.val
                 success: true,
                 oldScore: node.ip_score || 0,
                 newScore: reputation.score,
-                status: scoreLabel.status,
+                status: scoreLabel.label,
                 checkedAt: reputation.checkedAt,
                 message: `评分已刷新: ${node.ip_score || 0} → ${reputation.score}`
             }
@@ -809,7 +809,7 @@ router.post('/:id/test', auth_1.authMiddleware, (0, validation_1.validate)(valid
             .orWhere('code', id)
             .first();
         if (!node) {
-            throw new errors_1.NotFoundError('Node', id);
+            throw new errors_1.NotFoundError(`Node with ID or code "${id}" not found`);
         }
         // Test connection to node
         const startTime = Date.now();
@@ -851,7 +851,7 @@ router.get('/:id/health', auth_1.authMiddleware, (0, validation_1.validate)(vali
             .orWhere('code', id)
             .first();
         if (!node) {
-            throw new errors_1.NotFoundError('Node', id);
+            throw new errors_1.NotFoundError(`Node with ID or code "${id}" not found`);
         }
         // 尝试连接 Xray API 获取真实状态
         const xrayClient = (0, client_1.getXrayClient)();
@@ -1108,7 +1108,7 @@ router.post('/:id/sync', auth_1.authMiddleware, (0, validation_1.validate)(valid
             .orWhere('code', id)
             .first();
         if (!node) {
-            throw new errors_1.NotFoundError('Node', id);
+            throw new errors_1.NotFoundError(`Node with ID or code "${id}" not found`);
         }
         // 获取节点配置
         const nodeConfig = JSON.parse(node.config || '{}');
@@ -1201,7 +1201,7 @@ router.get('/:id/config', auth_1.authMiddleware, (0, validation_1.validate)(vali
             .orWhere('code', id)
             .first();
         if (!node) {
-            throw new errors_1.NotFoundError('Node', id);
+            throw new errors_1.NotFoundError(`Node with ID or code "${id}" not found`);
         }
         const nodeConfig = JSON.parse(node.config || '{}');
         const inboundConfig = buildInboundConfig(node, nodeConfig);
@@ -1230,7 +1230,7 @@ router.put('/:id/config', auth_1.authMiddleware, (0, validation_1.validate)(vali
             .orWhere('code', id)
             .first();
         if (!node) {
-            throw new errors_1.NotFoundError('Node', id);
+            throw new errors_1.NotFoundError(`Node with ID or code "${id}" not found`);
         }
         // 更新数据库
         await (0, database_1.db)('nodes')

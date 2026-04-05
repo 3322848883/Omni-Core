@@ -56,7 +56,7 @@ router.get('/public', async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching public config:', error);
-    throw new AppError(ErrorCode.INTERNAL_ERROR, 'Failed to fetch configuration', HttpStatus.INTERNAL_ERROR);
+    throw new AppError('Failed to fetch configuration', HttpStatus.INTERNAL_ERROR, ErrorCode.INTERNAL_ERROR);
   }
 });
 
@@ -80,7 +80,7 @@ router.get('/pricing', async (req: Request, res: Response) => {
     });
   } catch (error) {
     logger.error('Error fetching pricing config:', error);
-    throw new AppError(ErrorCode.INTERNAL_ERROR, 'Failed to fetch pricing configuration', HttpStatus.INTERNAL_ERROR);
+    throw new AppError('Failed to fetch pricing configuration', HttpStatus.INTERNAL_ERROR, ErrorCode.INTERNAL_ERROR);
   }
 });
 
@@ -106,7 +106,7 @@ router.get('/', authMiddleware, requireAdmin, async (req: Request, res: Response
     });
   } catch (error) {
     logger.error('Error fetching config:', error);
-    throw new AppError(ErrorCode.INTERNAL_ERROR, 'Failed to fetch configuration', HttpStatus.INTERNAL_ERROR);
+    throw new AppError('Failed to fetch configuration', HttpStatus.INTERNAL_ERROR, ErrorCode.INTERNAL_ERROR);
   }
 });
 
@@ -120,7 +120,7 @@ router.get('/:key', authMiddleware, requireAdmin, async (req: Request, res: Resp
       .first();
 
     if (!config) {
-      throw new AppError(ErrorCode.NOT_FOUND, 'Configuration not found', HttpStatus.NOT_FOUND);
+      throw new AppError('Configuration not found', HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
 
     res.json({
@@ -133,7 +133,7 @@ router.get('/:key', authMiddleware, requireAdmin, async (req: Request, res: Resp
   } catch (error: any) {
     if (error?.name === 'AppError') throw error;
     logger.error('Error fetching config:', error);
-    throw new AppError(ErrorCode.INTERNAL_ERROR, 'Failed to fetch configuration', HttpStatus.INTERNAL_ERROR);
+    throw new AppError('Failed to fetch configuration', HttpStatus.INTERNAL_ERROR, ErrorCode.INTERNAL_ERROR);
   }
 });
 
@@ -149,13 +149,13 @@ router.put('/:key', authMiddleware, requireAdmin, async (req: Request, res: Resp
       .first();
 
     if (!existing) {
-      throw new AppError(ErrorCode.NOT_FOUND, 'Configuration not found', HttpStatus.NOT_FOUND);
+      throw new AppError('Configuration not found', HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
 
     // Validate config_type
     const validTypes = ['string', 'number', 'boolean', 'json'];
     if (config_type && !validTypes.includes(config_type)) {
-      throw new AppError(ErrorCode.VALIDATION_ERROR, 'Invalid config_type', HttpStatus.BAD_REQUEST);
+      throw new AppError('Invalid config_type', HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
     }
 
     // Validate JSON type
@@ -163,7 +163,7 @@ router.put('/:key', authMiddleware, requireAdmin, async (req: Request, res: Resp
       try {
         JSON.parse(config_value);
       } catch {
-        throw new AppError(ErrorCode.VALIDATION_ERROR, 'Invalid JSON value', HttpStatus.BAD_REQUEST);
+        throw new AppError('Invalid JSON value', HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
       }
     }
 
@@ -196,7 +196,7 @@ router.put('/:key', authMiddleware, requireAdmin, async (req: Request, res: Resp
   } catch (error: any) {
     if (error?.name === 'AppError') throw error;
     logger.error('Error updating config:', error);
-    throw new AppError(ErrorCode.INTERNAL_ERROR, 'Failed to update configuration', HttpStatus.INTERNAL_ERROR);
+    throw new AppError('Failed to update configuration', HttpStatus.INTERNAL_ERROR, ErrorCode.INTERNAL_ERROR);
   }
 });
 
@@ -206,7 +206,7 @@ router.put('/', authMiddleware, requireAdmin, async (req: Request, res: Response
     const { configs } = req.body;
 
     if (!Array.isArray(configs)) {
-      throw new AppError(ErrorCode.VALIDATION_ERROR, 'Configs must be an array', HttpStatus.BAD_REQUEST);
+      throw new AppError('Configs must be an array', HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
     }
 
     const results = [];
@@ -223,7 +223,7 @@ router.put('/', authMiddleware, requireAdmin, async (req: Request, res: Response
         try {
           JSON.parse(config_value);
         } catch {
-          throw new AppError(ErrorCode.VALIDATION_ERROR, `Invalid JSON value for ${config_key}`, HttpStatus.BAD_REQUEST);
+          throw new AppError(`Invalid JSON value for ${config_key}`, HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
         }
       }
 
@@ -266,7 +266,7 @@ router.put('/', authMiddleware, requireAdmin, async (req: Request, res: Response
   } catch (error: any) {
     if (error?.name === 'AppError') throw error;
     logger.error('Error batch updating config:', error);
-    throw new AppError(ErrorCode.INTERNAL_ERROR, 'Failed to update configurations', HttpStatus.INTERNAL_ERROR);
+    throw new AppError('Failed to update configurations', HttpStatus.INTERNAL_ERROR, ErrorCode.INTERNAL_ERROR);
   }
 });
 
@@ -276,7 +276,7 @@ router.post('/', authMiddleware, requireAdmin, async (req: Request, res: Respons
     const { config_key, config_value, config_type, category, description, is_public } = req.body;
 
     if (!config_key || config_value === undefined) {
-      throw new AppError(ErrorCode.VALIDATION_ERROR, 'config_key and config_value are required', HttpStatus.BAD_REQUEST);
+      throw new AppError('config_key and config_value are required', HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
     }
 
     // Check if key already exists
@@ -285,13 +285,13 @@ router.post('/', authMiddleware, requireAdmin, async (req: Request, res: Respons
       .first();
 
     if (existing) {
-      throw new AppError(ErrorCode.CONFLICT, 'Configuration key already exists', HttpStatus.CONFLICT);
+      throw new AppError('Configuration key already exists', HttpStatus.CONFLICT, ErrorCode.CONFLICT);
     }
 
     // Validate config_type
     const validTypes = ['string', 'number', 'boolean', 'json'];
     if (config_type && !validTypes.includes(config_type)) {
-      throw new AppError(ErrorCode.VALIDATION_ERROR, 'Invalid config_type', HttpStatus.BAD_REQUEST);
+      throw new AppError('Invalid config_type', HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
     }
 
     // Validate JSON type
@@ -299,7 +299,7 @@ router.post('/', authMiddleware, requireAdmin, async (req: Request, res: Respons
       try {
         JSON.parse(config_value);
       } catch {
-        throw new AppError(ErrorCode.VALIDATION_ERROR, 'Invalid JSON value', HttpStatus.BAD_REQUEST);
+        throw new AppError('Invalid JSON value', HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_ERROR);
       }
     }
 
@@ -329,7 +329,7 @@ router.post('/', authMiddleware, requireAdmin, async (req: Request, res: Respons
   } catch (error: any) {
     if (error?.name === 'AppError') throw error;
     logger.error('Error creating config:', error);
-    throw new AppError(ErrorCode.INTERNAL_ERROR, 'Failed to create configuration', HttpStatus.INTERNAL_ERROR);
+    throw new AppError('Failed to create configuration', HttpStatus.INTERNAL_ERROR, ErrorCode.INTERNAL_ERROR);
   }
 });
 
@@ -343,7 +343,7 @@ router.delete('/:key', authMiddleware, requireAdmin, async (req: Request, res: R
       .first();
 
     if (!existing) {
-      throw new AppError(ErrorCode.NOT_FOUND, 'Configuration not found', HttpStatus.NOT_FOUND);
+      throw new AppError('Configuration not found', HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND);
     }
 
     await db<SiteConfig>('site_config')
@@ -357,7 +357,7 @@ router.delete('/:key', authMiddleware, requireAdmin, async (req: Request, res: R
   } catch (error: any) {
     if (error?.name === 'AppError') throw error;
     logger.error('Error deleting config:', error);
-    throw new AppError(ErrorCode.INTERNAL_ERROR, 'Failed to delete configuration', HttpStatus.INTERNAL_ERROR);
+    throw new AppError('Failed to delete configuration', HttpStatus.INTERNAL_ERROR, ErrorCode.INTERNAL_ERROR);
   }
 });
 

@@ -144,7 +144,7 @@ router.get('/:type/stats', authMiddleware, async (req: Request, res: Response, n
 
     // 验证服务类型
     if (!isValidServiceType(type)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'type', message: `Invalid service type. Must be one of: ${Object.values(ServiceType).join(', ')}` }
       ]);
     }
@@ -258,7 +258,7 @@ router.get('/:type/nodes', authMiddleware, async (req: Request, res: Response, n
 
     // 验证服务类型
     if (!isValidServiceType(type)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'type', message: `Invalid service type. Must be one of: ${Object.values(ServiceType).join(', ')}` }
       ]);
     }

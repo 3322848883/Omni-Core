@@ -96,7 +96,7 @@ router.get('/:id', auth_1.authMiddleware, (0, validation_1.validate)(validation_
             .orWhere('order_no', id)
             .first();
         if (!order) {
-            throw new errors_1.NotFoundError('Order', id);
+            throw new errors_1.NotFoundError(`Order ${id} not found`);
         }
         const orderStatusLogs = await (0, database_1.db)('order_status_logs')
             .where('order_id', order.id)
@@ -144,7 +144,7 @@ router.post('/', auth_1.authMiddleware, (0, validation_1.validate)(validation_1.
             .where('status', '!=', 3)
             .first();
         if (!user) {
-            throw new errors_1.NotFoundError('User', userId);
+            throw new errors_1.NotFoundError(`User ${userId} not found`);
         }
         const orderNo = generateOrderNo();
         const [order] = await (0, database_1.db)('orders').insert({
@@ -202,10 +202,10 @@ router.put('/:id', auth_1.authMiddleware, (0, validation_1.validate)(validation_
             .orWhere('order_no', id)
             .first();
         if (!order) {
-            throw new errors_1.NotFoundError('Order', id);
+            throw new errors_1.NotFoundError(`Order ${id} not found`);
         }
         if (order.status !== 'pending') {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'status', message: 'Only pending orders can be updated' }
             ]);
         }
@@ -266,10 +266,10 @@ router.post('/:id/pay', auth_1.authMiddleware, (0, validation_1.validate)(valida
             .orWhere('order_no', id)
             .first();
         if (!order) {
-            throw new errors_1.NotFoundError('Order', id);
+            throw new errors_1.NotFoundError(`Order ${id} not found`);
         }
         if (order.status !== 'pending') {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'status', message: 'Only pending orders can be paid' }
             ]);
         }
@@ -324,10 +324,10 @@ router.post('/:id/cancel', auth_1.authMiddleware, (0, validation_1.validate)(val
             .orWhere('order_no', id)
             .first();
         if (!order) {
-            throw new errors_1.NotFoundError('Order', id);
+            throw new errors_1.NotFoundError(`Order ${id} not found`);
         }
         if (order.status !== 'pending') {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'status', message: 'Only pending orders can be cancelled' }
             ]);
         }
@@ -365,10 +365,10 @@ router.post('/:id/refund', auth_1.authMiddleware, (0, validation_1.validate)(val
             .orWhere('order_no', id)
             .first();
         if (!order) {
-            throw new errors_1.NotFoundError('Order', id);
+            throw new errors_1.NotFoundError(`Order ${id} not found`);
         }
         if (order.status !== 'completed') {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'status', message: 'Only completed orders can be refunded' }
             ]);
         }
@@ -411,14 +411,14 @@ router.post('/:id/payment', auth_1.authMiddleware, (0, validation_1.validate)(va
         const { provider, returnUrl, cancelUrl } = req.body;
         // Validate provider
         if (!provider || !['stripe', 'paypal', 'alipay', 'wechat', 'alipay_merchant', 'wechat_merchant'].includes(provider)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'provider', message: 'Valid payment provider (stripe, paypal, alipay, wechat, alipay_merchant, or wechat_merchant) is required' }
             ]);
         }
         // Check if provider is available
         const availableProviders = (0, payment_1.getAvailableProviders)();
         if (!availableProviders.includes(provider)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'provider', message: `Payment provider ${provider} is not available` }
             ]);
         }
@@ -428,11 +428,11 @@ router.post('/:id/payment', auth_1.authMiddleware, (0, validation_1.validate)(va
             .orWhere('order_no', id)
             .first();
         if (!order) {
-            throw new errors_1.NotFoundError('Order', id);
+            throw new errors_1.NotFoundError(`Order ${id} not found`);
         }
         // Check if order can be paid
         if (order.status !== 'pending') {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'status', message: 'Only pending orders can be paid' }
             ]);
         }
@@ -511,7 +511,7 @@ router.get('/:id/payment-status', auth_1.authMiddleware, (0, validation_1.valida
             .orWhere('order_no', id)
             .first();
         if (!order) {
-            throw new errors_1.NotFoundError('Order', id);
+            throw new errors_1.NotFoundError(`Order ${id} not found`);
         }
         // If no payment has been initiated
         if (!order.payment_method || !order.payment_id) {
@@ -561,11 +561,11 @@ router.post('/:id/payment-refund', auth_1.authMiddleware, (0, validation_1.valid
             .orWhere('order_no', id)
             .first();
         if (!order) {
-            throw new errors_1.NotFoundError('Order', id);
+            throw new errors_1.NotFoundError(`Order ${id} not found`);
         }
         // Check if order has payment information
         if (!order.payment_method || !order.payment_id) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'payment', message: 'Order does not have payment information' }
             ]);
         }
@@ -616,21 +616,21 @@ router.get('/payment/qrcode/:provider', async (req, res, next) => {
         const { provider } = req.params;
         // Validate provider
         if (!['alipay', 'wechat'].includes(provider)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'provider', message: 'Provider must be alipay or wechat' }
             ]);
         }
         // Check if provider is available
         const availableProviders = (0, payment_1.getAvailableProviders)();
         if (!availableProviders.includes(provider)) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'provider', message: `Payment provider ${provider} is not available` }
             ]);
         }
         // Get QR code info
         const qrCodeInfo = (0, payment_1.getQRCodeInfo)(provider);
         if (!qrCodeInfo || !qrCodeInfo.qrCodeUrl) {
-            throw new errors_1.ValidationError([
+            throw new errors_1.ValidationError('Validation failed', [
                 { field: 'provider', message: `QR code for ${provider} is not configured` }
             ]);
         }

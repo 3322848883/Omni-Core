@@ -20,7 +20,7 @@ function generateAccessToken(payload) {
     });
 }
 function generateRefreshToken(payload) {
-    return jsonwebtoken_1.default.sign(payload, config_1.config.jwt.secret, {
+    return jsonwebtoken_1.default.sign({ ...payload, type: 'refresh' }, config_1.config.jwt.secret, {
         expiresIn: config_1.config.jwt.refreshExpiresIn || '7d',
     });
 }
@@ -56,7 +56,7 @@ function extractTokenFromHeader(authHeader) {
     if (!authHeader)
         return null;
     const parts = authHeader.split(' ');
-    if (parts.length !== 2 || parts[0] !== 'Bearer')
+    if (parts.length !== 2 || parts[0] !== 'Bearer' || !parts[1])
         return null;
     return parts[1];
 }

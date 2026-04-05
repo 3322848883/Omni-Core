@@ -1,10 +1,13 @@
 export interface TokenPayload {
-    userId: string;
-    email: string;
+    sub: string;
+    username: string;
     role?: string;
+    type?: string;
+    userId?: string;
+    email?: string;
 }
 export interface DecodedToken {
-    userId: string;
+    sub: string;
     username: string;
     role: string;
     type: string;
