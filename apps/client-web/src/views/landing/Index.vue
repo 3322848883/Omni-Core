@@ -284,22 +284,21 @@ const handleLogin = async () => {
 
   loading.value = true;
   try {
-    const res = await login({
+    const res: any = await login({
       email: loginForm.username,
       password: loginForm.password,
     } as any);
 
-    if (res.success) {
-      localStorage.setItem('token', res.data.tokens.accessToken);
-      localStorage.setItem('refreshToken', res.data.tokens.refreshToken);
-      localStorage.setItem('userInfo', JSON.stringify(res.data.user));
-      
-      userStore.setUserInfo(res.data.user);
-      userStore.setToken(res.data.tokens.accessToken);
-      
-      ElMessage.success('登录成功');
-      router.push('/app');
-    }
+    // 由于request.ts已经处理了响应，直接使用res
+    localStorage.setItem('token', res.tokens.accessToken);
+    localStorage.setItem('refreshToken', res.tokens.refreshToken);
+    localStorage.setItem('userInfo', JSON.stringify(res.user));
+    
+    userStore.setUserInfo(res.user);
+    userStore.setToken(res.tokens.accessToken);
+    
+    ElMessage.success('登录成功');
+    router.push('/app');
   } catch (error: any) {
     ElMessage.error(error.message || '登录失败');
   } finally {
@@ -320,24 +319,25 @@ const handleRegister = async () => {
 
   loading.value = true;
   try {
-    const res = await register({
+    const res: any = await register({
       email: registerForm.email,
       username: registerForm.username,
       password: registerForm.password,
+      confirmPassword: registerForm.confirmPassword,
+      agreeTerms: true,
       inviteCode: registerForm.inviteCode,
-    });
+    } as any);
 
-    if (res.success) {
-      localStorage.setItem('token', res.data.tokens.accessToken);
-      localStorage.setItem('refreshToken', res.data.tokens.refreshToken);
-      localStorage.setItem('userInfo', JSON.stringify(res.data.user));
-      
-      userStore.setUserInfo(res.data.user);
-      userStore.setToken(res.data.tokens.accessToken);
-      
-      ElMessage.success('注册成功');
-      router.push('/app');
-    }
+    // 由于request.ts已经处理了响应，直接使用res
+    localStorage.setItem('token', res.tokens.accessToken);
+    localStorage.setItem('refreshToken', res.tokens.refreshToken);
+    localStorage.setItem('userInfo', JSON.stringify(res.user));
+    
+    userStore.setUserInfo(res.user);
+    userStore.setToken(res.tokens.accessToken);
+    
+    ElMessage.success('注册成功');
+    router.push('/app');
   } catch (error: any) {
     ElMessage.error(error.message || '注册失败');
   } finally {

@@ -178,7 +178,7 @@
         <div v-if="planDetail.scenarios && planDetail.scenarios.length > 0" class="scenarios-card">
           <div class="card-header">
             <div class="card-icon">
-              <el-icon><Target /></el-icon>
+              <el-icon><CircleCheck /></el-icon>
             </div>
             <h3>适用场景</h3>
           </div>
@@ -366,7 +366,6 @@ import {
   ArrowLeft,
   Goods,
   Warning,
-  Target,
   InfoFilled
 } from '@element-plus/icons-vue';
 import { useUserStore } from '@/stores/user';

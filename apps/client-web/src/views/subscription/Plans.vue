@@ -103,7 +103,7 @@
                 <span>{{ formatBytes(plan.traffic_limit) }} 流量</span>
               </div>
               <div class="spec-item">
-                <el-icon><Speed /></el-icon>
+                <el-icon><CircleCheck /></el-icon>
                 <span>{{ plan.bandwidth }} Mbps 带宽</span>
               </div>
               <div class="spec-item">
@@ -249,7 +249,6 @@ import {
   Star,
   CircleCheck,
   Download,
-  Speed,
   Monitor,
   Goods,
   ArrowDown,

@@ -144,21 +144,6 @@ const userStore = useUserStore();
 const currentRoute = computed(() => route.path);
 const uptime = ref('12h 34m');
 
-const navItems = [
-  { id: 'dashboard', route: '/app', label: '控制中心', icon: 'DashboardIcon' },
-  { id: 'nodes', route: '/app/nodes', label: '节点网络', icon: 'NodesIcon' },
-  { id: 'subscription', route: '/app/subscription', label: '订阅管理', icon: 'SubscriptionIcon' },
-  { id: 'traffic', route: '/app/traffic', label: '流量分析', icon: 'TrafficIcon' },
-  { id: 'orders', route: '/app/orders', label: '交易记录', icon: 'OrdersIcon' },
-  { id: 'invite', route: '/app/invite', label: '邀请计划', icon: 'InviteIcon' },
-  { id: 'profile', route: '/app/profile', label: '个人档案', icon: 'ProfileIcon' }
-];
-
-const connectionStatus = computed(() => ({
-  text: '已连接',
-  class: 'connected'
-}));
-
 const DashboardIcon = {
   template: `
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -233,6 +218,21 @@ const ProfileIcon = {
     </svg>
   `
 };
+
+const navItems = [
+  { id: 'dashboard', route: '/app', label: '控制中心', icon: DashboardIcon },
+  { id: 'nodes', route: '/app/nodes', label: '节点网络', icon: NodesIcon },
+  { id: 'subscription', route: '/app/subscription', label: '订阅管理', icon: SubscriptionIcon },
+  { id: 'traffic', route: '/app/traffic', label: '流量分析', icon: TrafficIcon },
+  { id: 'orders', route: '/app/orders', label: '交易记录', icon: OrdersIcon },
+  { id: 'invite', route: '/app/invite', label: '邀请计划', icon: InviteIcon },
+  { id: 'profile', route: '/app/profile', label: '个人档案', icon: ProfileIcon }
+];
+
+const connectionStatus = computed(() => ({
+  text: '已连接',
+  class: 'connected'
+}));
 
 const navigateTo = (path: string) => {
   router.push(path);
