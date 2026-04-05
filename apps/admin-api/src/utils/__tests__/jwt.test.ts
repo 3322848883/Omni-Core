@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as jwtUtils from '../jwt';
 import { config } from '../../config';
-import jwt from 'jsonwebtoken';
+import * as jwt from 'jsonwebtoken';
 
 // Mock dependencies
 vi.mock('../../config', () => ({
@@ -14,7 +14,12 @@ vi.mock('../../config', () => ({
   },
 }));
 
-vi.mock('jsonwebtoken');
+// Mock jwt module with proper types
+vi.mock('jsonwebtoken', () => ({
+  sign: vi.fn(),
+  verify: vi.fn(),
+  decode: vi.fn(),
+}));
 
 describe('JWT Utils', () => {
   const mockPayload = {
@@ -36,7 +41,7 @@ describe('JWT Utils', () => {
     it('should generate access token with correct payload and options', () => {
       // Arrange
       const expectedToken = 'mock_access_token';
-      vi.mocked(jwt.sign).mockReturnValue(expectedToken);
+      (jwt.sign as any).mockReturnValue(expectedToken);
 
       // Act
       const result = jwtUtils.generateAccessToken(mockPayload);
@@ -55,7 +60,7 @@ describe('JWT Utils', () => {
       const expectedToken = 'mock_access_token';
       const originalExpiresIn = config.jwt.expiresIn;
       config.jwt.expiresIn = undefined;
-      vi.mocked(jwt.sign).mockReturnValue(expectedToken);
+      (jwt.sign as any).mockReturnValue(expectedToken);
 
       // Act
       const result = jwtUtils.generateAccessToken(mockPayload);
@@ -78,7 +83,7 @@ describe('JWT Utils', () => {
       // Arrange
       const expectedToken = 'mock_refresh_token';
       const expectedPayload = { ...mockPayload, type: 'refresh' };
-      vi.mocked(jwt.sign).mockReturnValue(expectedToken);
+      (jwt.sign as any).mockReturnValue(expectedToken);
 
       // Act
       const result = jwtUtils.generateRefreshToken(mockPayload);
@@ -97,7 +102,7 @@ describe('JWT Utils', () => {
       const expectedToken = 'mock_refresh_token';
       const originalRefreshExpiresIn = config.jwt.refreshExpiresIn;
       config.jwt.refreshExpiresIn = undefined;
-      vi.mocked(jwt.sign).mockReturnValue(expectedToken);
+      (jwt.sign as any).mockReturnValue(expectedToken);
 
       // Act
       const result = jwtUtils.generateRefreshToken(mockPayload);
@@ -120,7 +125,7 @@ describe('JWT Utils', () => {
       // Arrange
       const token = 'mock_token';
       const decodedPayload = { ...mockPayload, iat: Date.now() / 1000, exp: Date.now() / 1000 + 3600 };
-      vi.mocked(jwt.verify).mockReturnValue(decodedPayload as any);
+      (jwt.verify as any).mockReturnValue(decodedPayload as any);
 
       // Act
       const result = jwtUtils.verifyToken(token);
@@ -133,7 +138,7 @@ describe('JWT Utils', () => {
     it('should throw error when token is invalid', () => {
       // Arrange
       const token = 'invalid_token';
-      vi.mocked(jwt.verify).mockImplementation(() => {
+      (jwt.verify as any).mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
@@ -155,7 +160,7 @@ describe('JWT Utils', () => {
         iat: Date.now() / 1000,
         exp: Date.now() / 1000 + 3600,
       };
-      vi.mocked(jwt.verify).mockReturnValue(decodedPayload as any);
+      (jwt.verify as any).mockReturnValue(decodedPayload as any);
 
       // Act
       const result = jwtUtils.verifyAccessToken(token);
@@ -176,7 +181,7 @@ describe('JWT Utils', () => {
         iat: Date.now() / 1000,
         exp: Date.now() / 1000 + 3600,
       };
-      vi.mocked(jwt.verify).mockReturnValue(decodedPayload as any);
+      (jwt.verify as any).mockReturnValue(decodedPayload as any);
 
       // Act
       const result = jwtUtils.verifyAccessToken(token);
@@ -189,7 +194,7 @@ describe('JWT Utils', () => {
     it('should throw error when access token is invalid', () => {
       // Arrange
       const token = 'aat_invalid_token';
-      vi.mocked(jwt.verify).mockImplementation(() => {
+      (jwt.verify as any).mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
@@ -211,7 +216,7 @@ describe('JWT Utils', () => {
         iat: Date.now() / 1000,
         exp: Date.now() / 1000 + 604800, // 7 days
       };
-      vi.mocked(jwt.verify).mockReturnValue(decodedPayload as any);
+      (jwt.verify as any).mockReturnValue(decodedPayload as any);
 
       // Act
       const result = jwtUtils.verifyRefreshToken(token);
@@ -232,7 +237,7 @@ describe('JWT Utils', () => {
         iat: Date.now() / 1000,
         exp: Date.now() / 1000 + 604800,
       };
-      vi.mocked(jwt.verify).mockReturnValue(decodedPayload as any);
+      (jwt.verify as any).mockReturnValue(decodedPayload as any);
 
       // Act
       const result = jwtUtils.verifyRefreshToken(token);
@@ -245,7 +250,7 @@ describe('JWT Utils', () => {
     it('should throw error when refresh token is invalid', () => {
       // Arrange
       const token = 'art_invalid_token';
-      vi.mocked(jwt.verify).mockImplementation(() => {
+      (jwt.verify as any).mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
@@ -259,7 +264,7 @@ describe('JWT Utils', () => {
       // Arrange
       const token = 'mock_token';
       const decodedPayload = { ...mockPayload, iat: Date.now() / 1000 };
-      vi.mocked(jwt.decode).mockReturnValue(decodedPayload as any);
+      (jwt.decode as any).mockReturnValue(decodedPayload as any);
 
       // Act
       const result = jwtUtils.decodeToken(token);
@@ -272,7 +277,7 @@ describe('JWT Utils', () => {
     it('should return null when token is invalid', () => {
       // Arrange
       const token = 'invalid_token';
-      vi.mocked(jwt.decode).mockImplementation(() => {
+      (jwt.decode as any).mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
