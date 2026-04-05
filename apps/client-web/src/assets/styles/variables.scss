@@ -1,90 +1,91 @@
 // ============================================
-// FGVPN Client Web - Modern UI/UX Design System
-// 现代化设计系统 - 深色科技主题
+// FGVPN Client Web - Cyberpunk Design System
+// 赛博朋克设计系统 - 未来科技主题
 // ============================================
 
 // ============================================
-// 1. 色彩系统 (Color System)
+// 1. 色彩系统 (Color System) - 赛博朋克未来风格
 // ============================================
 
 :root {
-  // ----- 主色调 - 科技蓝紫渐变 (Primary Colors) -----
-  --brand-primary: #6366f1;
-  --brand-secondary: #8b5cf6;
-  --brand-tertiary: #06b6d4;
-  --brand-primary-hover: #4f46e5;
-  --brand-secondary-hover: #7c3aed;
+  // ----- 主色调 - 赛博霓虹蓝粉渐变 (Primary Colors) -----
+  --brand-primary: #3B82F6;
+  --brand-secondary: #EC4899;
+  --brand-tertiary: #06B6D4;
+  --brand-primary-hover: #2563EB;
+  --brand-secondary-hover: #DB2777;
 
-  // 主渐变
-  --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
-  --gradient-glow: linear-gradient(135deg, rgba(99, 102, 241, 0.4) 0%, rgba(139, 92, 246, 0.4) 100%);
-  --gradient-subtle: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  // 主渐变 - 赛博霓虹效果
+  --gradient-primary: linear-gradient(135deg, #3B82F6 0%, #EC4899 50%, #06B6D4 100%);
+  --gradient-glow: linear-gradient(135deg, rgba(59, 130, 246, 0.4) 0%, rgba(236, 72, 153, 0.4) 100%);
+  --gradient-subtle: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+  --gradient-cyber: linear-gradient(90deg, #3B82F6, #EC4899, #06B6D4, #3B82F6);
 
   // ----- 深色主题背景层级 (Dark Theme Backgrounds) -----
-  --bg-deep: #0a0a0f;
-  --bg-dark: #12121a;
-  --bg-card: #1a1a25;
-  --bg-elevated: #222230;
-  --bg-overlay: rgba(18, 18, 26, 0.9);
+  --bg-deep: #050508;
+  --bg-dark: #0a0a12;
+  --bg-card: #0f0f1a;
+  --bg-elevated: #151525;
+  --bg-overlay: rgba(10, 10, 18, 0.95);
 
-  // 玻璃拟态背景
-  --glass-bg: rgba(26, 26, 37, 0.7);
-  --glass-border: rgba(255, 255, 255, 0.08);
+  // 玻璃拟态背景 - 赛博风格
+  --glass-bg: rgba(15, 15, 26, 0.8);
+  --glass-border: rgba(59, 130, 246, 0.15);
   --glass-blur: blur(20px);
 
   // ----- 功能色 - 霓虹效果 (Functional Colors with Neon Glow) -----
   // 成功 - 霓虹绿
-  --color-success: #10b981;
+  --color-success: #10B981;
   --color-success-light: rgba(16, 185, 129, 0.15);
-  --color-success-glow: rgba(16, 185, 129, 0.4);
-  --gradient-success: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+  --color-success-glow: rgba(16, 185, 129, 0.5);
+  --gradient-success: linear-gradient(135deg, #10B981 0%, #34D399 100%);
 
-  // 警告 - 琥珀
-  --color-warning: #f59e0b;
+  // 警告 - 霓虹橙
+  --color-warning: #F59E0B;
   --color-warning-light: rgba(245, 158, 11, 0.15);
-  --color-warning-glow: rgba(245, 158, 11, 0.4);
-  --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%);
+  --color-warning-glow: rgba(245, 158, 11, 0.5);
+  --gradient-warning: linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%);
 
-  // 危险 - 玫瑰红
-  --color-danger: #f43f5e;
-  --color-danger-light: rgba(244, 63, 94, 0.15);
-  --color-danger-glow: rgba(244, 63, 94, 0.4);
-  --gradient-danger: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);
+  // 危险 - 霓虹红
+  --color-danger: #EF4444;
+  --color-danger-light: rgba(239, 68, 68, 0.15);
+  --color-danger-glow: rgba(239, 68, 68, 0.5);
+  --gradient-danger: linear-gradient(135deg, #EF4444 0%, #F87171 100%);
 
-  // 信息 - 天蓝
-  --color-info: #0ea5e9;
-  --color-info-light: rgba(14, 165, 233, 0.15);
-  --color-info-glow: rgba(14, 165, 233, 0.4);
-  --gradient-info: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%);
+  // 信息 - 霓虹青
+  --color-info: #06B6D4;
+  --color-info-light: rgba(6, 182, 212, 0.15);
+  --color-info-glow: rgba(6, 182, 212, 0.5);
+  --gradient-info: linear-gradient(135deg, #06B6D4 0%, #22D3EE 100%);
 
   // ----- 文本色彩层级 (Text Colors) -----
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-tertiary: #64748b;
-  --text-muted: #475569;
-  --text-disabled: #334155;
+  --text-primary: #FFFFFF;
+  --text-secondary: #A1A1AA;
+  --text-tertiary: #71717A;
+  --text-muted: #52525B;
+  --text-disabled: #3F3F46;
 
-  // 品牌文本
-  --text-brand: #818cf8;
-  --text-gradient: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+  // 品牌文本 - 赛博霓虹
+  --text-brand: #60A5FA;
+  --text-gradient: linear-gradient(135deg, #3B82F6 0%, #EC4899 50%, #06B6D4 100%);
 
   // ----- 边框与分隔线 (Borders) -----
-  --border-subtle: rgba(255, 255, 255, 0.05);
-  --border-default: rgba(255, 255, 255, 0.1);
-  --border-strong: rgba(255, 255, 255, 0.15);
-  --border-glow: rgba(99, 102, 241, 0.3);
+  --border-subtle: rgba(59, 130, 246, 0.08);
+  --border-default: rgba(59, 130, 246, 0.15);
+  --border-strong: rgba(59, 130, 246, 0.25);
+  --border-glow: rgba(59, 130, 246, 0.4);
 
   // ----- 节点状态色 (Node Status) -----
-  --node-online: #10b981;
-  --node-offline: #f43f5e;
-  --node-busy: #f59e0b;
-  --node-maintenance: #64748b;
+  --node-online: #10B981;
+  --node-offline: #EF4444;
+  --node-busy: #F59E0B;
+  --node-maintenance: #71717A;
 
   // ----- 订单状态色 (Order Status) -----
-  --order-pending: #f59e0b;
-  --order-paid: #6366f1;
-  --order-completed: #10b981;
-  --order-cancelled: #64748b;
+  --order-pending: #F59E0B;
+  --order-paid: #3B82F6;
+  --order-completed: #10B981;
+  --order-cancelled: #71717A;
 }
 
 // ============================================
@@ -181,31 +182,31 @@
 }
 
 // ============================================
-// 5. 阴影与光效 (Shadows & Glow Effects)
+// 5. 阴影与光效 (Shadows & Glow Effects) - 赛博朋克风格
 // ============================================
 
 :root {
   // 基础阴影
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
-  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.6), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -4px rgba(0, 0, 0, 0.5);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.8), 0 8px 10px -6px rgba(0, 0, 0, 0.6);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.9);
 
-  // 发光效果
-  --glow-primary: 0 0 20px rgba(99, 102, 241, 0.4);
-  --glow-success: 0 0 20px rgba(16, 185, 129, 0.4);
-  --glow-warning: 0 0 20px rgba(245, 158, 11, 0.4);
-  --glow-danger: 0 0 20px rgba(244, 63, 94, 0.4);
-  --glow-inner: inset 0 0 20px rgba(99, 102, 241, 0.1);
+  // 发光效果 - 赛博霓虹
+  --glow-primary: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(236, 72, 153, 0.3);
+  --glow-success: 0 0 20px rgba(16, 185, 129, 0.5), 0 0 40px rgba(16, 185, 129, 0.3);
+  --glow-warning: 0 0 20px rgba(245, 158, 11, 0.5), 0 0 40px rgba(245, 158, 11, 0.3);
+  --glow-danger: 0 0 20px rgba(239, 68, 68, 0.5), 0 0 40px rgba(239, 68, 68, 0.3);
+  --glow-inner: inset 0 0 20px rgba(59, 130, 246, 0.15);
 
-  // 卡片阴影
-  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
-  --shadow-card-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(99, 102, 241, 0.2), 0 0 20px rgba(99, 102, 241, 0.15);
+  // 卡片阴影 - 赛博风格
+  --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(59, 130, 246, 0.1);
+  --shadow-card-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(59, 130, 246, 0.3), 0 0 30px rgba(59, 130, 246, 0.2);
 
-  // 按钮阴影
-  --shadow-button: 0 4px 14px 0 rgba(99, 102, 241, 0.4);
-  --shadow-button-hover: 0 6px 20px 0 rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.3);
+  // 按钮阴影 - 霓虹效果
+  --shadow-button: 0 4px 14px 0 rgba(59, 130, 246, 0.5), 0 0 20px rgba(236, 72, 153, 0.3);
+  --shadow-button-hover: 0 6px 20px 0 rgba(59, 130, 246, 0.6), 0 0 40px rgba(236, 72, 153, 0.4);
 }
 
 // ============================================
@@ -314,12 +315,12 @@ $breakpoint-2xl: 1536px;
   }
 }
 
-// 玻璃拟态 mixin
-@mixin glass-effect($opacity: 0.7, $blur: 20px) {
-  background: rgba(26, 26, 37, $opacity);
+// 玻璃拟态 mixin - 赛博风格
+@mixin glass-effect($opacity: 0.8, $blur: 20px) {
+  background: rgba(15, 15, 26, $opacity);
   backdrop-filter: blur($blur);
   -webkit-backdrop-filter: blur($blur);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.15);
 }
 
 // 渐变文字 mixin
@@ -331,8 +332,14 @@ $breakpoint-2xl: 1536px;
 }
 
 // 发光效果 mixin
-@mixin glow-effect($color: var(--brand-primary), $intensity: 0.4) {
-  box-shadow: 0 0 20px rgba($color, $intensity);
+@mixin glow-effect($color: var(--brand-primary), $intensity: 0.5) {
+  box-shadow: 0 0 20px rgba($color, $intensity), 0 0 40px rgba($color, $intensity * 0.5);
+}
+
+// 霓虹边框 mixin
+@mixin neon-border($color: var(--brand-primary)) {
+  border: 1px solid rgba($color, 0.3);
+  box-shadow: 0 0 10px rgba($color, 0.2), inset 0 0 10px rgba($color, 0.05);
 }
 
 // ============================================
@@ -343,44 +350,44 @@ $breakpoint-2xl: 1536px;
   // Element Plus 主色映射
   --el-color-primary: var(--brand-primary);
   --el-color-primary-light-3: var(--brand-secondary);
-  --el-color-primary-light-5: #a78bfa;
-  --el-color-primary-light-7: #c4b5fd;
-  --el-color-primary-light-8: #ddd6fe;
-  --el-color-primary-light-9: rgba(99, 102, 241, 0.1);
+  --el-color-primary-light-5: #F472B6;
+  --el-color-primary-light-7: #F9A8D4;
+  --el-color-primary-light-8: #FBCFE8;
+  --el-color-primary-light-9: rgba(59, 130, 246, 0.1);
   --el-color-primary-dark-2: var(--brand-primary-hover);
 
   // Element Plus 辅助色映射
   --el-color-success: var(--color-success);
-  --el-color-success-light-3: #34d399;
-  --el-color-success-light-5: #6ee7b7;
-  --el-color-success-light-7: #a7f3d0;
-  --el-color-success-light-8: #d1fae5;
+  --el-color-success-light-3: #34D399;
+  --el-color-success-light-5: #6EE7B7;
+  --el-color-success-light-7: #A7F3D0;
+  --el-color-success-light-8: #D1FAE5;
   --el-color-success-light-9: rgba(16, 185, 129, 0.1);
   --el-color-success-dark-2: #059669;
 
   --el-color-warning: var(--color-warning);
-  --el-color-warning-light-3: #fbbf24;
-  --el-color-warning-light-5: #fcd34d;
-  --el-color-warning-light-7: #fde68a;
-  --el-color-warning-light-8: #fef3c7;
+  --el-color-warning-light-3: #FBBF24;
+  --el-color-warning-light-5: #FCD34D;
+  --el-color-warning-light-7: #FDE68A;
+  --el-color-warning-light-8: #FEF3C7;
   --el-color-warning-light-9: rgba(245, 158, 11, 0.1);
-  --el-color-warning-dark-2: #d97706;
+  --el-color-warning-dark-2: #D97706;
 
   --el-color-danger: var(--color-danger);
-  --el-color-danger-light-3: #fb7185;
-  --el-color-danger-light-5: #fda4af;
-  --el-color-danger-light-7: #fecdd3;
-  --el-color-danger-light-8: #ffe4e6;
-  --el-color-danger-light-9: rgba(244, 63, 94, 0.1);
-  --el-color-danger-dark-2: #e11d48;
+  --el-color-danger-light-3: #F87171;
+  --el-color-danger-light-5: #FDA4AF;
+  --el-color-danger-light-7: #FECDD3;
+  --el-color-danger-light-8: #FFE4E6;
+  --el-color-danger-light-9: rgba(239, 68, 68, 0.1);
+  --el-color-danger-dark-2: #DC2626;
 
   --el-color-info: var(--color-info);
-  --el-color-info-light-3: #38bdf8;
-  --el-color-info-light-5: #7dd3fc;
-  --el-color-info-light-7: #bae6fd;
-  --el-color-info-light-8: #e0f2fe;
-  --el-color-info-light-9: rgba(14, 165, 233, 0.1);
-  --el-color-info-dark-2: #0284c7;
+  --el-color-info-light-3: #22D3EE;
+  --el-color-info-light-5: #67E8F9;
+  --el-color-info-light-7: #A5F3FC;
+  --el-color-info-light-8: #CFFAFE;
+  --el-color-info-light-9: rgba(6, 182, 212, 0.1);
+  --el-color-info-dark-2: #0891B2;
 
   // Element Plus 文本色映射
   --el-text-color-primary: var(--text-primary);
@@ -392,8 +399,8 @@ $breakpoint-2xl: 1536px;
   // Element Plus 边框色映射
   --el-border-color: var(--border-default);
   --el-border-color-light: var(--border-subtle);
-  --el-border-color-lighter: rgba(255, 255, 255, 0.03);
-  --el-border-color-extra-light: rgba(255, 255, 255, 0.02);
+  --el-border-color-lighter: rgba(59, 130, 246, 0.05);
+  --el-border-color-extra-light: rgba(59, 130, 246, 0.03);
   --el-border-color-dark: var(--border-strong);
   --el-border-color-darker: var(--border-strong);
 
@@ -404,11 +411,11 @@ $breakpoint-2xl: 1536px;
 
   // Element Plus 填充色映射
   --el-fill-color: var(--bg-elevated);
-  --el-fill-color-light: rgba(255, 255, 255, 0.05);
-  --el-fill-color-lighter: rgba(255, 255, 255, 0.03);
-  --el-fill-color-extra-light: rgba(255, 255, 255, 0.02);
-  --el-fill-color-dark: rgba(255, 255, 255, 0.1);
-  --el-fill-color-darker: rgba(255, 255, 255, 0.15);
+  --el-fill-color-light: rgba(59, 130, 246, 0.05);
+  --el-fill-color-lighter: rgba(59, 130, 246, 0.03);
+  --el-fill-color-extra-light: rgba(59, 130, 246, 0.02);
+  --el-fill-color-dark: rgba(59, 130, 246, 0.1);
+  --el-fill-color-darker: rgba(59, 130, 246, 0.15);
   --el-fill-color-blank: var(--bg-card);
 
   // Element Plus 圆角映射
@@ -434,14 +441,14 @@ $breakpoint-2xl: 1536px;
   --el-index-popper: 2000;
 
   // Element Plus 禁用状态
-  --el-disabled-bg-color: rgba(255, 255, 255, 0.05);
+  --el-disabled-bg-color: rgba(59, 130, 246, 0.05);
   --el-disabled-text-color: var(--text-disabled);
   --el-disabled-border-color: var(--border-subtle);
 
   // Element Plus 遮罩
-  --el-overlay-color: rgba(0, 0, 0, 0.7);
-  --el-overlay-color-light: rgba(0, 0, 0, 0.5);
-  --el-overlay-color-lighter: rgba(0, 0, 0, 0.3);
+  --el-overlay-color: rgba(0, 0, 0, 0.8);
+  --el-overlay-color-light: rgba(0, 0, 0, 0.6);
+  --el-overlay-color-lighter: rgba(0, 0, 0, 0.4);
 
   // Element Plus 阴影映射
   --el-box-shadow: var(--shadow-md);
