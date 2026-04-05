@@ -11,12 +11,12 @@
         :collapse="isCollapse"
         :collapse-transition="false"
         router
-        background-color="#304156"
-        text-color="#bfcbd9"
-        active-text-color="#409EFF"
+        background-color="var(--cyber-bg-secondary)"
+        text-color="var(--cyber-text-secondary)"
+        active-text-color="var(--cyber-accent-blue)"
       >
         <el-menu-item v-for="route in menuRoutes" :key="route.path" :index="route.path">
-          <el-icon>
+          <el-icon class="menu-icon">
             <component :is="route.meta?.icon" />
           </el-icon>
           <template #title>{{ route.meta?.title }}</template>
@@ -41,7 +41,7 @@
               <el-icon><ArrowDown /></el-icon>
             </span>
             <template #dropdown>
-              <el-dropdown-menu>
+              <el-dropdown-menu class="cyber-dropdown">
                 <el-dropdown-item command="profile">个人设置</el-dropdown-item>
                 <el-dropdown-item divided command="logout">退出登录</el-dropdown-item>
               </el-dropdown-menu>
@@ -99,34 +99,72 @@ const handleCommand = (command: string) => {
 <style scoped lang="scss">
 .main-layout {
   height: 100vh;
+  background: linear-gradient(135deg, var(--cyber-bg-primary) 0%, var(--cyber-bg-secondary) 100%);
 }
 
 .sidebar {
-  background-color: #304156;
+  background-color: var(--cyber-bg-secondary);
   transition: width 0.3s;
+  border-right: var(--cyber-border);
 
   .logo {
     height: 64px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: var(--cyber-text-primary);
     font-size: 20px;
     font-weight: bold;
-    border-bottom: 1px solid #1f2d3d;
+    border-bottom: var(--cyber-border);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.2), transparent);
+      animation: shine 3s infinite;
+    }
 
     .logo-text {
       font-size: 14px;
       letter-spacing: 2px;
-      background: linear-gradient(135deg, #0EA5E9 0%, #8B5CF6 100%);
+      background: linear-gradient(135deg, var(--cyber-accent-blue) 0%, var(--cyber-accent-purple) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
+      text-shadow: 0 0 10px rgba(14, 165, 233, 0.5);
     }
   }
 
   .el-menu {
     border-right: none;
+    background-color: transparent !important;
+
+    .el-menu-item {
+      transition: all 0.3s ease;
+      border-left: 3px solid transparent;
+
+      &:hover {
+        background-color: rgba(14, 165, 233, 0.1) !important;
+        border-left-color: var(--cyber-accent-blue);
+      }
+
+      &.is-active {
+        background-color: rgba(14, 165, 233, 0.2) !important;
+        border-left-color: var(--cyber-accent-blue);
+        box-shadow: 0 0 10px rgba(14, 165, 233, 0.3);
+      }
+
+      .menu-icon {
+        font-size: 18px;
+        margin-right: 10px;
+      }
+    }
   }
 }
 
@@ -134,8 +172,10 @@ const handleCommand = (command: string) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: #fff;
-  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+  background: rgba(26, 26, 46, 0.8);
+  box-shadow: 0 1px 20px rgba(14, 165, 233, 0.1);
+  border-bottom: var(--cyber-border);
+  backdrop-filter: blur(10px);
 
   .header-left {
     display: flex;
@@ -145,6 +185,12 @@ const handleCommand = (command: string) => {
       font-size: 20px;
       cursor: pointer;
       margin-right: 15px;
+      color: var(--cyber-accent-blue);
+      transition: all 0.3s ease;
+
+      &:hover {
+        text-shadow: var(--cyber-neon-glow);
+      }
     }
   }
 
@@ -154,15 +200,43 @@ const handleCommand = (command: string) => {
       display: flex;
       align-items: center;
       gap: 5px;
+      color: var(--cyber-text-primary);
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: rgba(14, 165, 233, 0.1);
+        box-shadow: 0 0 10px rgba(14, 165, 233, 0.3);
+      }
+    }
+
+    .cyber-dropdown {
+      background: rgba(26, 26, 46, 0.95) !important;
+      border: var(--cyber-border) !important;
+      box-shadow: 0 0 20px rgba(14, 165, 233, 0.2) !important;
+
+      .el-dropdown-item {
+        color: var(--cyber-text-primary) !important;
+
+        &:hover {
+          background: rgba(14, 165, 233, 0.1) !important;
+        }
+
+        &.is-disabled {
+          color: var(--cyber-text-secondary) !important;
+        }
+      }
     }
   }
 }
 
 .main-content {
-  background-color: #f0f2f5;
+  background: rgba(10, 10, 10, 0.8);
   padding: 20px;
   overflow-y: auto;
   min-height: calc(100vh - 60px);
+  backdrop-filter: blur(10px);
 }
 
 .fade-enter-active,
@@ -173,5 +247,17 @@ const handleCommand = (command: string) => {
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+@keyframes shine {
+  0% {
+    left: -100%;
+  }
+  20% {
+    left: 100%;
+  }
+  100% {
+    left: 100%;
+  }
 }
 </style>

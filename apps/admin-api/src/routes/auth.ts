@@ -109,7 +109,7 @@ router.post(
       // Check MFA if enabled
       if (admin.mfa_secret) {
         if (!mfaCode) {
-          throw new ValidationError([
+          throw new ValidationError('Validation failed', [
             { field: 'mfaCode', message: 'MFA code is required' },
           ]);
         }

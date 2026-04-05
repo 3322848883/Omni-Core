@@ -112,7 +112,7 @@ router.get('/:id', authMiddleware, validate(OrderValidation.byId), async (req: R
       .first();
 
     if (!order) {
-      throw new NotFoundError('Order', id);
+      throw new NotFoundError(`Order ${id} not found`);
     }
 
     const orderStatusLogs = await db('order_status_logs')
@@ -164,7 +164,7 @@ router.post('/', authMiddleware, validate(OrderValidation.create), async (req: R
       .first();
 
     if (!user) {
-      throw new NotFoundError('User', userId);
+      throw new NotFoundError(`User ${userId} not found`);
     }
 
     const orderNo = generateOrderNo();
@@ -229,11 +229,11 @@ router.put('/:id', authMiddleware, validate(OrderValidation.update), async (req:
       .first();
 
     if (!order) {
-      throw new NotFoundError('Order', id);
+      throw new NotFoundError(`Order ${id} not found`);
     }
 
     if (order.status !== 'pending') {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'status', message: 'Only pending orders can be updated' }
       ]);
     }
@@ -291,11 +291,11 @@ router.post('/:id/pay', authMiddleware, validate(OrderValidation.pay), async (re
       .first();
 
     if (!order) {
-      throw new NotFoundError('Order', id);
+      throw new NotFoundError(`Order ${id} not found`);
     }
 
     if (order.status !== 'pending') {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'status', message: 'Only pending orders can be paid' }
       ]);
     }
@@ -358,11 +358,11 @@ router.post('/:id/cancel', authMiddleware, validate(OrderValidation.cancel), asy
       .first();
 
     if (!order) {
-      throw new NotFoundError('Order', id);
+      throw new NotFoundError(`Order ${id} not found`);
     }
 
     if (order.status !== 'pending') {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'status', message: 'Only pending orders can be cancelled' }
       ]);
     }
@@ -406,11 +406,11 @@ router.post('/:id/refund', authMiddleware, validate(OrderValidation.refund), asy
       .first();
 
     if (!order) {
-      throw new NotFoundError('Order', id);
+      throw new NotFoundError(`Order ${id} not found`);
     }
 
     if (order.status !== 'completed') {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'status', message: 'Only completed orders can be refunded' }
       ]);
     }
@@ -459,7 +459,7 @@ router.post('/:id/payment', authMiddleware, validate(OrderValidation.createPayme
 
     // Validate provider
     if (!provider || !['stripe', 'paypal', 'alipay', 'wechat', 'alipay_merchant', 'wechat_merchant'].includes(provider)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'provider', message: 'Valid payment provider (stripe, paypal, alipay, wechat, alipay_merchant, or wechat_merchant) is required' }
       ]);
     }
@@ -467,7 +467,7 @@ router.post('/:id/payment', authMiddleware, validate(OrderValidation.createPayme
     // Check if provider is available
     const availableProviders = getAvailableProviders();
     if (!availableProviders.includes(provider as PaymentProvider)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'provider', message: `Payment provider ${provider} is not available` }
       ]);
     }
@@ -479,12 +479,12 @@ router.post('/:id/payment', authMiddleware, validate(OrderValidation.createPayme
       .first();
 
     if (!order) {
-      throw new NotFoundError('Order', id);
+      throw new NotFoundError(`Order ${id} not found`);
     }
 
     // Check if order can be paid
     if (order.status !== 'pending') {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'status', message: 'Only pending orders can be paid' }
       ]);
     }
@@ -569,7 +569,7 @@ router.get('/:id/payment-status', authMiddleware, validate(OrderValidation.byId)
       .first();
 
     if (!order) {
-      throw new NotFoundError('Order', id);
+      throw new NotFoundError(`Order ${id} not found`);
     }
 
     // If no payment has been initiated
@@ -627,12 +627,12 @@ router.post('/:id/payment-refund', authMiddleware, validate(OrderValidation.paym
       .first();
 
     if (!order) {
-      throw new NotFoundError('Order', id);
+      throw new NotFoundError(`Order ${id} not found`);
     }
 
     // Check if order has payment information
     if (!order.payment_method || !order.payment_id) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'payment', message: 'Order does not have payment information' }
       ]);
     }
@@ -692,7 +692,7 @@ router.get('/payment/qrcode/:provider', async (req: Request, res: Response, next
 
     // Validate provider
     if (!['alipay', 'wechat'].includes(provider)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'provider', message: 'Provider must be alipay or wechat' }
       ]);
     }
@@ -700,7 +700,7 @@ router.get('/payment/qrcode/:provider', async (req: Request, res: Response, next
     // Check if provider is available
     const availableProviders = getAvailableProviders();
     if (!availableProviders.includes(provider as PaymentProvider)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'provider', message: `Payment provider ${provider} is not available` }
       ]);
     }
@@ -709,7 +709,7 @@ router.get('/payment/qrcode/:provider', async (req: Request, res: Response, next
     const qrCodeInfo = getQRCodeInfo(provider as PaymentProvider);
 
     if (!qrCodeInfo || !qrCodeInfo.qrCodeUrl) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'provider', message: `QR code for ${provider} is not configured` }
       ]);
     }

@@ -5,12 +5,31 @@
   box-sizing: border-box;
 }
 
+// Cyberpunk color variables
+:root {
+  --cyber-bg-primary: #0a0a0a;
+  --cyber-bg-secondary: #1a1a2e;
+  --cyber-bg-tertiary: #16213e;
+  --cyber-text-primary: #e0e0e0;
+  --cyber-text-secondary: #b0b0b0;
+  --cyber-accent-blue: #0EA5E9;
+  --cyber-accent-purple: #8B5CF6;
+  --cyber-accent-pink: #EC4899;
+  --cyber-accent-green: #10B981;
+  --cyber-neon-glow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 30px currentColor;
+  --cyber-border: 1px solid rgba(14, 165, 233, 0.3);
+  --cyber-border-glow: 1px solid rgba(14, 165, 233, 0.5);
+}
+
 html, body {
   height: 100%;
-  font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
+  font-family: 'Rajdhani', 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB',
     'Microsoft YaHei', Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--cyber-bg-primary);
+  color: var(--cyber-text-primary);
+  overflow-x: hidden;
 }
 
 #app {
@@ -76,32 +95,218 @@ html, body {
   flex-direction: column;
 }
 
+// Cyberpunk utilities
+.cyber-glow-blue {
+  color: var(--cyber-accent-blue);
+  text-shadow: var(--cyber-neon-glow);
+}
+
+.cyber-glow-purple {
+  color: var(--cyber-accent-purple);
+  text-shadow: var(--cyber-neon-glow);
+}
+
+.cyber-glow-pink {
+  color: var(--cyber-accent-pink);
+  text-shadow: var(--cyber-neon-glow);
+}
+
+.cyber-glow-green {
+  color: var(--cyber-accent-green);
+  text-shadow: var(--cyber-neon-glow);
+}
+
+.cyber-border {
+  border: var(--cyber-border);
+  box-shadow: 0 0 10px rgba(14, 165, 233, 0.2);
+}
+
+.cyber-card {
+  background: rgba(26, 26, 46, 0.8);
+  border: var(--cyber-border);
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(14, 165, 233, 0.1);
+  backdrop-filter: blur(10px);
+}
+
 // Element Plus overrides
 .el-card {
-  border-radius: 8px;
+  background: rgba(26, 26, 46, 0.8) !important;
+  border: var(--cyber-border) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 20px rgba(14, 165, 233, 0.1) !important;
+  backdrop-filter: blur(10px) !important;
+  color: var(--cyber-text-primary) !important;
+}
+
+.el-card__header {
+  background: rgba(22, 33, 62, 0.8) !important;
+  border-bottom: var(--cyber-border) !important;
+  color: var(--cyber-text-primary) !important;
 }
 
 .el-table {
+  background: rgba(26, 26, 46, 0.8) !important;
+  border: var(--cyber-border) !important;
+  color: var(--cyber-text-primary) !important;
+  
   th {
-    background-color: #f5f7fa !important;
+    background-color: rgba(22, 33, 62, 0.8) !important;
+    border-bottom: var(--cyber-border) !important;
+    color: var(--cyber-text-primary) !important;
+  }
+  
+  td {
+    border-bottom: var(--cyber-border) !important;
+    color: var(--cyber-text-secondary) !important;
+  }
+  
+  .el-table__row:hover {
+    background: rgba(14, 165, 233, 0.1) !important;
+  }
+}
+
+.el-button {
+  border: var(--cyber-border) !important;
+  background: rgba(26, 26, 46, 0.8) !important;
+  color: var(--cyber-text-primary) !important;
+  
+  &:hover {
+    border: var(--cyber-border-glow) !important;
+    box-shadow: var(--cyber-neon-glow) !important;
+  }
+  
+  &--primary {
+    background: linear-gradient(135deg, var(--cyber-accent-blue), var(--cyber-accent-purple)) !important;
+    border: none !important;
+  }
+}
+
+.el-input {
+  .el-input__wrapper {
+    background: rgba(26, 26, 46, 0.8) !important;
+    border: var(--cyber-border) !important;
+    
+    &:hover {
+      border: var(--cyber-border-glow) !important;
+    }
+    
+    .el-input__inner {
+      color: var(--cyber-text-primary) !important;
+    }
+  }
+}
+
+.el-select {
+  .el-select__wrapper {
+    background: rgba(26, 26, 46, 0.8) !important;
+    border: var(--cyber-border) !important;
+    
+    &:hover {
+      border: var(--cyber-border-glow) !important;
+    }
+    
+    .el-select__placeholder {
+      color: var(--cyber-text-secondary) !important;
+    }
+  }
+  
+  .el-select-dropdown {
+    background: rgba(26, 26, 46, 0.95) !important;
+    border: var(--cyber-border) !important;
+    
+    .el-select-dropdown__item {
+      color: var(--cyber-text-primary) !important;
+      
+      &:hover {
+        background: rgba(14, 165, 233, 0.1) !important;
+      }
+      
+      &.selected {
+        background: rgba(14, 165, 233, 0.2) !important;
+      }
+    }
+  }
+}
+
+.el-form-item__label {
+  color: var(--cyber-text-primary) !important;
+}
+
+.el-tabs {
+  .el-tabs__header {
+    border-bottom: var(--cyber-border) !important;
+    
+    .el-tabs__nav {
+      .el-tabs__item {
+        color: var(--cyber-text-secondary) !important;
+        
+        &.is-active {
+          color: var(--cyber-accent-blue) !important;
+          text-shadow: 0 0 5px var(--cyber-accent-blue) !important;
+        }
+        
+        &:hover {
+          color: var(--cyber-accent-blue) !important;
+        }
+      }
+      
+      .el-tabs__active-bar {
+        background: linear-gradient(90deg, var(--cyber-accent-blue), var(--cyber-accent-purple)) !important;
+      }
+    }
   }
 }
 
 // Scrollbar
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgba(26, 26, 46, 0.5);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 3px;
+  background: var(--cyber-accent-blue);
+  border-radius: 4px;
+  box-shadow: 0 0 10px var(--cyber-accent-blue);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
+  background: var(--cyber-accent-purple);
+  box-shadow: 0 0 10px var(--cyber-accent-purple);
 }
+
+// Glitch effect
+@keyframes glitch {
+  0% {
+    text-shadow: 0.05em 0 0 rgba(255, 0, 0, 0.75), -0.05em -0.025em 0 rgba(0, 255, 0, 0.75), -0.025em 0.05em 0 rgba(0, 0, 255, 0.75);
+  }
+  14% {
+    text-shadow: 0.05em 0 0 rgba(255, 0, 0, 0.75), -0.05em -0.025em 0 rgba(0, 255, 0, 0.75), -0.025em 0.05em 0 rgba(0, 0, 0, 0.75);
+  }
+  15% {
+    text-shadow: -0.05em -0.025em 0 rgba(255, 0, 0, 0.75), 0.025em 0.025em 0 rgba(0, 255, 0, 0.75), -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
+  }
+  49% {
+    text-shadow: -0.05em -0.025em 0 rgba(255, 0, 0, 0.75), 0.025em 0.025em 0 rgba(0, 255, 0, 0.75), -0.05em -0.05em 0 rgba(0, 0, 255, 0.75);
+  }
+  50% {
+    text-shadow: 0.025em 0.05em 0 rgba(255, 0, 0, 0.75), 0.05em 0 0 rgba(0, 255, 0, 0.75), 0 -0.05em 0 rgba(0, 0, 255, 0.75);
+  }
+  99% {
+    text-shadow: 0.025em 0.05em 0 rgba(255, 0, 0, 0.75), 0.05em 0 0 rgba(0, 255, 0, 0.75), 0 -0.05em 0 rgba(0, 0, 255, 0.75);
+  }
+  100% {
+    text-shadow: -0.025em 0 0 rgba(255, 0, 0, 0.75), -0.025em -0.025em 0 rgba(0, 255, 0, 0.75), -0.025em -0.05em 0 rgba(0, 0, 255, 0.75);
+  }
+}
+
+.glitch {
+  animation: glitch 1s infinite;
+}
+
+// Add Google Fonts for cyberpunk style
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&display=swap');

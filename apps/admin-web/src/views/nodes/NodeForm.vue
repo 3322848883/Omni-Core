@@ -624,6 +624,22 @@ onMounted(() => {
 <style scoped lang="scss">
 .node-form {
   min-height: calc(100vh - 120px);
+  background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+  padding: 20px;
+
+  .el-card {
+    background: rgba(26, 26, 46, 0.8);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+
+    .el-card__header {
+      border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+      color: #00ffff;
+      font-weight: bold;
+    }
+  }
 
   .card-header {
     font-weight: 600;
@@ -632,16 +648,174 @@ onMounted(() => {
   .form-content {
     max-width: 1000px;
     margin: 0 auto;
+
+    .el-form-item {
+      .el-form-item__label {
+        color: #8a94a6;
+        font-weight: 600;
+      }
+
+      .el-input {
+        .el-input__wrapper {
+          background: rgba(26, 26, 46, 0.8);
+          border: 1px solid rgba(0, 255, 255, 0.3);
+          color: #00ffff;
+
+          &:hover {
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+          }
+
+          &.is-focus {
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+          }
+        }
+      }
+
+      .el-input-number {
+        .el-input__wrapper {
+          background: rgba(26, 26, 46, 0.8);
+          border: 1px solid rgba(0, 255, 255, 0.3);
+          color: #00ffff;
+
+          &:hover {
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+          }
+
+          &.is-focus {
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+          }
+        }
+
+        .el-input-number__decrease,
+        .el-input-number__increase {
+          background: rgba(26, 26, 46, 0.8);
+          border: 1px solid rgba(0, 255, 255, 0.3);
+          color: #00ffff;
+
+          &:hover {
+            background: rgba(26, 26, 46, 1);
+            border-color: #00ffff;
+            color: #00ffff;
+          }
+
+          &.is-disabled {
+            color: #8a94a6;
+            border-color: rgba(0, 255, 255, 0.1);
+          }
+        }
+      }
+
+      .el-select {
+        .el-input__wrapper {
+          background: rgba(26, 26, 46, 0.8);
+          border: 1px solid rgba(0, 255, 255, 0.3);
+          color: #00ffff;
+
+          &:hover {
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+          }
+
+          &.is-focus {
+            border-color: #00ffff;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+          }
+        }
+
+        .el-select-dropdown {
+          background: rgba(26, 26, 46, 0.95);
+          border: 1px solid rgba(0, 255, 255, 0.3);
+          box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+
+          .el-select-dropdown__item {
+            color: #e6e6e6;
+
+            &:hover {
+              background: rgba(0, 255, 255, 0.1);
+              color: #00ffff;
+            }
+
+            &.is-selected {
+              background: rgba(0, 255, 255, 0.2);
+              color: #00ffff;
+            }
+          }
+        }
+      }
+
+      .el-switch {
+        .el-switch__core {
+          background: rgba(26, 26, 46, 0.8);
+          border: 1px solid rgba(0, 255, 255, 0.3);
+
+          &:hover {
+            border-color: rgba(0, 255, 255, 0.6);
+          }
+
+          &.is-active {
+            background: linear-gradient(45deg, #00ffff, #0080ff);
+            border-color: #00ffff;
+          }
+        }
+
+        .el-switch__action {
+          border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+      }
+
+      .el-slider {
+        .el-slider__runway {
+          background: rgba(26, 26, 46, 0.8);
+          border: 1px solid rgba(0, 255, 255, 0.3);
+        }
+
+        .el-slider__bar {
+          background: linear-gradient(90deg, #00ffff, #0080ff);
+          box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+
+        .el-slider__button {
+          border: 2px solid #00ffff;
+          box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+
+          &:hover {
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+          }
+        }
+
+        .el-slider__input {
+          .el-input__wrapper {
+            background: rgba(26, 26, 46, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+
+            &:hover {
+              border-color: rgba(0, 255, 255, 0.6);
+              box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+            }
+
+            &.is-focus {
+              border-color: #00ffff;
+              box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            }
+          }
+        }
+      }
+    }
   }
 
   .unit {
     margin-left: 8px;
-    color: #606266;
+    color: #8a94a6;
   }
 
   .form-tip {
     margin-left: 12px;
-    color: #909399;
+    color: #8a94a6;
     font-size: 13px;
   }
 
@@ -651,7 +825,7 @@ onMounted(() => {
       justify-content: space-between;
       margin-top: 4px;
       font-size: 12px;
-      color: #909399;
+      color: #8a94a6;
       padding: 0 10px;
     }
   }
@@ -662,7 +836,40 @@ onMounted(() => {
     gap: 16px;
     margin-top: 40px;
     padding-top: 20px;
-    border-top: 1px solid #dcdfe6;
+    border-top: 1px solid rgba(0, 255, 255, 0.2);
+
+    .el-button {
+      &.el-button--primary {
+        background: linear-gradient(45deg, #00ffff, #0080ff);
+        border: none;
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+
+        &:hover {
+          background: linear-gradient(45deg, #00ffff, #00a0ff);
+          box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+      }
+
+      &.el-button--default {
+        background: rgba(26, 26, 46, 0.8);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        color: #00ffff;
+
+        &:hover {
+          border-color: rgba(0, 255, 255, 0.6);
+          box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+        }
+      }
+    }
+  }
+
+  .el-divider {
+    background: rgba(0, 255, 255, 0.2);
+
+    .el-divider__text {
+      color: #00ffff;
+      background: rgba(26, 26, 46, 0.9);
+    }
   }
 
   .divider-title {
@@ -670,9 +877,11 @@ onMounted(() => {
     align-items: center;
     gap: 8px;
     font-weight: 500;
+    color: #00ffff;
 
     .el-icon {
       font-size: 16px;
+      color: #00ffff;
     }
   }
 
@@ -680,14 +889,15 @@ onMounted(() => {
     display: flex;
     align-items: center;
     gap: 8px;
+    color: #e6e6e6;
 
     .info-icon {
       margin-left: auto;
-      color: #909399;
+      color: #8a94a6;
       font-size: 14px;
 
       &:hover {
-        color: #409eff;
+        color: #00ffff;
       }
     }
   }
@@ -697,6 +907,33 @@ onMounted(() => {
     align-items: center;
     justify-content: space-between;
     width: 100%;
+    color: #e6e6e6;
+
+    .el-tag {
+      &.el-tag--danger {
+        background: rgba(245, 108, 108, 0.2);
+        border: 1px solid rgba(245, 108, 108, 0.5);
+        color: #f56c6c;
+      }
+
+      &.el-tag--warning {
+        background: rgba(230, 162, 60, 0.2);
+        border: 1px solid rgba(230, 162, 60, 0.5);
+        color: #e6a23c;
+      }
+
+      &.el-tag--success {
+        background: rgba(103, 194, 58, 0.2);
+        border: 1px solid rgba(103, 194, 58, 0.5);
+        color: #67c23a;
+      }
+
+      &.el-tag--info {
+        background: rgba(144, 147, 153, 0.2);
+        border: 1px solid rgba(144, 147, 153, 0.5);
+        color: #909399;
+      }
+    }
   }
 
   .isp-option {
@@ -704,14 +941,39 @@ onMounted(() => {
     align-items: center;
     justify-content: space-between;
     width: 100%;
+    color: #e6e6e6;
+
+    .el-tag {
+      &.el-tag--info {
+        background: rgba(144, 147, 153, 0.2);
+        border: 1px solid rgba(144, 147, 153, 0.5);
+        color: #909399;
+      }
+    }
   }
 
   .ip-pool-card {
-    background-color: #f5f7fa;
+    background: rgba(26, 26, 46, 0.6);
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    border-radius: 8px;
     margin-bottom: 20px;
 
     :deep(.el-card__body) {
       padding: 20px;
+    }
+
+    .el-alert {
+      background: rgba(26, 26, 46, 0.8);
+      border: 1px solid rgba(0, 255, 255, 0.2);
+      color: #8a94a6;
+
+      .el-alert__title {
+        color: #00ffff;
+      }
+
+      .el-alert__icon {
+        color: #00ffff;
+      }
     }
   }
 }

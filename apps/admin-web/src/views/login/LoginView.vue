@@ -225,22 +225,11 @@ onUnmounted(() => {
 <style scoped lang="scss">
 // Override Element Plus styles with high specificity
 .login-page {
-  --login-bg: #0a0a0f;
-  --login-brand-primary: #00f5ff;
-  --login-brand-secondary: #b829dd;
-  --login-brand-tertiary: #ff00ff;
-  --login-text-primary: #ffffff;
-  --login-text-secondary: rgba(224, 224, 255, 0.7);
-  --login-text-tertiary: rgba(224, 224, 255, 0.5);
-  --login-glass-bg: rgba(255, 255, 255, 0.03);
-  --login-glass-border: rgba(255, 255, 255, 0.08);
-  --login-gradient: linear-gradient(135deg, #00f5ff 0%, #b829dd 50%, #ff00ff 100%);
-
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--login-bg) !important;
+  background: linear-gradient(135deg, var(--cyber-bg-primary) 0%, var(--cyber-bg-secondary) 100%) !important;
   position: relative;
   overflow: hidden;
 }
@@ -258,8 +247,8 @@ onUnmounted(() => {
 .login-box {
   width: 420px;
   padding: 40px;
-  background: var(--login-glass-bg);
-  border: 1px solid var(--login-glass-border);
+  background: rgba(26, 26, 46, 0.8);
+  border: var(--cyber-border);
   border-radius: 24px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -267,7 +256,7 @@ onUnmounted(() => {
   z-index: 1;
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
-    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    0 0 20px rgba(14, 165, 233, 0.1);
 }
 
 .login-header {
@@ -282,13 +271,14 @@ onUnmounted(() => {
   text-align: center;
   margin: 0;
   font-size: 14px;
-  color: var(--login-text-secondary);
+  color: var(--cyber-text-secondary);
   letter-spacing: 0.1em;
+  text-shadow: 0 0 5px rgba(14, 165, 233, 0.3);
 }
 
 .login-form {
   :deep(.el-form-item__label) {
-    color: var(--login-text-secondary) !important;
+    color: var(--cyber-text-secondary) !important;
     font-weight: 500;
     padding-bottom: 8px;
   }
@@ -305,35 +295,35 @@ onUnmounted(() => {
 // Dark Input Styling - override Element Plus
 .dark-input {
   :deep(.el-input__wrapper) {
-    background: rgba(0, 0, 0, 0.3) !important;
-    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    background: rgba(10, 10, 10, 0.5) !important;
+    border: var(--cyber-border) !important;
     border-radius: 12px !important;
     box-shadow: none !important;
     padding: 4px 16px !important;
 
     &:hover, &:focus, &.is-focus {
-      border-color: var(--login-brand-primary) !important;
-      box-shadow: 0 0 0 1px var(--login-brand-primary) !important;
+      border: var(--cyber-border-glow) !important;
+      box-shadow: 0 0 10px rgba(14, 165, 233, 0.3) !important;
     }
   }
 
   :deep(.el-input__inner) {
-    color: var(--login-text-primary) !important;
+    color: var(--cyber-text-primary) !important;
     height: 44px !important;
     font-size: 15px !important;
     background: transparent !important;
 
     &::placeholder {
-      color: var(--login-text-tertiary) !important;
+      color: var(--cyber-text-secondary) !important;
     }
   }
 
   :deep(.el-input__icon) {
-    color: var(--login-text-tertiary) !important;
+    color: var(--cyber-text-secondary) !important;
   }
 
   :deep(.el-input__suffix-inner) {
-    color: var(--login-text-tertiary) !important;
+    color: var(--cyber-text-secondary) !important;
   }
 }
 
@@ -341,18 +331,18 @@ onUnmounted(() => {
 .dark-checkbox {
   :deep(.el-checkbox__input) {
     .el-checkbox__inner {
-      background: rgba(0, 0, 0, 0.3) !important;
-      border-color: rgba(255, 255, 255, 0.2) !important;
+      background: rgba(10, 10, 10, 0.5) !important;
+      border: var(--cyber-border) !important;
       border-radius: 6px !important;
       width: 18px !important;
       height: 18px !important;
 
       &:hover {
-        border-color: var(--login-brand-primary) !important;
+        border: var(--cyber-border-glow) !important;
       }
 
       &::after {
-        border-color: #0a0a0f !important;
+        border-color: var(--cyber-bg-primary) !important;
         width: 4px !important;
         height: 8px !important;
         left: 6px !important;
@@ -362,14 +352,15 @@ onUnmounted(() => {
 
     &.is-checked {
       .el-checkbox__inner {
-        background: var(--login-gradient) !important;
+        background: linear-gradient(135deg, var(--cyber-accent-blue), var(--cyber-accent-purple)) !important;
         border-color: transparent !important;
+        box-shadow: 0 0 10px rgba(14, 165, 233, 0.5) !important;
       }
     }
   }
 
   :deep(.el-checkbox__label) {
-    color: var(--login-text-secondary) !important;
+    color: var(--cyber-text-secondary) !important;
     font-size: 14px !important;
     padding-left: 10px !important;
   }
@@ -385,13 +376,13 @@ onUnmounted(() => {
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: var(--login-gradient);
-  color: #0a0a0f;
-  box-shadow: 0 4px 20px rgba(0, 245, 255, 0.3);
+  background: linear-gradient(135deg, var(--cyber-accent-blue), var(--cyber-accent-purple));
+  color: var(--cyber-bg-primary);
+  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.3);
 
   &:hover:not(:disabled) {
     transform: translateY(-2px);
-    box-shadow: 0 8px 30px rgba(0, 245, 255, 0.4);
+    box-shadow: 0 8px 30px rgba(14, 165, 233, 0.4);
   }
 
   &:active:not(:disabled) {

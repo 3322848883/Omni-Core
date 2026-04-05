@@ -34,10 +34,4 @@ export const testNodeLatency = (
   return request.get(`/nodes/${id}/latency`);
 };
 
-/**
- * Get subscription URL
- * @returns Subscription config
- */
-export const getSubscriptionUrl = (): Promise<{ url: string; qr_code: string }> => {
-  return request.get('/subscription/url');
-};
+

@@ -9,6 +9,9 @@ export interface DashboardStats {
   pendingOrders: number;
   totalRevenue: number;
   monthlyRevenue: number;
+  todayUpload: number;
+  todayDownload: number;
+  todayTotal: number;
 }
 
 export interface TrafficTrend {

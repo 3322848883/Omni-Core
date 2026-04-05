@@ -35,6 +35,7 @@ export interface PlanGroup {
   shortDesc: string;
   description: string;
   color: string;
+  gradient?: string;
   icon: string;
   features: string[];
   scenarios: string[];

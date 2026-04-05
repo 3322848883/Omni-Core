@@ -332,9 +332,22 @@ onMounted(() => {
 <style scoped lang="scss">
 .user-list {
   min-height: calc(100vh - 120px);
+  background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+  padding: 20px;
 
   .el-card {
     height: 100%;
+    background: rgba(26, 26, 46, 0.8);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+
+    .el-card__header {
+      border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+      color: #00ffff;
+      font-weight: bold;
+    }
   }
 
   .card-header {
@@ -343,15 +356,419 @@ onMounted(() => {
     align-items: center;
   }
 
+  .el-form {
+    margin-bottom: 20px;
+
+    .el-form-item__label {
+      color: #8a94a6;
+    }
+
+    .el-input {
+      .el-input__wrapper {
+        background: rgba(26, 26, 46, 0.8);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        color: #00ffff;
+
+        &:hover {
+          border-color: rgba(0, 255, 255, 0.6);
+          box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+        }
+
+        &.is-focus {
+          border-color: #00ffff;
+          box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+      }
+    }
+
+    .el-select {
+      .el-input__wrapper {
+        background: rgba(26, 26, 46, 0.8);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        color: #00ffff;
+
+        &:hover {
+          border-color: rgba(0, 255, 255, 0.6);
+          box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+        }
+
+        &.is-focus {
+          border-color: #00ffff;
+          box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+      }
+    }
+
+    .el-button {
+      &.el-button--primary {
+        background: linear-gradient(45deg, #00ffff, #0080ff);
+        border: none;
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+
+        &:hover {
+          background: linear-gradient(45deg, #00ffff, #00a0ff);
+          box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+        }
+      }
+
+      &.el-button--default {
+        background: rgba(26, 26, 46, 0.8);
+        border: 1px solid rgba(0, 255, 255, 0.3);
+        color: #00ffff;
+
+        &:hover {
+          border-color: rgba(0, 255, 255, 0.6);
+          box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+        }
+      }
+    }
+  }
+
+  .el-table {
+    background: rgba(26, 26, 46, 0.8);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 8px;
+
+    .el-table__header-wrapper {
+      .el-table__header {
+        background: rgba(26, 26, 46, 0.9);
+
+        th {
+          background: rgba(26, 26, 46, 0.9);
+          color: #00ffff;
+          border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+        }
+      }
+    }
+
+    .el-table__body-wrapper {
+      .el-table__row {
+        background: rgba(26, 26, 46, 0.6);
+        color: #e6e6e6;
+
+        &:hover {
+          background: rgba(26, 26, 46, 0.8);
+        }
+
+        &.el-table__row--striped {
+          background: rgba(26, 26, 46, 0.4);
+
+          &:hover {
+            background: rgba(26, 26, 46, 0.8);
+          }
+        }
+
+        td {
+          border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        }
+      }
+    }
+
+    .el-tag {
+      &.el-tag--success {
+        background: rgba(103, 194, 58, 0.2);
+        border: 1px solid rgba(103, 194, 58, 0.5);
+        color: #67c23a;
+      }
+
+      &.el-tag--danger {
+        background: rgba(245, 108, 108, 0.2);
+        border: 1px solid rgba(245, 108, 108, 0.5);
+        color: #f56c6c;
+      }
+
+      &.el-tag--info {
+        background: rgba(144, 147, 153, 0.2);
+        border: 1px solid rgba(144, 147, 153, 0.5);
+        color: #909399;
+      }
+    }
+
+    .el-button {
+      &.el-button--primary {
+        color: #00ffff;
+
+        &:hover {
+          color: #00ffff;
+          text-decoration: underline;
+        }
+      }
+
+      &.el-button--danger {
+        color: #f56c6c;
+
+        &:hover {
+          color: #f56c6c;
+          text-decoration: underline;
+        }
+      }
+
+      &.el-button--success {
+        color: #67c23a;
+
+        &:hover {
+          color: #67c23a;
+          text-decoration: underline;
+        }
+      }
+    }
+  }
+
   .pagination {
     margin-top: 20px;
     display: flex;
     justify-content: flex-end;
+
+    .el-pagination {
+      .el-pager {
+        li {
+          background: rgba(26, 26, 46, 0.8);
+          border: 1px solid rgba(0, 255, 255, 0.3);
+          color: #00ffff;
+
+          &:hover {
+            border-color: #00ffff;
+            color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+          }
+
+          &.is-active {
+            background: #00ffff;
+            border-color: #00ffff;
+            color: #0f0f1a;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+          }
+        }
+      }
+
+      .el-pagination__sizes {
+        .el-input .el-input__wrapper {
+          background: rgba(26, 26, 46, 0.8);
+          border: 1px solid rgba(0, 255, 255, 0.3);
+          color: #00ffff;
+        }
+
+        .el-select .el-input__wrapper {
+          background: rgba(26, 26, 46, 0.8);
+          border: 1px solid rgba(0, 255, 255, 0.3);
+          color: #00ffff;
+        }
+      }
+
+      .el-pagination__total {
+        color: #8a94a6;
+      }
+    }
   }
 
   .unit {
     margin-left: 10px;
-    color: #606266;
+    color: #8a94a6;
+  }
+
+  .el-dialog {
+    background: rgba(26, 26, 46, 0.95);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+    backdrop-filter: blur(15px);
+
+    .el-dialog__header {
+      border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+
+      .el-dialog__title {
+        color: #00ffff;
+      }
+
+      .el-dialog__headerbtn {
+        .el-dialog__close {
+          color: #8a94a6;
+
+          &:hover {
+            color: #00ffff;
+          }
+        }
+      }
+    }
+
+    .el-dialog__body {
+      color: #e6e6e6;
+
+      .el-form {
+        .el-form-item__label {
+          color: #8a94a6;
+        }
+
+        .el-input {
+          .el-input__wrapper {
+            background: rgba(26, 26, 46, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+
+            &:hover {
+              border-color: rgba(0, 255, 255, 0.6);
+              box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+            }
+
+            &.is-focus {
+              border-color: #00ffff;
+              box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            }
+          }
+        }
+
+        .el-input-number {
+          .el-input__wrapper {
+            background: rgba(26, 26, 46, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+
+            &:hover {
+              border-color: rgba(0, 255, 255, 0.6);
+              box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+            }
+
+            &.is-focus {
+              border-color: #00ffff;
+              box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            }
+          }
+
+          .el-input-number__decrease,
+          .el-input-number__increase {
+            background: rgba(26, 26, 46, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+
+            &:hover {
+              background: rgba(26, 26, 46, 1);
+              border-color: #00ffff;
+              color: #00ffff;
+            }
+
+            &.is-disabled {
+              color: #8a94a6;
+              border-color: rgba(0, 255, 255, 0.1);
+            }
+          }
+        }
+
+        .el-date-picker {
+          .el-input__wrapper {
+            background: rgba(26, 26, 46, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            color: #00ffff;
+
+            &:hover {
+              border-color: rgba(0, 255, 255, 0.6);
+              box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+            }
+
+            &.is-focus {
+              border-color: #00ffff;
+              box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+            }
+          }
+        }
+
+        .el-radio-group {
+          .el-radio {
+            .el-radio__label {
+              color: #e6e6e6;
+            }
+
+            .el-radio__inner {
+              border: 1px solid rgba(0, 255, 255, 0.3);
+
+              &:hover {
+                border-color: #00ffff;
+              }
+
+              &.is-checked {
+                border-color: #00ffff;
+                background: #00ffff;
+
+                &::after {
+                  background: #0f0f1a;
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .el-dialog__footer {
+      border-top: 1px solid rgba(0, 255, 255, 0.2);
+
+      .el-button {
+        &.el-button--primary {
+          background: linear-gradient(45deg, #00ffff, #0080ff);
+          border: none;
+          box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+
+          &:hover {
+            background: linear-gradient(45deg, #00ffff, #00a0ff);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+          }
+        }
+
+        &.el-button--default {
+          background: rgba(26, 26, 46, 0.8);
+          border: 1px solid rgba(0, 255, 255, 0.3);
+          color: #00ffff;
+
+          &:hover {
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+          }
+        }
+      }
+    }
+  }
+
+  .el-message-box {
+    background: rgba(26, 26, 46, 0.95);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-radius: 8px;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
+    backdrop-filter: blur(15px);
+
+    .el-message-box__title {
+      color: #00ffff;
+    }
+
+    .el-message-box__content {
+      color: #e6e6e6;
+    }
+
+    .el-message-box__footer {
+      border-top: 1px solid rgba(0, 255, 255, 0.2);
+
+      .el-button {
+        &.el-button--primary {
+          background: linear-gradient(45deg, #00ffff, #0080ff);
+          border: none;
+          box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+
+          &:hover {
+            background: linear-gradient(45deg, #00ffff, #00a0ff);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+          }
+        }
+
+        &.el-button--default {
+          background: rgba(26, 26, 46, 0.8);
+          border: 1px solid rgba(0, 255, 255, 0.3);
+          color: #00ffff;
+
+          &:hover {
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+          }
+        }
+      }
+    }
   }
 }
 </style>

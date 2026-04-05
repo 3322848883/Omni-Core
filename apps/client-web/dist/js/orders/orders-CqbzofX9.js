@@ -1,0 +1,2 @@
+import{a as r}from"../index-O4uyoBjm.js";function n(n){return r.get("/orders",{params:n})}function t(n){return r.get(`/orders/${n}`)}function e(n){return r.post("/orders",n)}function o(n,t){return r.post(`/orders/${n}/pay`,{method:t})}function s(n,t){return r.post(`/orders/${n}/cancel`,{reason:t})}function a(n){return r.get(`/orders/${n}/payment`)}export{n as a,s as b,e as c,t as d,a as g,o as p};
+//# sourceMappingURL=orders-CqbzofX9.js.map

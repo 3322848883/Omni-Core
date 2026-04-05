@@ -6,6 +6,20 @@ const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.en
 dotenv.config({ path: path.resolve(__dirname, envFile) });
 
 const config: { [key: string]: Knex.Config } = {
+  development: {
+    client: process.env.DB_CLIENT || 'sqlite3',
+    connection: {
+      filename: process.env.DB_FILENAME || './data/fgvpn.db'
+    },
+    useNullAsDefault: true,
+    migrations: {
+      directory: './src/database/migrations',
+      tableName: 'knex_migrations',
+    },
+    seeds: {
+      directory: './src/database/seeds',
+    },
+  },
   production: {
     client: 'mysql2',
     connection: {

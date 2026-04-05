@@ -54,13 +54,16 @@
     "@types/node-cron": "^3.0.11",
     "@types/nodemailer": "^6.4.14",
     "@types/speakeasy": "^2.0.10",
+    "@types/supertest": "^7.2.0",
     "@types/uuid": "^9.0.8",
     "@typescript-eslint/eslint-plugin": "^6.20.0",
     "@typescript-eslint/parser": "^6.20.0",
+    "supertest": "^7.2.2",
     "ts-jest": "^29.1.2",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.7.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^4.1.2"
   },
   "engines": {
     "node": ">=18.0.0"

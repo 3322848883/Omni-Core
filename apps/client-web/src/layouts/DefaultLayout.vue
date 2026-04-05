@@ -1,578 +1,822 @@
 <template>
-  <el-container class="layout">
-    <!-- 侧边栏 - 玻璃拟态效果 -->
-    <el-aside
-      class="layout-sidebar"
-      :class="{ 'is-collapsed': isCollapse }"
-      :width="isCollapse ? '64px' : '260px'"
-    >
-      <!-- Logo -->
-      <div class="sidebar-logo">
-        <div class="sidebar-logo__icon">
-          <OmniCoreLogo :size="isCollapse ? 36 : 40" />
+  <div class="quantum-layout">
+    <!-- 左侧导航面板 -->
+    <nav class="nav-panel">
+      <div class="logo-section">
+        <div class="logo-container">
+          <div class="logo-glow"></div>
+          <div class="logo-core">
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="20" cy="20" r="18" stroke="url(#gradient1)" stroke-width="2"/>
+              <path d="M12 20L18 26L28 14" stroke="url(#gradient1)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs>
+                <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#00FFFF"/>
+                  <stop offset="50%" stop-color="#8B5CF6"/>
+                  <stop offset="100%" stop-color="#F472B6"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
         </div>
-        <span v-show="!isCollapse" class="sidebar-logo__text">Omni Core</span>
+        <h1 class="brand-name">
+          <span class="brand-omni">OMNI</span>
+          <span class="brand-core">CORE</span>
+        </h1>
       </div>
 
-      <!-- 导航菜单 -->
-      <el-menu
-        :default-active="activeMenu"
-        :collapse="isCollapse"
-        :collapse-transition="false"
-        router
-        class="sidebar-menu"
-      >
-        <el-menu-item index="/app">
-          <el-icon><HomeFilled /></el-icon>
-          <template #title>仪表盘</template>
-        </el-menu-item>
-
-        <el-menu-item index="/app/nodes">
-          <el-icon><MapLocation /></el-icon>
-          <template #title>节点列表</template>
-        </el-menu-item>
-
-        <el-menu-item index="/app/subscription">
-          <el-icon><Goods /></el-icon>
-          <template #title>订阅套餐</template>
-        </el-menu-item>
-
-        <el-menu-item index="/app/traffic">
-          <el-icon><TrendCharts /></el-icon>
-          <template #title>流量统计</template>
-        </el-menu-item>
-
-        <el-menu-item index="/app/orders">
-          <el-icon><List /></el-icon>
-          <template #title>我的订单</template>
-        </el-menu-item>
-
-        <el-menu-item index="/app/invite">
-          <el-icon><Share /></el-icon>
-          <template #title>邀请好友</template>
-        </el-menu-item>
-
-        <el-menu-item index="/app/profile">
-          <el-icon><User /></el-icon>
-          <template #title>个人中心</template>
-        </el-menu-item>
-      </el-menu>
-
-      <!-- 底部信息 -->
-      <div v-show="!isCollapse" class="sidebar-footer">
-        <div class="sidebar-footer__version">v1.0.0</div>
+      <div class="nav-items">
+        <div
+          v-for="item in navItems"
+          :key="item.id"
+          class="nav-item"
+          :class="{ active: currentRoute === item.route }"
+          @click="navigateTo(item.route)"
+        >
+          <div class="nav-icon">
+            <component :is="item.icon" />
+            <div class="nav-glow" v-if="currentRoute === item.route"></div>
+          </div>
+          <span class="nav-label">{{ item.label }}</span>
+        </div>
       </div>
-    </el-aside>
+
+      <div class="status-bar">
+        <div class="status-item">
+          <div class="status-dot" :class="connectionStatus.class"></div>
+          <span>{{ connectionStatus.text }}</span>
+        </div>
+        <div class="status-item">
+          <span class="status-label">运行时间</span>
+          <span class="status-value">{{ uptime }}</span>
+        </div>
+      </div>
+    </nav>
 
     <!-- 主内容区 -->
-    <el-container class="layout-main">
-      <!-- 顶部导航栏 - 玻璃拟态效果 -->
-      <el-header class="layout-header">
-        <div class="header-left">
-          <el-button
-            class="header-collapse-btn"
-            type="text"
-            @click="toggleCollapse"
-          >
-            <el-icon size="20">
-              <Fold v-if="!isCollapse" />
-              <Expand v-else />
-            </el-icon>
-          </el-button>
-
-          <!-- 面包屑 -->
-          <el-breadcrumb class="header-breadcrumb">
-            <el-breadcrumb-item :to="{ path: '/app' }">首页</el-breadcrumb-item>
-            <el-breadcrumb-item v-if="currentRoute.meta?.title">
-              {{ currentRoute.meta.title }}
-            </el-breadcrumb-item>
-          </el-breadcrumb>
+    <main class="main-area">
+      <!-- 顶部状态栏 -->
+      <header class="top-bar">
+        <div class="top-left">
+          <div class="greeting">
+            <span class="greeting-emoji">👋</span>
+            <span class="greeting-text">欢迎回来，</span>
+            <span class="username">{{ userStore.userInfo?.username || '旅行者' }}</span>
+          </div>
         </div>
 
-        <div class="header-right">
-          <!-- 通知 -->
-          <el-badge :value="3" class="header-notify">
-            <el-button type="text" class="header-btn">
-              <el-icon size="20"><Bell /></el-icon>
-            </el-button>
-          </el-badge>
+        <div class="top-right">
+          <div class="search-container">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input type="text" placeholder="搜索节点、套餐..." class="search-input" />
+          </div>
 
-          <!-- 用户下拉 -->
-          <el-dropdown class="header-user" @command="handleCommand">
-            <div class="header-user__trigger">
-              <el-avatar
-                :size="36"
-                :src="userStore.userInfo?.avatar"
-                class="header-user__avatar"
-              >
-                <el-icon><User /></el-icon>
-              </el-avatar>
-              <span v-if="!isMobile" class="header-user__name">
-                {{ userStore.userInfo?.username || '用户' }}
-              </span>
-              <el-icon class="header-user__arrow"><ArrowDown /></el-icon>
+          <button class="icon-button" @click="toggleNotifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span class="notification-badge">3</span>
+          </button>
+
+          <button class="icon-button" @click="toggleSettings">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+          </button>
+
+          <div class="user-avatar" @click="toggleUserMenu">
+            <img
+              v-if="userStore.userInfo?.avatar"
+              :src="userStore.userInfo.avatar"
+              :alt="userStore.userInfo.username"
+            />
+            <div v-else class="avatar-placeholder">
+              {{ (userStore.userInfo?.username || 'U').charAt(0).toUpperCase() }}
             </div>
-            <template #dropdown>
-              <el-dropdown-menu class="glass-dropdown">
-                <el-dropdown-item command="profile">
-                  <el-icon><User /></el-icon>个人中心
-                </el-dropdown-item>
-                <el-dropdown-item command="settings">
-                  <el-icon><Setting /></el-icon>账号设置
-                </el-dropdown-item>
-                <el-dropdown-item divided command="logout">
-                  <el-icon><SwitchButton /></el-icon>退出登录
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+            <div class="avatar-ring"></div>
+          </div>
         </div>
-      </el-header>
+      </header>
 
-      <!-- 页面内容 -->
-      <el-main class="layout-content">
+      <!-- 内容区域 -->
+      <div class="content-area">
         <router-view v-slot="{ Component }">
-          <transition name="fade-transform" mode="out-in">
+          <transition name="page-transition" mode="out-in">
             <component :is="Component" />
           </transition>
         </router-view>
-      </el-main>
-    </el-container>
-  </el-container>
+      </div>
+    </main>
+
+    <!-- 快速访问浮动按钮 -->
+    <div class="floating-actions">
+      <button class="quick-action primary" @click="quickConnect">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+        <span>快速连接</span>
+      </button>
+      <button class="quick-action secondary" @click="speedTest">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+      </button>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { ElMessage, ElMessageBox } from 'element-plus';
-import {
-  HomeFilled,
-  MapLocation,
-  Goods,
-  TrendCharts,
-  List,
-  Share,
-  User,
-  Fold,
-  Expand,
-  Bell,
-  ArrowDown,
-  Setting,
-  SwitchButton
-} from '@element-plus/icons-vue';
+import { ElMessage } from 'element-plus';
 import { useUserStore } from '@/stores/user';
-import OmniCoreLogo from '@/components/common/OmniCoreLogo.vue';
 
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
 
-const isCollapse = ref(false);
-const isMobile = ref(false);
+const currentRoute = computed(() => route.path);
+const uptime = ref('12h 34m');
 
-const activeMenu = computed(() => route.path);
-const currentRoute = computed(() => route);
-
-const toggleCollapse = () => {
-  isCollapse.value = !isCollapse.value;
+const DashboardIcon = {
+  template: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="3" y="3" width="7" height="9" rx="1"/>
+      <rect x="14" y="3" width="7" height="5" rx="1"/>
+      <rect x="14" y="12" width="7" height="9" rx="1"/>
+      <rect x="3" y="16" width="7" height="5" rx="1"/>
+    </svg>
+  `
 };
 
-const handleCommand = async (command: string) => {
-  switch (command) {
-    case 'profile':
-      router.push('/app/profile');
-      break;
-    case 'settings':
-      router.push('/app/profile/settings');
-      break;
-    case 'logout':
-      try {
-        await ElMessageBox.confirm('确定要退出登录吗?', '提示', {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          type: 'warning'
-        });
-        userStore.logout();
-        ElMessage.success('已退出登录');
-        router.push('/');
-      } catch {
-        // 用户取消
-      }
-      break;
-  }
+const NodesIcon = {
+  template: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="5" cy="12" r="3"/>
+      <circle cx="19" cy="12" r="3"/>
+      <line x1="8" y1="12" x2="16" y2="12"/>
+      <circle cx="12" cy="5" r="3"/>
+      <line x1="12" y1="8" x2="12" y2="9"/>
+      <circle cx="12" cy="19" r="3"/>
+      <line x1="12" y1="15" x2="12" y2="16"/>
+    </svg>
+  `
 };
 
-// 响应式处理
-const handleResize = () => {
-  const width = window.innerWidth;
-  isMobile.value = width < 768;
-  if (width < 768) {
-    isCollapse.value = true;
-  } else if (width >= 1024) {
-    isCollapse.value = false;
-  }
+const SubscriptionIcon = {
+  template: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <rect x="2" y="4" width="20" height="16" rx="2"/>
+      <path d="M2 10h20"/>
+    </svg>
+  `
+};
+
+const TrafficIcon = {
+  template: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M3 3v18h18"/>
+      <path d="M18 17V9"/>
+      <path d="M13 17V5"/>
+      <path d="M8 17v-3"/>
+    </svg>
+  `
+};
+
+const OrdersIcon = {
+  template: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+      <line x1="3" y1="6" x2="21" y2="6"/>
+      <path d="M16 10a4 4 0 0 1-8 0"/>
+    </svg>
+  `
+};
+
+const InviteIcon = {
+  template: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
+  `
+};
+
+const ProfileIcon = {
+  template: `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+  `
+};
+
+const navItems = [
+  { id: 'dashboard', route: '/app', label: '控制中心', icon: DashboardIcon },
+  { id: 'nodes', route: '/app/nodes', label: '节点网络', icon: NodesIcon },
+  { id: 'subscription', route: '/app/subscription', label: '订阅管理', icon: SubscriptionIcon },
+  { id: 'traffic', route: '/app/traffic', label: '流量分析', icon: TrafficIcon },
+  { id: 'orders', route: '/app/orders', label: '交易记录', icon: OrdersIcon },
+  { id: 'invite', route: '/app/invite', label: '邀请计划', icon: InviteIcon },
+  { id: 'profile', route: '/app/profile', label: '个人档案', icon: ProfileIcon }
+];
+
+const connectionStatus = computed(() => ({
+  text: '已连接',
+  class: 'connected'
+}));
+
+const navigateTo = (path: string) => {
+  router.push(path);
+};
+
+const toggleNotifications = () => {
+  ElMessage.info('通知面板即将推出');
+};
+
+const toggleSettings = () => {
+  ElMessage.info('设置面板即将推出');
+};
+
+const toggleUserMenu = () => {
+  ElMessage.info('用户菜单即将推出');
+};
+
+const quickConnect = () => {
+  ElMessage.success('正在连接最优节点...');
+};
+
+const speedTest = () => {
+  ElMessage.info('开始测速...');
+};
+
+let uptimeTimer: number;
+const updateUptime = () => {
+  const hours = Math.floor(Date.now() / 3600000) % 24;
+  const minutes = Math.floor(Date.now() / 60000) % 60;
+  uptime.value = `${hours}h ${minutes}m`;
 };
 
 onMounted(() => {
-  handleResize();
-  window.addEventListener('resize', handleResize);
+  uptimeTimer = window.setInterval(updateUptime, 60000);
+  updateUptime();
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', handleResize);
+  clearInterval(uptimeTimer);
 });
 </script>
 
 <style scoped lang="scss">
-.layout {
+.quantum-layout {
+  display: flex;
   min-height: 100vh;
-  background: var(--bg-dark);
+  position: relative;
+  z-index: 10;
 }
 
-// 侧边栏 - 玻璃拟态效果
-.layout-sidebar {
-  background: rgba(10, 10, 15, 0.85);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  transition: width 0.3s ease;
+// 导航面板
+.nav-panel {
+  width: 280px;
+  background: linear-gradient(180deg, rgba(10, 10, 20, 0.95) 0%, rgba(5, 5, 15, 0.98) 100%);
+  border-right: 1px solid rgba(0, 255, 255, 0.1);
   display: flex;
   flex-direction: column;
+  padding: 24px 20px;
+  backdrop-filter: blur(20px);
   position: fixed;
-  left: 0;
   top: 0;
+  left: 0;
   bottom: 0;
   z-index: 100;
 
-  &.is-collapsed {
-    .sidebar-logo {
-      padding: var(--space-4) var(--space-3);
-      justify-content: center;
-
-      &__icon {
-        margin-right: 0;
-      }
-    }
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(180deg, transparent, rgba(0, 255, 255, 0.5), transparent);
+    animation: border-pulse 3s ease-in-out infinite;
   }
 }
 
-// Logo
-.sidebar-logo {
+@keyframes border-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.logo-section {
+  margin-bottom: 40px;
+}
+
+.logo-container {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+}
+
+.logo-glow {
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  background: linear-gradient(135deg, #00FFFF, #8B5CF6, #F472B6);
+  border-radius: 20px;
+  filter: blur(20px);
+  opacity: 0.4;
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+.logo-core {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(0, 255, 255, 0.3);
+  border-radius: 16px;
   display: flex;
   align-items: center;
-  padding: var(--space-5) var(--space-6);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  height: 64px;
+  justify-content: center;
 
-  &__icon {
+  svg {
     width: 40px;
     height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--gradient-primary);
-    border-radius: var(--radius-lg);
-    color: white;
-    margin-right: var(--space-3);
-    box-shadow: var(--glow-primary);
-    flex-shrink: 0;
-  }
-
-  &__text {
-    font-size: var(--text-xl);
-    font-weight: var(--font-bold);
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: var(--tracking-wide);
-    white-space: nowrap;
   }
 }
 
-// 导航菜单
-.sidebar-menu {
+.brand-name {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 4px;
+  margin: 0;
+}
+
+.brand-omni {
+  color: #E5E7EB;
+}
+
+.brand-core {
+  background: linear-gradient(135deg, #00FFFF 0%, #8B5CF6 50%, #F472B6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+// 导航项目
+.nav-items {
   flex: 1;
-  border-right: none;
-  padding: var(--space-4) 0;
-  background: transparent;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
 
-  :deep(.el-menu-item) {
-    height: 48px;
-    line-height: 48px;
-    margin: var(--space-1) var(--space-3);
-    padding: 0 var(--space-4) !important;
-    border-radius: var(--radius-lg);
-    color: var(--text-tertiary);
-    transition: all 0.3s ease;
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 
-    &:hover {
-      background: rgba(99, 102, 241, 0.1);
-      color: var(--text-secondary);
+  &:hover {
+    background: rgba(0, 255, 255, 0.08);
+
+    .nav-icon {
+      color: #00FFFF;
+    }
+  }
+
+  &.active {
+    background: linear-gradient(135deg, rgba(0, 255, 255, 0.15) 0%, rgba(139, 92, 246, 0.1) 100%);
+
+    .nav-icon {
+      color: #00FFFF;
     }
 
-    &.is-active {
-      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%);
-      color: var(--text-brand);
-      font-weight: var(--font-medium);
-      border: 1px solid rgba(99, 102, 241, 0.3);
-      box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+    .nav-label {
+      color: #FFFFFF;
+      font-weight: 600;
+    }
+  }
+}
 
-      &::before {
+.nav-icon {
+  width: 24px;
+  height: 24px;
+  color: #9CA3AF;
+  position: relative;
+  transition: color 0.3s ease;
+
+  .nav-glow {
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    background: #00FFFF;
+    border-radius: 50%;
+    filter: blur(8px);
+    opacity: 0.5;
+  }
+
+  svg {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.nav-label {
+  font-size: 14px;
+  color: #9CA3AF;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+// 状态栏
+.status-bar {
+  margin-top: auto;
+  padding-top: 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.status-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+
+  &:last-child {
+    margin-bottom: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    position: relative;
+
+    &.connected {
+      background: #10B981;
+
+      &::after {
         content: '';
         position: absolute;
-        left: 0;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 3px;
-        height: 20px;
-        background: var(--gradient-primary);
-        border-radius: 0 2px 2px 0;
-        box-shadow: var(--glow-primary);
+        top: -2px;
+        left: -2px;
+        right: -2px;
+        bottom: -2px;
+        background: #10B981;
+        border-radius: 50%;
+        filter: blur(4px);
+        animation: status-pulse 2s ease-in-out infinite;
       }
-
-      .el-icon {
-        color: var(--brand-primary);
-      }
-    }
-
-    .el-icon {
-      font-size: 18px;
-      color: var(--text-tertiary);
-      margin-right: var(--space-3);
     }
   }
 
-  :deep(.el-tooltip__trigger) {
-    justify-content: center;
-    padding: 0 !important;
+  span:not(.status-label):not(.status-value) {
+    font-size: 13px;
+    color: #D1D5DB;
+    font-weight: 500;
+  }
+
+  .status-label {
+    font-size: 11px;
+    color: #6B7280;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .status-value {
+    font-size: 14px;
+    color: #00FFFF;
+    font-weight: 600;
+    font-family: 'SF Mono', monospace;
   }
 }
 
-// 底部信息
-.sidebar-footer {
-  padding: var(--space-4) var(--space-6);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-
-  &__version {
-    font-size: var(--text-xs);
-    color: var(--text-muted);
-    text-align: center;
-  }
+@keyframes status-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0; }
 }
 
 // 主内容区
-.layout-main {
-  margin-left: 260px;
-  transition: margin-left 0.3s ease;
+.main-area {
+  flex: 1;
+  margin-left: 280px;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
-  background: var(--bg-dark);
-
-  .layout-sidebar.is-collapsed + & {
-    margin-left: 64px;
-  }
 }
 
-// 顶部导航栏 - 玻璃拟态效果
-.layout-header {
-  height: 64px;
+// 顶部栏
+.top-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--space-6);
-  background: rgba(18, 18, 26, 0.7);
+  padding: 20px 32px;
+  background: linear-gradient(180deg, rgba(5, 5, 15, 0.8) 0%, rgba(5, 5, 15, 0.4) 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   position: sticky;
   top: 0;
-  z-index: 99;
+  z-index: 50;
 }
 
-.header-left {
+.top-left {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
 }
 
-.header-collapse-btn {
-  width: 36px;
-  height: 36px;
+.greeting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.greeting-emoji {
+  font-size: 24px;
+}
+
+.greeting-text {
+  color: #9CA3AF;
+  font-size: 16px;
+}
+
+.username {
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 600;
+  background: linear-gradient(135deg, #00FFFF 0%, #8B5CF6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.search-container {
+  position: relative;
+  width: 280px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: #6B7280;
+}
+
+.search-input {
+  width: 100%;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 0 16px 0 42px;
+  color: #E5E7EB;
+  font-size: 14px;
+  transition: all 0.3s ease;
+
+  &:focus {
+    outline: none;
+    border-color: rgba(0, 255, 255, 0.4);
+    background: rgba(0, 255, 255, 0.05);
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
+  }
+
+  &::placeholder {
+    color: #6B7280;
+  }
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: #9CA3AF;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
+  position: relative;
   transition: all 0.3s ease;
 
   &:hover {
-    background: rgba(99, 102, 241, 0.15);
-    color: var(--text-brand);
+    background: rgba(0, 255, 255, 0.1);
+    border-color: rgba(0, 255, 255, 0.3);
+    color: #00FFFF;
+  }
+
+  svg {
+    width: 20px;
+    height: 20px;
   }
 }
 
-.header-breadcrumb {
-  :deep(.el-breadcrumb__item) {
-    .el-breadcrumb__inner {
-      color: var(--text-tertiary);
-      font-weight: var(--font-medium);
-
-      &.is-link {
-        &:hover {
-          color: var(--text-brand);
-        }
-      }
-    }
-
-    &:last-child .el-breadcrumb__inner {
-      color: var(--text-primary);
-      font-weight: var(--font-semibold);
-    }
-  }
-
-  :deep(.el-breadcrumb__separator) {
-    color: var(--text-muted);
-  }
+.notification-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background: #EF4444;
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
 }
 
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-}
+.user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
 
-.header-btn {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  transition: all 0.3s ease;
-
-  &:hover {
-    background: rgba(99, 102, 241, 0.15);
-    color: var(--text-brand);
+  img,
+  .avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
-}
 
-.header-notify {
-  :deep(.el-badge__content) {
-    background: var(--color-danger);
-    border: none;
-    box-shadow: var(--glow-danger);
-  }
-}
-
-.header-user {
-  &__trigger {
+  .avatar-placeholder {
+    background: linear-gradient(135deg, #00FFFF 0%, #8B5CF6 100%);
     display: flex;
     align-items: center;
-    gap: var(--space-2);
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-lg);
-    cursor: pointer;
-    transition: all 0.3s ease;
-
-    &:hover {
-      background: rgba(99, 102, 241, 0.15);
-    }
-  }
-
-  &__avatar {
-    background: var(--gradient-primary);
+    justify-content: center;
     color: white;
-    box-shadow: var(--glow-primary);
+    font-weight: 700;
+    font-size: 18px;
   }
 
-  &__name {
-    font-size: var(--text-sm);
-    font-weight: var(--font-medium);
-    color: var(--text-secondary);
-    max-width: 100px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .avatar-ring {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #00FFFF, #8B5CF6, #F472B6) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
   }
 
-  &__arrow {
-    font-size: 12px;
-    color: var(--text-tertiary);
+  &:hover .avatar-ring {
+    opacity: 1;
   }
 }
 
-// 玻璃拟态下拉菜单
-.glass-dropdown {
-  background: rgba(26, 26, 37, 0.95) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  border-radius: var(--radius-lg) !important;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(99, 102, 241, 0.1) !important;
+// 内容区域
+.content-area {
+  flex: 1;
+  padding: 32px;
+  overflow-y: auto;
+}
 
-  :deep(.el-dropdown-menu__item) {
-    color: var(--text-secondary);
-    transition: all 0.3s ease;
+// 页面过渡
+.page-transition-enter-active,
+.page-transition-leave-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.page-transition-enter-from {
+  opacity: 0;
+  transform: translateY(20px) scale(0.98);
+}
+
+.page-transition-leave-to {
+  opacity: 0;
+  transform: translateY(-20px) scale(0.98);
+}
+
+// 浮动操作
+.floating-actions {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 100;
+}
+
+.quick-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 24px;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  &.primary {
+    background: linear-gradient(135deg, #00FFFF 0%, #8B5CF6 100%);
+    color: #000;
+    box-shadow: 0 8px 30px rgba(0, 255, 255, 0.3);
 
     &:hover {
-      background: rgba(99, 102, 241, 0.15) !important;
-      color: var(--text-brand) !important;
-    }
-
-    .el-icon {
-      margin-right: var(--space-2);
-      color: var(--text-tertiary);
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0, 255, 255, 0.4);
     }
   }
-}
 
-// 页面内容
-.layout-content {
-  padding: var(--space-6);
-  min-height: calc(100vh - 64px);
-}
+  &.secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: #00FFFF;
+    border: 1px solid rgba(0, 255, 255, 0.2);
+    padding: 16px;
 
-// 页面过渡动画
-.fade-transform-enter-active,
-.fade-transform-leave-active {
-  transition: all 0.3s ease;
-}
-
-.fade-transform-enter-from {
-  opacity: 0;
-  transform: translateX(-20px);
-}
-
-.fade-transform-leave-to {
-  opacity: 0;
-  transform: translateX(20px);
+    &:hover {
+      background: rgba(0, 255, 255, 0.15);
+      transform: translateY(-2px);
+    }
+  }
 }
 
 // 响应式
-@media (max-width: 768px) {
-  .layout-sidebar {
+@media (max-width: 1024px) {
+  .nav-panel {
     transform: translateX(-100%);
     transition: transform 0.3s ease;
-
-    &.is-open {
-      transform: translateX(0);
-    }
   }
 
-  .layout-main {
-    margin-left: 0 !important;
+  .main-area {
+    margin-left: 0;
   }
 
-  .layout-header {
-    padding: 0 var(--space-4);
+  .top-bar {
+    padding: 16px 20px;
   }
 
-  .layout-content {
-    padding: var(--space-4);
+  .search-container {
+    width: 200px;
   }
 
-  .header-breadcrumb {
+  .content-area {
+    padding: 20px;
+  }
+
+  .floating-actions {
+    bottom: 20px;
+    right: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .greeting-text {
+    display: none;
+  }
+
+  .search-container {
+    display: none;
+  }
+
+  .quick-action span {
     display: none;
   }
 }

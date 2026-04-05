@@ -230,7 +230,7 @@ router.get('/users/:userId', authMiddleware, async (req: Request, res: Response,
       .first();
 
     if (!user) {
-      throw new NotFoundError('User', userId);
+      throw new NotFoundError(`User ${userId} not found`);
     }
 
     const startDate = new Date();
@@ -373,7 +373,7 @@ router.get('/nodes/:nodeId', authMiddleware, async (req: Request, res: Response,
       .first();
 
     if (!node) {
-      throw new NotFoundError('Node', nodeId);
+      throw new NotFoundError(`Node ${nodeId} not found`);
     }
 
     const startDate = new Date();

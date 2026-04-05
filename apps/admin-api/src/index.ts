@@ -10,6 +10,7 @@ import { logger } from './utils/logger';
 import { errorHandler } from './middlewares/errorHandler';
 import { createRequestId } from './utils/response';
 import { requestLogger } from './middlewares/requestLogger';
+import { requestTimer, smartCompression, cacheControl, queryOptimizer, connectionPoolMonitor, responseOptimizer } from './middlewares/performance';
 import { initializeXrayService, shutdownXrayService } from './services/xray';
 import { initializePaymentProviders } from './services/payment';
 import { ErrorCode } from '@shared/constants';
@@ -45,6 +46,10 @@ app.use(helmet({
       styleSrc: ["'self'", "'unsafe-inline'"],
       scriptSrc: ["'self'"],
       imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
     },
   },
   hsts: {
@@ -52,6 +57,17 @@ app.use(helmet({
     includeSubDomains: true,
     preload: true,
   },
+  xssFilter: true,
+  noSniff: true,
+  frameguard: {
+    action: 'deny',
+  },
+  dnsPrefetchControl: {
+    allow: false,
+  },
+  hidePoweredBy: true,
+  ieNoOpen: true,
+
 }));
 
 // CORS middleware with multi-environment support
@@ -91,7 +107,10 @@ app.use(cors({
   allowedHeaders: config.cors.allowedHeaders,
 }));
 
-app.use(compression() as unknown as express.RequestHandler);
+// Performance middleware
+app.use(requestTimer());
+app.use(smartCompression() as unknown as express.RequestHandler);
+app.use(connectionPoolMonitor);
 
 // Rate limiting
 const limiter = rateLimit({
@@ -120,6 +139,10 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Request logging
 app.use(requestLogger);
+
+// Performance optimizations
+app.use(queryOptimizer);
+app.use(responseOptimizer);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

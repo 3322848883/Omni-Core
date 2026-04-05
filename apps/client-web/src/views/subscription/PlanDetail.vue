@@ -1,350 +1,339 @@
 <template>
   <div class="plan-detail-page">
-    <!-- 面包屑导航 -->
-    <div class="breadcrumb-section">
-      <el-breadcrumb>
-        <el-breadcrumb-item :to="{ path: '/subscription/plans' }">套餐列表</el-breadcrumb-item>
-        <el-breadcrumb-item>{{ planDetail?.name || '套餐详情' }}</el-breadcrumb-item>
-      </el-breadcrumb>
+    <div class="page-header">
+      <div class="breadcrumb">
+        <el-button class="back-btn" @click="goBack">
+          <el-icon><ArrowLeft /></el-icon>
+          返回套餐列表
+        </el-button>
+      </div>
     </div>
 
     <div v-if="loading" class="loading-container">
-      <el-skeleton :rows="10" animated />
+      <div class="loading-spinner"></div>
+      <p>加载中...</p>
     </div>
 
     <template v-else-if="planDetail">
-      <!-- 套餐基本信息 -->
-      <div class="plan-header-section" :style="{ borderLeftColor: getGroupColor(planDetail.group_id) }">
-        <div class="plan-header-content">
-          <div class="plan-title-row">
-            <h1 class="plan-title">{{ planDetail.name }}</h1>
+      <div class="hero-section" :style="{ borderColor: getGroupColor(planDetail.group_id) }">
+        <div class="hero-content">
+          <div class="hero-left">
             <div class="plan-badges">
-              <el-tag v-if="planDetail.is_recommended || planDetail.recommended" type="success" effect="dark">
+              <div v-if="planDetail.is_recommended || planDetail.recommended" class="badge recommended">
                 <el-icon><Star /></el-icon>
                 推荐
-              </el-tag>
-              <el-tag v-if="isCurrentPlan" type="primary" effect="dark">
+              </div>
+              <div v-if="isCurrentPlan" class="badge current">
                 <el-icon><Check /></el-icon>
                 当前套餐
-              </el-tag>
+              </div>
             </div>
+            <h1 class="plan-title">{{ planDetail.name }}</h1>
+            <p class="plan-description">{{ planDetail.description }}</p>
+            <p class="plan-full-desc" v-if="planDetail.fullDescription">{{ planDetail.fullDescription }}</p>
           </div>
-          <p class="plan-description">{{ planDetail.description }}</p>
-          <p class="plan-full-description">{{ planDetail.fullDescription }}</p>
-        </div>
-        <div class="plan-price-section">
-          <div class="price-display">
-            <span class="currency">¥</span>
-            <span class="amount">{{ planDetail.price }}</span>
-            <span class="period">/ {{ planDetail.period === 'month' ? '月' : planDetail.period === 'quarter' ? '季' : '年' }}</span>
+          <div class="hero-right">
+            <div class="price-display">
+              <span class="currency">¥</span>
+              <span class="amount">{{ planDetail.price }}</span>
+              <span class="period">/ {{ planDetail.period === 'month' ? '月' : planDetail.period === 'quarter' ? '季' : '年' }}</span>
+            </div>
+            <el-button
+              v-if="!isCurrentPlan"
+              class="subscribe-btn"
+              @click="handleSubscribe"
+            >
+              <el-icon><ShoppingCart /></el-icon>
+              立即订阅
+            </el-button>
+            <el-button
+              v-else
+              class="subscribe-btn disabled"
+              disabled
+            >
+              <el-icon><Check /></el-icon>
+              当前套餐
+            </el-button>
           </div>
-          <el-button
-            v-if="!isCurrentPlan"
-            type="primary"
-            size="large"
-            class="subscribe-btn"
-            @click="handleSubscribe"
-          >
-            <el-icon><ShoppingCart /></el-icon>
-            立即订阅
-          </el-button>
-          <el-button
-            v-else
-            type="success"
-            size="large"
-            disabled
-            class="subscribe-btn"
-          >
-            <el-icon><Check /></el-icon>
-            当前套餐
-          </el-button>
         </div>
+        <div class="hero-glow" :style="{ background: getGroupColor(planDetail.group_id) }"></div>
       </div>
 
-      <!-- IP类型和线路类型 -->
-      <el-row :gutter="20" class="info-section">
-        <el-col :xs="24" :lg="12">
-          <el-card class="info-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
+      <div class="content-section">
+        <div class="info-grid">
+          <div class="info-card">
+            <div class="card-header">
+              <div class="card-icon">
                 <el-icon><Location /></el-icon>
-                <span>可访问IP类型</span>
               </div>
-            </template>
-            <div class="ip-types-list">
+              <h3>可访问IP类型</h3>
+            </div>
+            <div class="type-list">
               <div
                 v-for="ipType in planDetail.ipTypeDetails"
                 :key="ipType.type"
-                class="ip-type-item"
-                :style="{ borderLeftColor: ipType.color }"
+                class="type-item"
+                :style="{ borderColor: ipType.color }"
               >
-                <div class="ip-type-header">
-                  <el-tag
-                    size="small"
-                    :style="{
-                      backgroundColor: ipType.color + '20',
-                      borderColor: ipType.color,
-                      color: ipType.color
-                    }"
-                  >
+                <div class="type-header">
+                  <span class="type-tag" :style="{ background: ipType.color + '20', borderColor: ipType.color, color: ipType.color }">
                     {{ ipType.label }}
-                  </el-tag>
+                  </span>
                 </div>
-                <p class="ip-type-description">{{ ipType.description }}</p>
+                <p class="type-desc">{{ ipType.description }}</p>
               </div>
             </div>
-          </el-card>
-        </el-col>
+          </div>
 
-        <el-col :xs="24" :lg="12">
-          <el-card class="info-card" shadow="hover">
-            <template #header>
-              <div class="card-header">
+          <div class="info-card">
+            <div class="card-header">
+              <div class="card-icon">
                 <el-icon><Connection /></el-icon>
-                <span>可访问线路类型</span>
               </div>
-            </template>
-            <div class="line-types-list">
+              <h3>可访问线路类型</h3>
+            </div>
+            <div class="type-list">
               <div
                 v-for="lineType in planDetail.lineTypeDetails"
                 :key="lineType.type"
-                class="line-type-item"
-                :style="{ borderLeftColor: lineType.color }"
+                class="type-item"
+                :style="{ borderColor: lineType.color }"
               >
-                <div class="line-type-header">
-                  <el-tag
-                    size="small"
-                    :style="{
-                      backgroundColor: lineType.color + '20',
-                      borderColor: lineType.color,
-                      color: lineType.color
-                    }"
-                  >
+                <div class="type-header">
+                  <span class="type-tag" :style="{ background: lineType.color + '20', borderColor: lineType.color, color: lineType.color }">
                     {{ lineType.label }}
-                  </el-tag>
+                  </span>
                 </div>
-                <p class="line-type-description">{{ lineType.description }}</p>
+                <p class="type-desc">{{ lineType.description }}</p>
               </div>
             </div>
-          </el-card>
-        </el-col>
-      </el-row>
+          </div>
+        </div>
 
-      <!-- 套餐规格 -->
-      <el-card class="specs-card" shadow="hover">
-        <template #header>
+        <div class="specs-card">
           <div class="card-header">
-            <el-icon><Cpu /></el-icon>
-            <span>套餐规格</span>
+            <div class="card-icon">
+              <el-icon><Cpu /></el-icon>
+            </div>
+            <h3>套餐规格</h3>
           </div>
-        </template>
-        <div class="specs-grid">
-          <div class="spec-item">
-            <div class="spec-icon">
-              <el-icon><Download /></el-icon>
+          <div class="specs-grid">
+            <div class="spec-item">
+              <div class="spec-icon">
+                <el-icon><Download /></el-icon>
+              </div>
+              <div class="spec-info">
+                <span class="spec-label">流量额度</span>
+                <span class="spec-value">{{ formatBytes(planDetail.traffic_limit) }}</span>
+              </div>
             </div>
-            <div class="spec-content">
-              <div class="spec-label">流量额度</div>
-              <div class="spec-value">{{ formatBytes(planDetail.traffic_limit) }}</div>
+            <div class="spec-item">
+              <div class="spec-icon">
+                <el-icon><Speed /></el-icon>
+              </div>
+              <div class="spec-info">
+                <span class="spec-label">保证带宽</span>
+                <span class="spec-value">{{ planDetail.bandwidth }} Mbps</span>
+              </div>
             </div>
-          </div>
-          <div class="spec-item">
-            <div class="spec-icon">
-              <el-icon><Speed /></el-icon>
+            <div class="spec-item">
+              <div class="spec-icon">
+                <el-icon><Monitor /></el-icon>
+              </div>
+              <div class="spec-info">
+                <span class="spec-label">设备限制</span>
+                <span class="spec-value">{{ planDetail.device_limit }} 台设备</span>
+              </div>
             </div>
-            <div class="spec-content">
-              <div class="spec-label">保证带宽</div>
-              <div class="spec-value">{{ planDetail.bandwidth }} Mbps</div>
+            <div class="spec-item">
+              <div class="spec-icon">
+                <el-icon><OfficeBuilding /></el-icon>
+              </div>
+              <div class="spec-info">
+                <span class="spec-label">可用节点</span>
+                <span class="spec-value">{{ planDetail.nodeStats?.total || accessibleNodesCount }} 个</span>
+              </div>
             </div>
-          </div>
-          <div class="spec-item">
-            <div class="spec-icon">
-              <el-icon><Monitor /></el-icon>
+            <div class="spec-item">
+              <div class="spec-icon">
+                <el-icon><Timer /></el-icon>
+              </div>
+              <div class="spec-info">
+                <span class="spec-label">有效期</span>
+                <span class="spec-value">{{ planDetail.period === 'month' ? '30天' : planDetail.period === 'quarter' ? '90天' : '365天' }}</span>
+              </div>
             </div>
-            <div class="spec-content">
-              <div class="spec-label">设备限制</div>
-              <div class="spec-value">{{ planDetail.device_limit }} 台设备</div>
-            </div>
-          </div>
-          <div class="spec-item">
-            <div class="spec-icon">
-              <el-icon><OfficeBuilding /></el-icon>
-            </div>
-            <div class="spec-content">
-              <div class="spec-label">可用节点</div>
-              <div class="spec-value">{{ planDetail.nodeStats?.total || accessibleNodesCount }} 个</div>
-            </div>
-          </div>
-          <div class="spec-item">
-            <div class="spec-icon">
-              <el-icon><Timer /></el-icon>
-            </div>
-            <div class="spec-content">
-              <div class="spec-label">有效期</div>
-              <div class="spec-value">{{ planDetail.period === 'month' ? '30天' : planDetail.period === 'quarter' ? '90天' : '365天' }}</div>
-            </div>
-          </div>
-          <div class="spec-item">
-            <div class="spec-icon">
-              <el-icon><Rank /></el-icon>
-            </div>
-            <div class="spec-content">
-              <div class="spec-label">优先级</div>
-              <div class="spec-value">等级 {{ planDetail.guaranteed_bandwidth >= 200 ? '高' : planDetail.guaranteed_bandwidth >= 100 ? '中' : '标准' }}</div>
+            <div class="spec-item">
+              <div class="spec-icon">
+                <el-icon><Rank /></el-icon>
+              </div>
+              <div class="spec-info">
+                <span class="spec-label">优先级</span>
+                <span class="spec-value">等级 {{ planDetail.guaranteed_bandwidth >= 200 ? '高' : planDetail.guaranteed_bandwidth >= 100 ? '中' : '标准' }}</span>
+              </div>
             </div>
           </div>
         </div>
-      </el-card>
 
-      <!-- 适用场景 -->
-      <el-card v-if="planDetail.scenarios && planDetail.scenarios.length > 0" class="scenarios-card" shadow="hover">
-        <template #header>
+        <div v-if="planDetail.scenarios && planDetail.scenarios.length > 0" class="scenarios-card">
           <div class="card-header">
-            <el-icon><Target /></el-icon>
-            <span>适用场景</span>
-          </div>
-        </template>
-        <div class="scenarios-grid">
-          <div
-            v-for="(scenario, index) in planDetail.scenarios"
-            :key="index"
-            class="scenario-item"
-          >
-            <el-icon :size="24" color="#409eff"><Check /></el-icon>
-            <span>{{ scenario }}</span>
-          </div>
-        </div>
-      </el-card>
-
-      <!-- 详细特性 -->
-      <el-card v-if="planDetail.detailedFeatures && planDetail.detailedFeatures.length > 0" class="features-card" shadow="hover">
-        <template #header>
-          <div class="card-header">
-            <el-icon><List /></el-icon>
-            <span>套餐特性</span>
-          </div>
-        </template>
-        <div class="features-list">
-          <div
-            v-for="(feature, index) in planDetail.detailedFeatures"
-            :key="index"
-            class="feature-item"
-          >
-            <div class="feature-icon">
-              <el-icon :size="20" color="#67c23a"><CircleCheck /></el-icon>
+            <div class="card-icon">
+              <el-icon><CircleCheck /></el-icon>
             </div>
-            <div class="feature-content">
-              <div class="feature-title">{{ feature.title }}</div>
-              <div class="feature-description">{{ feature.description }}</div>
+            <h3>适用场景</h3>
+          </div>
+          <div class="scenarios-grid">
+            <div
+              v-for="(scenario, index) in planDetail.scenarios"
+              :key="index"
+              class="scenario-item"
+            >
+              <div class="scenario-icon">
+                <el-icon color="#60a5fa"><CircleCheck /></el-icon>
+              </div>
+              <span>{{ scenario }}</span>
             </div>
           </div>
         </div>
-      </el-card>
 
-      <!-- 节点分布 -->
-      <el-card v-if="planDetail.nodeStats?.byRegion" class="nodes-card" shadow="hover">
-        <template #header>
+        <div v-if="planDetail.detailedFeatures && planDetail.detailedFeatures.length > 0" class="features-card">
           <div class="card-header">
-            <el-icon><MapLocation /></el-icon>
-            <span>节点分布</span>
+            <div class="card-icon">
+              <el-icon><List /></el-icon>
+            </div>
+            <h3>套餐特性</h3>
           </div>
-        </template>
-        <div class="nodes-stats">
-          <div
-            v-for="(count, region) in planDetail.nodeStats.byRegion"
-            :key="region"
-            class="region-item"
-          >
-            <div class="region-name">{{ region }}</div>
-            <div class="region-count">
-              <el-tag type="info" effect="plain">{{ count }} 个节点</el-tag>
+          <div class="features-list">
+            <div
+              v-for="(feature, index) in planDetail.detailedFeatures"
+              :key="index"
+              class="feature-item"
+            >
+              <div class="feature-icon">
+                <el-icon color="#34d399"><CircleCheck /></el-icon>
+              </div>
+              <div class="feature-content">
+                <div class="feature-title">{{ feature.title }}</div>
+                <div class="feature-desc">{{ feature.description }}</div>
+              </div>
             </div>
           </div>
         </div>
-      </el-card>
 
-      <!-- 套餐对比 -->
-      <el-card class="compare-card" shadow="hover">
-        <template #header>
+        <div v-if="planDetail.nodeStats?.byRegion" class="nodes-card">
           <div class="card-header">
-            <el-icon><ScaleToOriginal /></el-icon>
-            <span>同组套餐对比</span>
+            <div class="card-icon">
+              <el-icon><MapLocation /></el-icon>
+            </div>
+            <h3>节点分布</h3>
           </div>
-        </template>
-        <div class="compare-notice">
-          <el-alert
-            title="提示"
-            type="info"
-            description="查看同套餐组的其他套餐，选择最适合您的方案"
-            :closable="false"
-            show-icon
-          />
+          <div class="nodes-grid">
+            <div
+              v-for="(count, region) in planDetail.nodeStats.byRegion"
+              :key="region"
+              class="region-item"
+            >
+              <div class="region-name">{{ region }}</div>
+              <div class="region-count">
+                <span>{{ count }} 个节点</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="related-plans">
-          <el-button
-            type="primary"
-            @click="goToPlans"
-          >
-            查看 {{ getGroupName(planDetail.group_id) }} 的所有套餐
-          </el-button>
+
+        <div class="related-card">
+          <div class="card-header">
+            <div class="card-icon">
+              <el-icon><ScaleToOriginal /></el-icon>
+            </div>
+            <h3>同组套餐对比</h3>
+          </div>
+          <div class="related-content">
+            <div class="notice">
+              <el-icon><InfoFilled /></el-icon>
+              <p>查看同套餐组的其他套餐，选择最适合您的方案</p>
+            </div>
+            <el-button class="view-btn" @click="goToPlans">
+              查看 {{ getGroupName(planDetail.group_id) }} 的所有套餐
+            </el-button>
+          </div>
         </div>
-      </el-card>
+      </div>
     </template>
 
-    <el-empty v-else description="套餐不存在或已下架" />
+    <div v-else class="empty-container">
+      <div class="empty-icon">
+        <el-icon><Warning /></el-icon>
+      </div>
+      <h2>套餐不存在或已下架</h2>
+      <el-button class="back-btn" @click="goBack">
+        返回套餐列表
+      </el-button>
+    </div>
 
-    <!-- 支付对话框 -->
     <el-dialog
       v-model="paymentDialogVisible"
       title="确认订单"
       width="500px"
       :close-on-click-modal="false"
+      class="payment-dialog"
     >
-      <div class="order-summary" v-if="planDetail">
-        <div class="order-item">
-          <span class="label">套餐名称</span>
-          <span class="value">{{ planDetail.name }}</span>
-        </div>
-        <div class="order-item">
-          <span class="label">流量额度</span>
-          <span class="value">{{ formatBytes(planDetail.traffic_limit) }}</span>
-        </div>
-        <div class="order-item">
-          <span class="label">保证带宽</span>
-          <span class="value">{{ planDetail.bandwidth }} Mbps</span>
-        </div>
-        <div class="order-item">
-          <span class="label">设备限制</span>
-          <span class="value">{{ planDetail.device_limit }} 台</span>
-        </div>
-        <el-divider />
-        <div class="order-item total">
-          <span class="label">应付金额</span>
-          <span class="value price">¥{{ planDetail.price.toFixed(2) }}</span>
-        </div>
-      </div>
+      <div class="dialog-content">
+        <div v-if="planDetail" class="order-summary">
+          <div class="summary-header">
+            <div class="summary-icon" :style="{ background: getGroupColor(planDetail.group_id) + '20' }">
+              <el-icon :color="getGroupColor(planDetail.group_id)"><Goods /></el-icon>
+            </div>
+            <div class="summary-info">
+              <h3>{{ planDetail.name }}</h3>
+              <p>{{ planDetail.description }}</p>
+            </div>
+          </div>
 
-      <div class="payment-methods">
-        <h4>选择支付方式</h4>
-        <el-radio-group v-model="selectedPaymentMethod">
-          <el-radio label="alipay">
-            <div class="payment-option">
-              <el-icon size="20"><Wallet /></el-icon>
-              <span>支付宝</span>
+          <div class="summary-details">
+            <div class="detail-row">
+              <span class="label">流量额度</span>
+              <span class="value">{{ formatBytes(planDetail.traffic_limit) }}</span>
             </div>
-          </el-radio>
-          <el-radio label="wechat">
-            <div class="payment-option">
-              <el-icon size="20"><ChatDotRound /></el-icon>
-              <span>微信支付</span>
+            <div class="detail-row">
+              <span class="label">保证带宽</span>
+              <span class="value">{{ planDetail.bandwidth }} Mbps</span>
             </div>
-          </el-radio>
-        </el-radio-group>
+            <div class="detail-row">
+              <span class="label">设备限制</span>
+              <span class="value">{{ planDetail.device_limit }} 台</span>
+            </div>
+          </div>
+
+          <div class="summary-total">
+            <span class="total-label">应付金额</span>
+            <span class="total-amount">¥{{ planDetail.price.toFixed(2) }}</span>
+          </div>
+        </div>
+
+        <div class="payment-methods">
+          <div class="methods-label">选择支付方式</div>
+          <div class="methods-grid">
+            <div
+              v-for="method in paymentMethods"
+              :key="method.id"
+              class="method-card"
+              :class="{ active: selectedPaymentMethod === method.id }"
+              @click="selectedPaymentMethod = method.id"
+            >
+              <div class="method-icon" :style="{ background: method.color + '20' }">
+                <component :is="method.icon" :color="method.color" />
+              </div>
+              <span class="method-name">{{ method.name }}</span>
+              <el-icon v-if="selectedPaymentMethod === method.id" class="check-icon"><CircleCheck /></el-icon>
+            </div>
+          </div>
+        </div>
       </div>
 
       <template #footer>
-        <el-button @click="paymentDialogVisible = false">取消</el-button>
-        <el-button type="primary" :loading="processing" @click="processPayment">
+        <el-button @click="paymentDialogVisible = false" class="dialog-btn cancel">取消</el-button>
+        <el-button type="primary" :loading="processing" @click="processPayment" class="dialog-btn confirm">
           确认支付
         </el-button>
       </template>
@@ -373,7 +362,11 @@ import {
   ScaleToOriginal,
   CircleCheck,
   Wallet,
-  ChatDotRound
+  ChatDotRound,
+  ArrowLeft,
+  Goods,
+  Warning,
+  InfoFilled
 } from '@element-plus/icons-vue';
 import { useUserStore } from '@/stores/user';
 import * as orderApi from '@/api/orders';
@@ -384,13 +377,11 @@ const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
 
-const planDetail = ref<PlanDetail | null>(null);
-const loading = ref(false);
-const paymentDialogVisible = ref(false);
-const selectedPaymentMethod = ref('alipay');
-const processing = ref(false);
+const paymentMethods = [
+  { id: 'alipay', name: '支付宝', icon: Wallet, color: '#1677FF' },
+  { id: 'wechat', name: '微信支付', icon: ChatDotRound, color: '#07C160' }
+];
 
-// 套餐组颜色映射
 const groupColors: Record<string, string> = {
   airport_traffic: '#3B82F6',
   dedicated_line: '#F59E0B',
@@ -398,13 +389,18 @@ const groupColors: Record<string, string> = {
   dedicated_ip: '#EC4899'
 };
 
-// 套餐组名称映射
 const groupNames: Record<string, string> = {
   airport_traffic: '机场大流量',
   dedicated_line: '专线加速',
   residential_ip: '住宅IP',
   dedicated_ip: '独享IP'
 };
+
+const planDetail = ref<PlanDetail | null>(null);
+const loading = ref(true);
+const paymentDialogVisible = ref(false);
+const selectedPaymentMethod = ref('alipay');
+const processing = ref(false);
 
 const isCurrentPlan = computed(() => {
   if (!userStore.userInfo?.planName || !planDetail.value) return false;
@@ -423,7 +419,7 @@ const accessibleNodesCount = computed(() => {
 });
 
 const getGroupColor = (groupId: string) => {
-  return groupColors[groupId] || '#409eff';
+  return groupColors[groupId] || '#3B82F6';
 };
 
 const getGroupName = (groupId: string) => {
@@ -457,6 +453,14 @@ const fetchPlanDetail = async () => {
   }
 };
 
+const goBack = () => {
+  router.push('/app/subscription/plans');
+};
+
+const goToPlans = () => {
+  router.push('/app/subscription/plans');
+};
+
 const handleSubscribe = () => {
   if (!userStore.isLoggedIn) {
     ElMessage.warning('请先登录');
@@ -484,16 +488,12 @@ const processPayment = async () => {
 
     ElMessage.success('订单创建成功，请完成支付');
     paymentDialogVisible.value = false;
-    router.push(`/app/orders/${order.id}`);
+    router.push(`/orders/${order.id}`);
   } catch (error) {
     ElMessage.error('创建订单失败');
   } finally {
     processing.value = false;
   }
-};
-
-const goToPlans = () => {
-  router.push('/app/subscription/plans');
 };
 
 onMounted(() => {
@@ -503,180 +503,318 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .plan-detail-page {
-  padding: 20px;
+  padding: 0 0 60px;
+  min-height: 100vh;
+}
+
+.page-header {
+  padding: 24px 24px 0;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.breadcrumb-section {
+.breadcrumb {
   margin-bottom: 20px;
+}
+
+.back-btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+
+  &:hover {
+    border-color: rgba(59, 130, 246, 0.4);
+    color: #cbd5e1;
+    background: rgba(30, 41, 59, 0.8);
+  }
 }
 
 .loading-container {
-  padding: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+
+  .loading-spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid rgba(59, 130, 246, 0.2);
+    border-top-color: #3B82F6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 16px;
+  }
+
+  p {
+    color: #94a3b8;
+    font-size: 14px;
+  }
 }
 
-// 套餐头部
-.plan-header-section {
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.hero-section {
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto 28px;
+  padding: 32px;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: 24px;
+  border-left: 4px solid;
+  overflow: hidden;
+  margin-left: 24px;
+  margin-right: 24px;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 24px;
-  margin-bottom: 24px;
-  padding: 24px;
-  background: #fff;
-  border-radius: 12px;
-  border-left: 4px solid;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  align-items: center;
+  gap: 32px;
 
   @media (max-width: 768px) {
     flex-direction: column;
+    align-items: flex-start;
   }
 }
 
-.plan-header-content {
+.hero-left {
   flex: 1;
+}
 
-  .plan-title-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 12px;
+.plan-badges {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
 
-    .plan-title {
-      font-size: 28px;
-      font-weight: 600;
-      color: #303133;
-      margin: 0;
-    }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
 
-    .plan-badges {
-      display: flex;
-      gap: 8px;
-
-      .el-tag {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-    }
+  &.recommended {
+    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    color: #fff;
   }
 
-  .plan-description {
-    font-size: 16px;
-    color: #606266;
-    margin-bottom: 8px;
+  &.current {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    color: #fff;
   }
 
-  .plan-full-description {
+  .el-icon {
     font-size: 14px;
-    color: #909399;
-    line-height: 1.6;
   }
 }
 
-.plan-price-section {
-  text-align: center;
-
-  .price-display {
-    margin-bottom: 16px;
-
-    .currency {
-      font-size: 24px;
-      color: #f56c6c;
-      font-weight: 500;
-    }
-
-    .amount {
-      font-size: 48px;
-      font-weight: 700;
-      color: #f56c6c;
-      margin: 0 4px;
-    }
-
-    .period {
-      font-size: 16px;
-      color: #909399;
-    }
-  }
-
-  .subscribe-btn {
-    width: 200px;
-    background: linear-gradient(135deg, #409eff 0%, #1677ff 100%);
-    border: none;
-    font-weight: 500;
-
-    &:hover:not(:disabled) {
-      background: linear-gradient(135deg, #66b1ff 0%, #409eff 100%);
-    }
-  }
+.plan-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #e2e8f0;
+  margin: 0 0 10px;
 }
 
-// 信息区域
-.info-section {
-  margin-bottom: 20px;
+.plan-description {
+  font-size: 16px;
+  color: #94a3b8;
+  margin: 0 0 8px;
 }
 
-.info-card {
-  height: 100%;
-
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-  }
+.plan-full-desc {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.6;
 }
 
-.ip-types-list,
-.line-types-list {
+.hero-right {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  align-items: center;
+  gap: 16px;
 }
 
-.ip-type-item,
-.line-type-item {
-  padding: 12px 16px;
-  background: #f5f7fa;
-  border-radius: 8px;
-  border-left: 3px solid;
+.price-display {
+  display: flex;
+  align-items: baseline;
+}
 
-  .ip-type-header,
-  .line-type-header {
-    margin-bottom: 6px;
+.currency {
+  font-size: 24px;
+  color: #94a3b8;
+  margin-right: 4px;
+}
+
+.amount {
+  font-size: 52px;
+  font-weight: 700;
+  color: #fff;
+  line-height: 1;
+}
+
+.period {
+  font-size: 16px;
+  color: #94a3b8;
+  margin-left: 4px;
+}
+
+.subscribe-btn {
+  width: 220px;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+  color: #fff;
+
+  &:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(59, 130, 246, 0.4);
   }
 
-  .ip-type-description,
-  .line-type-description {
-    font-size: 13px;
-    color: #606266;
+  &.disabled {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    cursor: not-allowed;
+  }
+}
+
+.hero-glow {
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.15;
+}
+
+.content-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info-card,
+.specs-card,
+.scenarios-card,
+.features-card,
+.nodes-card,
+.related-card {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 20px;
+  padding: 28px;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 24px;
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e2e8f0;
     margin: 0;
   }
 }
 
-// 规格卡片
-.specs-card {
-  margin-bottom: 20px;
+.card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(59, 130, 246, 0.1) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
+  .el-icon {
+    font-size: 22px;
+    color: #60a5fa;
   }
+}
+
+.type-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.type-item {
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 12px;
+  border-left: 3px solid;
+}
+
+.type-header {
+  margin-bottom: 8px;
+}
+
+.type-tag {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.type-desc {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.5;
 }
 
 .specs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  gap: 18px;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1024px) {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  @media (max-width: 480px) {
+  @media (max-width: 640px) {
     grid-template-columns: 1fr;
   }
 }
@@ -684,51 +822,44 @@ onMounted(() => {
 .spec-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px;
-  background: #f5f7fa;
-  border-radius: 10px;
+  gap: 14px;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 14px;
+}
 
-  .spec-icon {
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #fff;
-    border-radius: 10px;
-    color: #409eff;
+.spec-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(59, 130, 246, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 
-    .el-icon {
-      font-size: 20px;
-    }
-  }
-
-  .spec-content {
-    .spec-label {
-      font-size: 12px;
-      color: #909399;
-      margin-bottom: 4px;
-    }
-
-    .spec-value {
-      font-size: 16px;
-      font-weight: 600;
-      color: #303133;
-    }
+  .el-icon {
+    font-size: 22px;
+    color: #60a5fa;
   }
 }
 
-// 场景卡片
-.scenarios-card {
-  margin-bottom: 20px;
+.spec-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
 
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-  }
+.spec-label {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+.spec-value {
+  font-size: 17px;
+  font-weight: 600;
+  color: #e2e8f0;
 }
 
 .scenarios-grid {
@@ -745,23 +876,18 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
-  background: #f0f9ff;
-  border-radius: 8px;
-  color: #303133;
+  padding: 14px 16px;
+  background: rgba(59, 130, 246, 0.08);
+  border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.15);
   font-size: 14px;
+  color: #cbd5e1;
 }
 
-// 特性卡片
-.features-card {
-  margin-bottom: 20px;
-
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-  }
+.scenario-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .features-list {
@@ -772,48 +898,47 @@ onMounted(() => {
 
 .feature-item {
   display: flex;
-  gap: 12px;
-  padding: 16px;
-  background: #f5f7fa;
-  border-radius: 10px;
-
-  .feature-icon {
-    flex-shrink: 0;
-  }
-
-  .feature-content {
-    .feature-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: #303133;
-      margin-bottom: 4px;
-    }
-
-    .feature-description {
-      font-size: 13px;
-      color: #606266;
-    }
-  }
+  gap: 14px;
+  padding: 18px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 14px;
 }
 
-// 节点卡片
-.nodes-card {
-  margin-bottom: 20px;
-
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-  }
+.feature-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 2px;
 }
 
-.nodes-stats {
+.feature-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.feature-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 6px;
+}
+
+.feature-desc {
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.6;
+}
+
+.nodes-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
 
-  @media (max-width: 768px) {
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 640px) {
     grid-template-columns: repeat(2, 1fr);
   }
 }
@@ -824,86 +949,308 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 16px;
-  background: #f5f7fa;
-  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 12px;
+}
 
-  .region-name {
+.region-name {
+  font-size: 14px;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.region-count {
+  padding: 4px 12px;
+  background: rgba(59, 130, 246, 0.15);
+  border-radius: 20px;
+
+  span {
+    font-size: 12px;
+    color: #93c5fd;
+    font-weight: 500;
+  }
+}
+
+.related-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.15);
+  border-radius: 12px;
+
+  .el-icon {
+    color: #60a5fa;
+    font-size: 20px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  p {
     font-size: 14px;
-    color: #606266;
+    color: #94a3b8;
+    margin: 0;
+    line-height: 1.5;
   }
 }
 
-// 对比卡片
-.compare-card {
-  margin-bottom: 20px;
+.view-btn {
+  padding: 12px 24px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  align-self: center;
 
-  .card-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
+  &:hover {
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
   }
 }
 
-.compare-notice {
-  margin-bottom: 20px;
-}
-
-.related-plans {
+.empty-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
   text-align: center;
 }
 
-// 支付对话框
-.order-summary {
-  .order-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 12px 0;
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background: rgba(245, 158, 11, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
 
-    &.total {
-      font-weight: 600;
-      font-size: 16px;
+  .el-icon {
+    font-size: 40px;
+    color: #fbbf24;
+  }
+}
 
-      .price {
-        color: #f56c6c;
-        font-size: 20px;
-      }
-    }
+.empty-container h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin: 0 0 20px;
+}
 
-    .label {
-      color: #606266;
-    }
+.payment-dialog {
+  :deep(.el-dialog__header) {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+  }
 
-    .value {
-      color: #303133;
-    }
+  :deep(.el-dialog__title) {
+    font-size: 18px;
+    font-weight: 600;
+    color: #e2e8f0;
+  }
+
+  :deep(.el-dialog__body) {
+    padding: 24px;
+  }
+
+  :deep(.el-dialog__footer) {
+    padding: 16px 24px 20px;
+    border-top: 1px solid rgba(148, 163, 184, 0.1);
+  }
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: rgba(30, 41, 59, 0.8);
+  border-radius: 12px;
+}
+
+.summary-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .el-icon {
+    font-size: 24px;
+  }
+}
+
+.summary-info {
+  flex: 1;
+  min-width: 0;
+
+  h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin: 0 0 4px;
+  }
+
+  p {
+    font-size: 13px;
+    color: #94a3b8;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.summary-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+
+  .label {
+    color: #94a3b8;
+  }
+
+  .value {
+    color: #e2e8f0;
+    font-weight: 500;
+  }
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+
+  .total-label {
+    font-size: 16px;
+    color: #cbd5e1;
+    font-weight: 500;
+  }
+
+  .total-amount {
+    font-size: 28px;
+    font-weight: 700;
+    color: #60a5fa;
   }
 }
 
 .payment-methods {
-  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
 
-  h4 {
-    margin-bottom: 16px;
-    color: #303133;
+.methods-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #cbd5e1;
+}
+
+.methods-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.method-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+
+  &:hover {
+    border-color: rgba(59, 130, 246, 0.3);
   }
 
-  .el-radio-group {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  &.active {
+    border-color: rgba(59, 130, 246, 0.6);
+    background: rgba(59, 130, 246, 0.1);
+  }
+}
+
+.method-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  .el-icon {
+    font-size: 20px;
+  }
+}
+
+.method-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: #cbd5e1;
+}
+
+.check-icon {
+  color: #34d399;
+  font-size: 20px;
+}
+
+.dialog-btn {
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+
+  &.cancel {
+    background: rgba(148, 163, 184, 0.1);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    color: #94a3b8;
+
+    &:hover {
+      background: rgba(148, 163, 184, 0.2);
+      border-color: rgba(148, 163, 184, 0.3);
+    }
   }
 
-  .el-radio {
-    margin-right: 0;
-    height: auto;
-  }
+  &.confirm {
+    background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+    border: none;
 
-  .payment-option {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 0;
+    &:hover {
+      box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+    }
   }
 }
 </style>

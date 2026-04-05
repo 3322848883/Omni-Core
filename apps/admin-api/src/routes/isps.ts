@@ -118,7 +118,7 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response, next: Nex
       .first();
 
     if (!isp) {
-      throw new NotFoundError('ISP', id);
+      throw new NotFoundError(`ISP with ID "${id}" not found`);
     }
 
     // 获取使用该ISP的节点
@@ -174,7 +174,7 @@ router.post('/', authMiddleware, async (req: Request, res: Response, next: NextF
 
     // 验证必填字段
     if (!name || !displayName || !country || !type) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'name', message: 'Name is required' },
         { field: 'displayName', message: 'Display name is required' },
         { field: 'country', message: 'Country is required' },
@@ -190,14 +190,14 @@ router.post('/', authMiddleware, async (req: Request, res: Response, next: NextF
 
     // 验证ISP类型
     if (!VALID_ISP_TYPES.includes(type as ISPType)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'type', message: `Invalid type. Must be one of: ${VALID_ISP_TYPES.join(', ')}` }
       ]);
     }
 
     // 验证声誉值
     if (typeof reputation !== 'number' || reputation < 0 || reputation > 100) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'reputation', message: 'Reputation must be a number between 0 and 100' }
       ]);
     }
@@ -208,7 +208,7 @@ router.post('/', authMiddleware, async (req: Request, res: Response, next: NextF
       .first();
 
     if (existingISP) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'name', message: 'ISP with this name already exists' }
       ]);
     }
@@ -271,19 +271,19 @@ router.put('/:id', authMiddleware, async (req: Request, res: Response, next: Nex
       .first();
 
     if (!isp) {
-      throw new NotFoundError('ISP', id);
+      throw new NotFoundError(`ISP with ID "${id}" not found`);
     }
 
     // 验证ISP类型
     if (type !== undefined && !VALID_ISP_TYPES.includes(type as ISPType)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'type', message: `Invalid type. Must be one of: ${VALID_ISP_TYPES.join(', ')}` }
       ]);
     }
 
     // 验证声誉值
     if (reputation !== undefined && (typeof reputation !== 'number' || reputation < 0 || reputation > 100)) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'reputation', message: 'Reputation must be a number between 0 and 100' }
       ]);
     }
@@ -340,7 +340,7 @@ router.delete('/:id', authMiddleware, async (req: Request, res: Response, next: 
       .first();
 
     if (!isp) {
-      throw new NotFoundError('ISP', id);
+      throw new NotFoundError(`ISP with ID "${id}" not found`);
     }
 
     // 检查是否有节点正在使用该ISP
@@ -352,7 +352,7 @@ router.delete('/:id', authMiddleware, async (req: Request, res: Response, next: 
     const nodeCount = parseInt(nodesUsingISP?.count as string || '0', 10);
 
     if (nodeCount > 0) {
-      throw new ValidationError([
+      throw new ValidationError('Validation failed', [
         { field: 'isp', message: `Cannot delete ISP that is being used by ${nodeCount} nodes. Please reassign those nodes first.` }
       ]);
     }

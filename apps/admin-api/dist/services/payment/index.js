@@ -1,0 +1,481 @@
+"use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __exportStar = (this && this.__exportStar) || function(m, exports) {
+    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.initializePaymentProviders = initializePaymentProviders;
+exports.getPaymentProvider = getPaymentProvider;
+exports.getAvailableProviders = getAvailableProviders;
+exports.isQRCodePayment = isQRCodePayment;
+exports.getQRCodeInfo = getQRCodeInfo;
+exports.createPayment = createPayment;
+exports.processPaymentSuccess = processPaymentSuccess;
+exports.processPaymentFailure = processPaymentFailure;
+exports.processRefundWebhook = processRefundWebhook;
+exports.processRefund = processRefund;
+exports.getPaymentStatus = getPaymentStatus;
+exports.verifyWebhookSignature = verifyWebhookSignature;
+exports.parseWebhookEvent = parseWebhookEvent;
+exports.completeOrder = completeOrder;
+const logger_1 = require("../../utils/logger");
+const database_1 = require("../../database");
+const stripe_1 = require("./stripe");
+const paypal_1 = require("./paypal");
+const alipay_1 = require("./alipay");
+const wechat_1 = require("./wechat");
+const alipay_merchant_1 = require("./alipay-merchant");
+const wechat_merchant_1 = require("./wechat-merchant");
+const types_1 = require("./types");
+// Payment provider instances
+let stripeProvider = null;
+let paypalProvider = null;
+let alipayProvider = null;
+let wechatProvider = null;
+let alipayMerchantProvider = null;
+let wechatMerchantProvider = null;
+/**
+ * Initialize payment providers
+ */
+function initializePaymentProviders() {
+    try {
+        // Initialize Stripe if configured
+        try {
+            stripeProvider = new stripe_1.StripePaymentProvider();
+            logger_1.logger.info('Stripe payment provider initialized successfully');
+        }
+        catch (error) {
+            logger_1.logger.warn('Failed to initialize Stripe payment provider:', error);
+        }
+        // Initialize PayPal if configured
+        try {
+            paypalProvider = new paypal_1.PayPalPaymentProvider();
+            logger_1.logger.info('PayPal payment provider initialized successfully');
+        }
+        catch (error) {
+            logger_1.logger.warn('Failed to initialize PayPal payment provider:', error);
+        }
+        // Initialize Alipay if configured
+        try {
+            alipayProvider = new alipay_1.AlipayPaymentProvider();
+            logger_1.logger.info('Alipay payment provider initialized successfully');
+        }
+        catch (error) {
+            logger_1.logger.warn('Failed to initialize Alipay payment provider:', error);
+        }
+        // Initialize WeChat if configured
+        try {
+            wechatProvider = new wechat_1.WechatPaymentProvider();
+            logger_1.logger.info('WeChat payment provider initialized successfully');
+        }
+        catch (error) {
+            logger_1.logger.warn('Failed to initialize WeChat payment provider:', error);
+        }
+        // Initialize Alipay Merchant if configured
+        try {
+            alipayMerchantProvider = new alipay_merchant_1.AlipayMerchantProvider();
+            logger_1.logger.info('Alipay merchant payment provider initialized successfully');
+        }
+        catch (error) {
+            logger_1.logger.warn('Failed to initialize Alipay merchant payment provider:', error);
+        }
+        // Initialize WeChat Merchant if configured
+        try {
+            wechatMerchantProvider = new wechat_merchant_1.WechatMerchantProvider();
+            logger_1.logger.info('WeChat merchant payment provider initialized successfully');
+        }
+        catch (error) {
+            logger_1.logger.warn('Failed to initialize WeChat merchant payment provider:', error);
+        }
+        const initializedProviders = getAvailableProviders();
+        if (initializedProviders.length === 0) {
+            logger_1.logger.warn('No payment providers initialized. Payment functionality will be unavailable.');
+        }
+        else {
+            logger_1.logger.info(`Initialized payment providers: ${initializedProviders.join(', ')}`);
+        }
+    }
+    catch (error) {
+        logger_1.logger.error('Failed to initialize payment providers:', error);
+    }
+}
+/**
+ * Get payment provider by name
+ */
+function getPaymentProvider(provider) {
+    switch (provider) {
+        case 'stripe':
+            if (!stripeProvider) {
+                throw new Error('Stripe payment provider is not initialized');
+            }
+            return stripeProvider;
+        case 'paypal':
+            if (!paypalProvider) {
+                throw new Error('PayPal payment provider is not initialized');
+            }
+            return paypalProvider;
+        case 'alipay':
+            if (!alipayProvider) {
+                throw new Error('Alipay payment provider is not initialized');
+            }
+            return alipayProvider;
+        case 'wechat':
+            if (!wechatProvider) {
+                throw new Error('WeChat payment provider is not initialized');
+            }
+            return wechatProvider;
+        case 'alipay_merchant':
+            if (!alipayMerchantProvider) {
+                throw new Error('Alipay merchant payment provider is not initialized');
+            }
+            return alipayMerchantProvider;
+        case 'wechat_merchant':
+            if (!wechatMerchantProvider) {
+                throw new Error('WeChat merchant payment provider is not initialized');
+            }
+            return wechatMerchantProvider;
+        default:
+            throw new Error(`Unknown payment provider: ${provider}`);
+    }
+}
+/**
+ * Get available payment providers
+ */
+function getAvailableProviders() {
+    const providers = [];
+    if (stripeProvider) {
+        providers.push('stripe');
+    }
+    if (paypalProvider) {
+        providers.push('paypal');
+    }
+    if (alipayProvider) {
+        providers.push('alipay');
+    }
+    if (wechatProvider) {
+        providers.push('wechat');
+    }
+    if (alipayMerchantProvider) {
+        providers.push('alipay_merchant');
+    }
+    if (wechatMerchantProvider) {
+        providers.push('wechat_merchant');
+    }
+    return providers;
+}
+/**
+ * Check if provider is a QR code based payment (manual confirmation required)
+ */
+function isQRCodePayment(provider) {
+    return provider === 'alipay' || provider === 'wechat';
+}
+/**
+ * Get QR code info for payment provider
+ */
+function getQRCodeInfo(provider) {
+    switch (provider) {
+        case 'alipay':
+            return alipayProvider?.getQRCodeInfo() || null;
+        case 'wechat':
+            return wechatProvider?.getQRCodeInfo() || null;
+        default:
+            return null;
+    }
+}
+/**
+ * Create a payment for an order
+ */
+async function createPayment(provider, request) {
+    const paymentProvider = getPaymentProvider(provider);
+    // Update order with payment method
+    await (0, database_1.db)('orders')
+        .where('id', request.orderId)
+        .update({
+        payment_method: provider,
+        updated_at: new Date(),
+    });
+    // Create payment with provider
+    const response = await paymentProvider.createPayment(request);
+    // Store payment intent ID if available
+    if (response.paymentIntentId) {
+        await (0, database_1.db)('orders')
+            .where('id', request.orderId)
+            .update({
+            payment_id: response.paymentIntentId,
+            updated_at: new Date(),
+        });
+    }
+    return response;
+}
+/**
+ * Process payment success webhook
+ */
+async function processPaymentSuccess(provider, event) {
+    const paymentProvider = getPaymentProvider(provider);
+    const paymentData = await paymentProvider.handlePaymentSuccess(event);
+    // Find order by metadata or payment ID
+    const orderId = paymentData.metadata?.orderId;
+    if (!orderId) {
+        throw new Error('Order ID not found in payment metadata');
+    }
+    const order = await (0, database_1.db)('orders').where('id', orderId).first();
+    if (!order) {
+        throw new Error(`Order not found: ${orderId}`);
+    }
+    // Check if order can transition to paid status
+    if (!(0, types_1.canTransitionOrderStatus)(order.status, 'paid')) {
+        logger_1.logger.warn(`Order ${order.order_no} cannot transition from ${order.status} to paid`);
+        return;
+    }
+    const now = new Date();
+    const startDate = now;
+    const endDate = new Date(now);
+    endDate.setDate(endDate.getDate() + (order.duration_days || 30));
+    // Update order status
+    await (0, database_1.db)('orders')
+        .where('id', order.id)
+        .update({
+        status: 'paid',
+        payment_time: now,
+        start_date: startDate,
+        end_date: endDate,
+        updated_at: now,
+    });
+    // Log status change
+    await (0, database_1.db)('order_status_logs').insert({
+        order_id: order.id,
+        from_status: order.status,
+        to_status: 'paid',
+        changed_by: 'system',
+        reason: `Payment received via ${provider}`,
+    });
+    // Update user traffic limit and expire date
+    if (order.traffic_limit) {
+        await (0, database_1.db)('users')
+            .where('user_id', order.user_id)
+            .update({
+            traffic_limit: database_1.db.raw('traffic_limit + ?', [order.traffic_limit]),
+            expire_date: endDate,
+            updated_at: now,
+        });
+    }
+    logger_1.logger.info(`Payment success processed for order: ${order.order_no}`);
+}
+/**
+ * Process payment failure webhook
+ */
+async function processPaymentFailure(provider, event) {
+    const paymentProvider = getPaymentProvider(provider);
+    const failureData = await paymentProvider.handlePaymentFailure(event);
+    // Find order by payment ID
+    const order = await (0, database_1.db)('orders')
+        .where('payment_id', failureData.providerOrderId)
+        .first();
+    if (!order) {
+        logger_1.logger.warn(`Order not found for failed payment: ${failureData.providerOrderId}`);
+        return;
+    }
+    // Check if order can transition to cancelled status
+    if (!(0, types_1.canTransitionOrderStatus)(order.status, 'cancelled')) {
+        logger_1.logger.warn(`Order ${order.order_no} cannot transition from ${order.status} to cancelled`);
+        return;
+    }
+    // Update order status
+    await (0, database_1.db)('orders')
+        .where('id', order.id)
+        .update({
+        status: 'cancelled',
+        updated_at: new Date(),
+    });
+    // Log status change
+    await (0, database_1.db)('order_status_logs').insert({
+        order_id: order.id,
+        from_status: order.status,
+        to_status: 'cancelled',
+        changed_by: 'system',
+        reason: `Payment failed: ${failureData.reason || 'Unknown reason'}`,
+    });
+    logger_1.logger.info(`Payment failure processed for order: ${order.order_no}`);
+}
+/**
+ * Process refund webhook
+ */
+async function processRefundWebhook(provider, event) {
+    const paymentProvider = getPaymentProvider(provider);
+    const refundData = await paymentProvider.handleRefund(event);
+    // Find order by payment ID
+    const order = await (0, database_1.db)('orders')
+        .where('payment_id', refundData.providerOrderId)
+        .first();
+    if (!order) {
+        logger_1.logger.warn(`Order not found for refund: ${refundData.providerOrderId}`);
+        return;
+    }
+    // Check if order can transition to refunded status
+    if (!(0, types_1.canTransitionOrderStatus)(order.status, 'refunded')) {
+        logger_1.logger.warn(`Order ${order.order_no} cannot transition from ${order.status} to refunded`);
+        return;
+    }
+    const now = new Date();
+    // Update order status
+    await (0, database_1.db)('orders')
+        .where('id', order.id)
+        .update({
+        status: 'refunded',
+        updated_at: now,
+    });
+    // Log status change
+    await (0, database_1.db)('order_status_logs').insert({
+        order_id: order.id,
+        from_status: order.status,
+        to_status: 'refunded',
+        changed_by: 'system',
+        reason: `Refund processed: ${refundData.refundId}`,
+    });
+    // Deduct user traffic limit
+    if (order.traffic_limit) {
+        await (0, database_1.db)('users')
+            .where('user_id', order.user_id)
+            .update({
+            traffic_limit: database_1.db.raw('GREATEST(traffic_limit - ?, 0)', [order.traffic_limit]),
+            updated_at: now,
+        });
+    }
+    logger_1.logger.info(`Refund processed for order: ${order.order_no}`);
+}
+/**
+ * Process refund request
+ */
+async function processRefund(orderId, amount, reason, changedBy = 'system') {
+    // Find order
+    const order = await (0, database_1.db)('orders').where('id', orderId).first();
+    if (!order) {
+        throw new Error(`Order not found: ${orderId}`);
+    }
+    // Check if order can be refunded
+    if (order.status !== 'paid' && order.status !== 'completed') {
+        throw new Error(`Order cannot be refunded. Current status: ${order.status}`);
+    }
+    if (!order.payment_method || !order.payment_id) {
+        throw new Error('Order does not have payment information');
+    }
+    const provider = order.payment_method;
+    const paymentProvider = getPaymentProvider(provider);
+    // Process refund with provider
+    const refundRequest = {
+        paymentId: order.payment_id,
+        amount,
+        reason,
+    };
+    const refundResult = await paymentProvider.processRefund(refundRequest);
+    if (refundResult.success) {
+        const now = new Date();
+        // Update order status
+        await (0, database_1.db)('orders')
+            .where('id', order.id)
+            .update({
+            status: 'refunded',
+            updated_at: now,
+        });
+        // Log status change
+        await (0, database_1.db)('order_status_logs').insert({
+            order_id: order.id,
+            from_status: order.status,
+            to_status: 'refunded',
+            changed_by: changedBy,
+            reason: reason || 'Order refunded',
+        });
+        // Deduct user traffic limit
+        if (order.traffic_limit) {
+            await (0, database_1.db)('users')
+                .where('user_id', order.user_id)
+                .update({
+                traffic_limit: database_1.db.raw('GREATEST(traffic_limit - ?, 0)', [order.traffic_limit]),
+                updated_at: now,
+            });
+        }
+        logger_1.logger.info(`Refund processed for order: ${order.order_no} by ${changedBy}`);
+    }
+    return refundResult;
+}
+/**
+ * Get payment status
+ */
+async function getPaymentStatus(provider, paymentId) {
+    const paymentProvider = getPaymentProvider(provider);
+    return paymentProvider.getPaymentStatus(paymentId);
+}
+/**
+ * Verify webhook signature
+ */
+function verifyWebhookSignature(provider, payload, signature) {
+    try {
+        const paymentProvider = getPaymentProvider(provider);
+        const secret = getWebhookSecret(provider);
+        return paymentProvider.verifyWebhookSignature(payload, signature, secret);
+    }
+    catch (error) {
+        logger_1.logger.error(`Webhook signature verification failed for ${provider}:`, error);
+        return false;
+    }
+}
+/**
+ * Parse webhook event
+ */
+function parseWebhookEvent(provider, rawBody, signature) {
+    const paymentProvider = getPaymentProvider(provider);
+    return paymentProvider.parseWebhookEvent(rawBody, signature);
+}
+/**
+ * Get webhook secret for provider
+ */
+function getWebhookSecret(provider) {
+    const { config: appConfig } = require('../../config');
+    switch (provider) {
+        case 'stripe':
+            return appConfig.payment?.stripe?.webhookSecret || '';
+        case 'paypal':
+            return appConfig.payment?.paypal?.webhookSecret || '';
+        default:
+            return '';
+    }
+}
+/**
+ * Complete order (transition from paid to completed)
+ */
+async function completeOrder(orderId, changedBy = 'system') {
+    const order = await (0, database_1.db)('orders').where('id', orderId).first();
+    if (!order) {
+        throw new Error(`Order not found: ${orderId}`);
+    }
+    if (!(0, types_1.canTransitionOrderStatus)(order.status, 'completed')) {
+        throw new Error(`Order cannot be completed. Current status: ${order.status}`);
+    }
+    await (0, database_1.db)('orders')
+        .where('id', order.id)
+        .update({
+        status: 'completed',
+        updated_at: new Date(),
+    });
+    await (0, database_1.db)('order_status_logs').insert({
+        order_id: order.id,
+        from_status: order.status,
+        to_status: 'completed',
+        changed_by: changedBy,
+        reason: 'Order completed',
+    });
+    logger_1.logger.info(`Order completed: ${order.order_no} by ${changedBy}`);
+}
+// Re-export types
+__exportStar(require("./types"), exports);
+//# sourceMappingURL=index.js.map
