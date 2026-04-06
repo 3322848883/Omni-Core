@@ -1,168 +1,104 @@
 // Service Type Constants
 
-/**
- * 服务类型枚举
- * 定义系统支持的所有服务类型
- */
 export enum ServiceType {
-  // 标准VPN服务
-  VPN_BASIC = 'vpn_basic',
-  VPN_PREMIUM = 'vpn_premium',
-  VPN_ENTERPRISE = 'vpn_enterprise',
-
-  // 专线服务
+  STANDARD = 'standard',
   DEDICATED_LINE = 'dedicated_line',
-  CN2_LINE = 'cn2_line',
-  IEPL_LINE = 'iepl_line',
-  IPLC_LINE = 'iplc_line',
-
-  // 静态IP服务
-  STATIC_IP = 'static_ip',
-  RESIDENTIAL_STATIC = 'residential_static',
-
-  // 动态IP服务
-  DYNAMIC_IP = 'dynamic_ip',
-  RESIDENTIAL_DYNAMIC = 'residential_dynamic',
-
-  // 特殊服务
-  CUSTOM = 'custom',
-  TRIAL = 'trial'
+  EXCLUSIVE = 'exclusive',
+  STATIC_RESIDENTIAL = 'static_residential',
 }
 
-/**
- * 服务类型元数据
- */
-export const ServiceTypeMeta = {
-  [ServiceType.VPN_BASIC]: {
-    label: '基础VPN',
-    description: '标准VPN服务，适合日常使用',
-    features: ['多节点', '标准速度', '基础支持'],
-    category: 'vpn'
-  },
-  [ServiceType.VPN_PREMIUM]: {
-    label: '高级VPN',
-    description: '高级VPN服务，优先线路',
-    features: ['多节点', '优先线路', '高速通道', '优先支持'],
-    category: 'vpn'
-  },
-  [ServiceType.VPN_ENTERPRISE]: {
-    label: '企业VPN',
-    description: '企业级VPN服务，专线品质',
-    features: ['专属节点', '专线品质', '最高速度', '24/7支持'],
-    category: 'vpn'
+export interface ServiceTypeMeta {
+  label: string;
+  description: string;
+  color: string;
+  bgColor: string;
+  icon: string;
+  priority: number;
+}
+
+export const ServiceTypeMeta: Record<ServiceType, ServiceTypeMeta> = {
+  [ServiceType.STANDARD]: {
+    label: '标准服务',
+    description: '标准节点服务，适合日常使用',
+    color: '#1890ff',
+    bgColor: '#e6f7ff',
+    icon: 'global',
+    priority: 1,
   },
   [ServiceType.DEDICATED_LINE]: {
     label: '专线服务',
-    description: '独享专线，稳定低延迟',
-    features: ['独享带宽', '低延迟', '高稳定性'],
-    category: 'dedicated'
+    description: '专线节点服务，低延迟高稳定',
+    color: '#52c41a',
+    bgColor: '#f6ffed',
+    icon: 'thunderbolt',
+    priority: 2,
   },
-  [ServiceType.CN2_LINE]: {
-    label: 'CN2专线',
-    description: '中国电信CN2专线',
-    features: ['CN2 GIA', '优质路由', '低丢包'],
-    category: 'dedicated'
+  [ServiceType.EXCLUSIVE]: {
+    label: '专属服务',
+    description: '专属节点服务，独享带宽',
+    color: '#722ed1',
+    bgColor: '#f9f0ff',
+    icon: 'crown',
+    priority: 3,
   },
-  [ServiceType.IEPL_LINE]: {
-    label: 'IEPL专线',
-    description: '国际以太网专线',
-    features: ['IEPL专线', '企业级品质', '全球覆盖'],
-    category: 'dedicated'
+  [ServiceType.STATIC_RESIDENTIAL]: {
+    label: '静态住宅',
+    description: '静态住宅IP，高匿名性',
+    color: '#fa8c16',
+    bgColor: '#fff7e6',
+    icon: 'home',
+    priority: 4,
   },
-  [ServiceType.IPLC_LINE]: {
-    label: 'IPLC专线',
-    description: '国际私人租用线路',
-    features: ['IPLC专线', '物理隔离', '最高安全'],
-    category: 'dedicated'
-  },
-  [ServiceType.STATIC_IP]: {
-    label: '静态IP',
-    description: '固定IP地址服务',
-    features: ['固定IP', '长期稳定', '适合业务'],
-    category: 'ip'
-  },
-  [ServiceType.RESIDENTIAL_STATIC]: {
-    label: '住宅静态IP',
-    description: '住宅网络静态IP',
-    features: ['住宅IP', '静态地址', '高匿名性'],
-    category: 'ip'
-  },
-  [ServiceType.DYNAMIC_IP]: {
-    label: '动态IP',
-    description: '动态IP地址服务',
-    features: ['动态IP', '自动更换', '性价比高'],
-    category: 'ip'
-  },
-  [ServiceType.RESIDENTIAL_DYNAMIC]: {
-    label: '住宅动态IP',
-    description: '住宅网络动态IP',
-    features: ['住宅IP', '动态更换', '高匿名性'],
-    category: 'ip'
-  },
-  [ServiceType.CUSTOM]: {
-    label: '定制服务',
-    description: '根据需求定制',
-    features: ['灵活配置', '专属方案', '一对一服务'],
-    category: 'custom'
-  },
-  [ServiceType.TRIAL]: {
-    label: '试用服务',
-    description: '限时试用体验',
-    features: ['限时体验', '功能完整', '免费试用'],
-    category: 'trial'
-  }
-} as const;
+};
 
-/**
- * 获取服务类型标签
- */
-export function getServiceTypeLabel(type: ServiceType): string {
-  return ServiceTypeMeta[type]?.label || type;
+export interface PlanGroup {
+  id: string;
+  name: string;
+  description: string;
+  serviceTypes: ServiceType[];
+  ipTypes: string[];
+  lineTypes: string[];
+  allowedIpTypes?: string[];
+  allowedLineTypes?: string[];
+  icon?: string;
+  color?: string;
+  recommendedFor?: string[];
 }
 
-/**
- * 获取服务类型描述
- */
-export function getServiceTypeDescription(type: ServiceType): string {
-  return ServiceTypeMeta[type]?.description || '';
-}
+export const PLAN_GROUPS: PlanGroup[] = [
+  {
+    id: 'standard',
+    name: '标准套餐',
+    description: '适合日常使用的标准服务',
+    serviceTypes: [ServiceType.STANDARD],
+    ipTypes: ['ipv4'],
+    lineTypes: ['standard'],
+  },
+  {
+    id: 'dedicated',
+    name: '专线套餐',
+    description: '低延迟高稳定的专线服务',
+    serviceTypes: [ServiceType.DEDICATED_LINE],
+    ipTypes: ['ipv4', 'ipv6'],
+    lineTypes: ['dedicated'],
+  },
+  {
+    id: 'exclusive',
+    name: '专属套餐',
+    description: '独享带宽的专属服务',
+    serviceTypes: [ServiceType.EXCLUSIVE],
+    ipTypes: ['ipv4', 'ipv6'],
+    lineTypes: ['dedicated', 'exclusive'],
+  },
+  {
+    id: 'static',
+    name: '静态住宅套餐',
+    description: '高匿名性的静态住宅IP',
+    serviceTypes: [ServiceType.STATIC_RESIDENTIAL],
+    ipTypes: ['ipv4'],
+    lineTypes: ['residential'],
+  },
+];
 
-/**
- * 获取服务类型特性列表
- */
-export function getServiceTypeFeatures(type: ServiceType): string[] {
-  return ServiceTypeMeta[type]?.features || [];
-}
-
-/**
- * 获取服务类型分类
- */
-export function getServiceTypeCategory(type: ServiceType): string {
-  return ServiceTypeMeta[type]?.category || 'other';
-}
-
-/**
- * 验证是否为有效的服务类型
- */
-export function isValidServiceType(type: string): type is ServiceType {
-  return Object.values(ServiceType).includes(type as ServiceType);
-}
-
-/**
- * 获取所有服务类型
- */
-export function getAllServiceTypes(): ServiceType[] {
-  return Object.values(ServiceType);
-}
-
-/**
- * 按分类获取服务类型
- */
-export function getServiceTypesByCategory(category: string): ServiceType[] {
-  return Object.values(ServiceType).filter(
-    type => ServiceTypeMeta[type]?.category === category
-  );
-}
-
-// 默认导出
-export default ServiceType;
+// Re-export from shared
+export * from '@shared/constants/service-type';

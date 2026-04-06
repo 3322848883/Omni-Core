@@ -91,24 +91,37 @@ export class WechatMerchantProvider implements IPaymentProvider {
       // 构建 XML 请求体
       const xmlBody = this.buildXmlBody({ ...params, sign });
 
-      // 实际实现需要调用微信支付接口
-      // const response = await fetch(`${this.gatewayUrl}/pay/unifiedorder`, {
-      //   method: 'POST',
-      //   body: xmlBody,
-      // });
+      // 调用微信支付统一下单接口
+      const response = await fetch(`${this.gatewayUrl}/pay/unifiedorder`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/xml; charset=utf-8',
+        },
+        body: xmlBody,
+      });
 
-      logger.debug('WeChat payment request:', xmlBody);
+      const responseText = await response.text();
+      logger.debug('WeChat payment response:', responseText);
 
-      // 模拟返回二维码链接
-      const qrCodeUrl = `weixin://wxpay/bizpayurl?pr=${wechatTradeNo}`;
+      // 解析响应
+      const responseData = this.parseXmlResponse(responseText);
 
-      return {
-        success: true,
-        provider: this.name,
-        orderId: request.orderId,
-        checkoutUrl: qrCodeUrl,
-        paymentIntentId: wechatTradeNo,
-      };
+      if (responseData.return_code === 'SUCCESS' && responseData.result_code === 'SUCCESS') {
+        // 统一下单成功，返回二维码链接
+        const qrCodeUrl = responseData.code_url || `weixin://wxpay/bizpayurl?pr=${wechatTradeNo}`;
+
+        return {
+          success: true,
+          provider: this.name,
+          orderId: request.orderId,
+          checkoutUrl: qrCodeUrl,
+          paymentIntentId: wechatTradeNo,
+        };
+      } else {
+        // 统一下单失败
+        logger.error('WeChat unified order failed:', responseData);
+        throw new Error(`WeChat payment failed: ${responseData.err_code_des || responseData.return_msg}`);
+      }
     } catch (error) {
       logger.error('Failed to create WeChat merchant payment:', error);
       throw error;
@@ -184,12 +197,44 @@ export class WechatMerchantProvider implements IPaymentProvider {
     try {
       // 解析微信通知数据
       const data = this.parseXmlResponse(payload);
-      const sign = data.sign || '';
+      const receivedSign = data.sign || '';
 
-      // 验证签名
-      // 实际实现需要重新生成签名并比对
-      logger.debug('Verifying WeChat webhook signature');
-      return true; // 简化实现
+      // 生成签名进行验证
+      const params: Record<string, unknown> = {};
+      for (const [key, value] of Object.entries(data)) {
+        if (key !== 'sign' && key !== 'id' && key !== 'return_code' && key !== 'return_msg') {
+          params[key] = value;
+        }
+      }
+
+      // 使用接收到的数据重新生成签名
+      const filteredParams = Object.entries(params)
+        .filter(([key, value]) => value !== '' && value !== undefined && value !== null)
+        .sort(([a], [b]) => a.localeCompare(b));
+
+      const signString = filteredParams
+        .map(([key, value]) => `${key}=${value}`)
+        .join('&');
+
+      const stringSignTemp = `${signString}&key=${this.apiKey}`;
+
+      const calculatedSign = crypto
+        .createHash('md5')
+        .update(stringSignTemp, 'utf8')
+        .digest('hex')
+        .toUpperCase();
+
+      // 比对签名
+      const isValid = calculatedSign === receivedSign;
+
+      if (!isValid) {
+        logger.warn('WeChat webhook signature verification failed', {
+          received: receivedSign,
+          calculated: calculatedSign,
+        });
+      }
+
+      return isValid;
     } catch (error) {
       logger.error('Failed to verify WeChat webhook signature:', error);
       return false;
@@ -418,15 +463,38 @@ export class WechatMerchantProvider implements IPaymentProvider {
       // 构建 XML 请求体
       const xmlBody = this.buildXmlBody({ ...params, sign });
 
-      // 实际实现需要调用微信查询接口
-      logger.debug('WeChat query request:', xmlBody);
+      // 调用微信支付订单查询接口
+      const response = await fetch(`${this.gatewayUrl}/pay/orderquery`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/xml; charset=utf-8',
+        },
+        body: xmlBody,
+      });
+
+      const responseText = await response.text();
+      logger.debug('WeChat query response:', responseText);
+
+      // 解析响应
+      const responseData = this.parseXmlResponse(responseText);
+
+      let status: PaymentStatus = 'pending';
+      if (responseData.trade_state === 'SUCCESS') {
+        status = 'succeeded';
+      } else if (responseData.trade_state === 'REFUND') {
+        status = 'refunded';
+      } else if (responseData.trade_state === 'CLOSED') {
+        status = 'cancelled';
+      } else if (responseData.trade_state === 'PAYERROR') {
+        status = 'failed';
+      }
 
       return {
         orderId: paymentId,
-        status: 'pending' as PaymentStatus,
-        amount: 0,
+        status,
+        amount: parseInt(responseData.total_fee || '0', 10) / 100,
         currency: 'CNY',
-        providerOrderId: paymentId,
+        providerOrderId: responseData.transaction_id || paymentId,
       };
     } catch (error) {
       logger.error('Failed to get WeChat payment status:', error);
@@ -445,11 +513,56 @@ export class WechatMerchantProvider implements IPaymentProvider {
   }> {
     logger.info(`Querying WeChat order status: ${outTradeNo}`);
 
-    // 实际实现需要调用微信查询接口
+    // 构建查询参数
+    const params = {
+      appid: this.appId,
+      mch_id: this.mchId,
+      nonce_str: this.generateNonceStr(),
+      out_trade_no: outTradeNo,
+    };
+
+    // 生成签名
+    const sign = this.generateSign(params);
+
+    // 构建 XML 请求体
+    const xmlBody = this.buildXmlBody({ ...params, sign });
+
+    // 调用微信支付订单查询接口
+    const response = await fetch(`${this.gatewayUrl}/pay/orderquery`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/xml; charset=utf-8',
+      },
+      body: xmlBody,
+    });
+
+    const responseText = await response.text();
+    logger.debug('WeChat order query response:', responseText);
+
+    // 解析响应
+    const responseData = this.parseXmlResponse(responseText);
+
+    let status = 'unknown';
+    let paidAt: Date | undefined;
+
+    if (responseData.trade_state === 'SUCCESS') {
+      status = 'success';
+      if (responseData.time_end) {
+        paidAt = new Date(responseData.time_end);
+      }
+    } else if (responseData.trade_state === 'REFUND') {
+      status = 'refunded';
+    } else if (responseData.trade_state === 'CLOSED') {
+      status = 'closed';
+    } else if (responseData.trade_state === 'PAYERROR') {
+      status = 'error';
+    }
+
     return {
-      tradeNo: '',
-      status: 'unknown',
-      amount: 0,
+      tradeNo: responseData.transaction_id || '',
+      status,
+      amount: parseInt(responseData.total_fee || '0', 10) / 100,
+      paidAt,
     };
   }
 }

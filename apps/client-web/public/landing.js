@@ -14,9 +14,24 @@
     particleSpeed: 0.5,
     connectionDistance: 150,
     mouseRadius: 100,
-    apiBaseUrl: 'http://localhost:3002/api/v1/client',
+    apiBaseUrl: (() => {
+      const host = window.location.hostname;
+      const port = window.location.port;
+      const protocol = window.location.protocol;
+      // 如果是通过 IP:8082 访问，API 在 IP:3002
+      if (port === '8082') {
+        return `http://${host}:3002/api/v1/client`;
+      }
+      // 其他情况使用相对路径（通过 Nginx 代理）
+      return '/api/v1/client';
+    })(),
     scrollOffset: 80
   };
+
+  // Debug: log config
+  console.log('[DEBUG] Host:', window.location.hostname);
+  console.log('[DEBUG] Port:', window.location.port);
+  console.log('[DEBUG] API Base URL:', CONFIG.apiBaseUrl);
 
   // ============================================
   // Particle Animation System
@@ -24,9 +39,17 @@
   class ParticleSystem {
     constructor(canvasId) {
       this.canvas = document.getElementById(canvasId);
-      if (!this.canvas) return;
+      if (!this.canvas) {
+        console.error('Particle canvas not found:', canvasId);
+        return;
+      }
 
       this.ctx = this.canvas.getContext('2d');
+      if (!this.ctx) {
+        console.error('Could not get 2D context for canvas');
+        return;
+      }
+
       this.particles = [];
       this.mouse = { x: null, y: null };
       this.animationId = null;
@@ -36,6 +59,7 @@
     }
 
     init() {
+      if (!this.canvas || !this.ctx) return;
       this.resize();
       this.createParticles();
       this.bindEvents();
@@ -43,12 +67,14 @@
     }
 
     resize() {
+      if (!this.canvas) return;
       // For global canvas, use window dimensions
       this.canvas.width = window.innerWidth;
       this.canvas.height = window.innerHeight;
     }
 
     createParticles() {
+      if (!this.canvas) return;
       this.particles = [];
       for (let i = 0; i < CONFIG.particleCount; i++) {
         this.particles.push({
@@ -68,12 +94,15 @@
     }
 
     bindEvents() {
+      if (!this.canvas) return;
+
       window.addEventListener('resize', () => {
         this.resize();
         this.createParticles();
       });
 
       this.canvas.addEventListener('mousemove', (e) => {
+        if (!this.canvas) return;
         const rect = this.canvas.getBoundingClientRect();
         this.mouse.x = e.clientX - rect.left;
         this.mouse.y = e.clientY - rect.top;
@@ -95,7 +124,7 @@
     }
 
     animate() {
-      if (!this.isActive) {
+      if (!this.isActive || !this.canvas || !this.ctx) {
         this.animationId = null;
         return;
       }
@@ -307,12 +336,29 @@
       const password = form.password.value;
       const remember = form.remember?.checked || false;
 
-      if (!username || !password) {
-        this.showMessage('请填写所有必填字段');
+      // 前端表单验证
+      if (!username) {
+        this.showMessage('请输入邮箱地址');
+        form.username.focus();
+        return;
+      }
+
+      if (!this.validateEmail(username)) {
+        this.showMessage('请输入有效的邮箱地址格式');
+        form.username.focus();
+        return;
+      }
+
+      if (!password) {
+        this.showMessage('请输入密码');
+        form.password.focus();
         return;
       }
 
       this.showLoading(submitBtn, true);
+
+      // Debug: log API URL
+      console.log('Login API URL:', `${CONFIG.apiBaseUrl}/auth/login`);
 
       try {
         const response = await fetch(`${CONFIG.apiBaseUrl}/auth/login`, {
@@ -321,7 +367,10 @@
           body: JSON.stringify({ email: username, password, remember })
         });
 
+        console.log('Login response status:', response.status);
+
         const data = await response.json();
+        console.log('Login response data:', data);
 
         if (response.ok && data.success) {
           // Store all auth data in localStorage to match Vue app expectations
@@ -331,50 +380,70 @@
           }
           localStorage.setItem('userInfo', JSON.stringify(data.data.user));
 
+          this.showMessage('登录成功！正在跳转...', 'success');
+
           // Notify parent window (Vue app) via postMessage
           if (window.parent && window.parent !== window) {
             window.parent.postMessage({
               type: 'LOGIN_SUCCESS',
               data: data.data
             }, '*');
-            this.showMessage('登录成功！正在跳转...', 'success');
+            // Also try direct navigation after short delay as fallback
+            setTimeout(() => {
+              if (window.top && window.top !== window) {
+                window.top.location.href = '/app';
+              }
+            }, 500);
           } else {
             // Standalone mode - redirect directly
-            this.showMessage('登录成功！正在跳转...', 'success');
             setTimeout(() => {
               window.location.href = '/app';
-            }, 1000);
+            }, 500);
           }
         } else {
-          this.showMessage(data.message || '登录失败，请检查用户名和密码');
+          // 根据错误类型显示友好的错误信息
+          const errorMessage = this.getLoginErrorMessage(data.code, data.message);
+          this.showMessage(errorMessage);
         }
       } catch (error) {
         console.error('Login error:', error);
-        // Demo mode - simulate successful login
-        this.showMessage('演示模式：登录成功！', 'success');
-        setTimeout(() => {
-          if (window.parent && window.parent !== window) {
-            window.parent.postMessage({
-              type: 'LOGIN_SUCCESS',
-              data: {
-                tokens: {
-                  accessToken: 'demo_token',
-                  refreshToken: 'demo_refresh_token'
-                },
-                user: {
-                  id: 'demo_user',
-                  email: 'demo@example.com',
-                  username: 'Demo User'
-                }
-              }
-            }, '*');
-          } else {
-            window.location.href = '/app';
-          }
-        }, 1000);
+        // 网络错误细分
+        if (!navigator.onLine) {
+          this.showMessage('网络连接已断开，请检查网络设置');
+        } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+          this.showMessage('无法连接到服务器，请稍后重试');
+        } else {
+          this.showMessage('服务器繁忙，请稍后重试');
+        }
       } finally {
         this.showLoading(submitBtn, false);
       }
+    }
+
+    /**
+     * 获取登录错误提示信息
+     */
+    getLoginErrorMessage(code, message) {
+      // 根据后端错误码或消息映射用户友好的提示
+      if (message?.includes('Invalid credentials') || message?.includes('credentials')) {
+        return '邮箱或密码错误，请重新输入';
+      }
+      if (message?.includes('not active') || message?.includes('Account is not active')) {
+        return '账号已被禁用，请联系客服';
+      }
+      if (message?.includes('locked') || message?.includes('suspended')) {
+        return '账号已被锁定，请稍后再试或联系客服';
+      }
+      if (code === 429 || message?.includes('rate limit') || message?.includes('too many')) {
+        return '登录尝试次数过多，请稍后再试';
+      }
+      if (code === 400) {
+        return '请求参数错误，请检查输入信息';
+      }
+      if (code === 500) {
+        return '服务器内部错误，请稍后重试';
+      }
+      return message || '登录失败，请检查邮箱和密码';
     }
 
     async handleRegister(event) {
@@ -389,34 +458,64 @@
       const inviteCode = form.inviteCode?.value.trim() || '';
       const agree = form.agree?.checked || false;
 
-      // Validation
-      if (!email || !username || !password || !confirmPassword) {
-        this.showMessage('请填写所有必填字段');
+      // 前端表单验证 - 逐个字段检查并聚焦
+      if (!email) {
+        this.showMessage('请输入邮箱地址');
+        form.email.focus();
         return;
       }
 
       if (!this.validateEmail(email)) {
-        this.showMessage('请输入有效的邮箱地址');
+        this.showMessage('请输入有效的邮箱地址格式，如：example@qq.com');
+        form.email.focus();
+        return;
+      }
+
+      if (!username) {
+        this.showMessage('请输入用户名');
+        form.username.focus();
+        return;
+      }
+
+      if (username.length < 3 || username.length > 20) {
+        this.showMessage('用户名长度需在3-20个字符之间');
+        form.username.focus();
+        return;
+      }
+
+      if (!password) {
+        this.showMessage('请设置登录密码');
+        form.password.focus();
         return;
       }
 
       if (password.length < 8 || password.length > 32) {
         this.showMessage('密码长度需在8-32位之间');
+        form.password.focus();
         return;
       }
 
       if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(password)) {
-        this.showMessage('密码需包含大小写字母和数字');
+        this.showMessage('密码需同时包含大写字母、小写字母和数字');
+        form.password.focus();
+        return;
+      }
+
+      if (!confirmPassword) {
+        this.showMessage('请再次输入密码以确认');
+        form.confirmPassword.focus();
         return;
       }
 
       if (password !== confirmPassword) {
-        this.showMessage('两次输入的密码不一致');
+        this.showMessage('两次输入的密码不一致，请重新输入');
+        form.confirmPassword.value = '';
+        form.confirmPassword.focus();
         return;
       }
 
       if (!agree) {
-        this.showMessage('请阅读并同意服务条款');
+        this.showMessage('请阅读并同意服务条款和隐私政策');
         return;
       }
 
@@ -439,25 +538,59 @@
         const data = await response.json();
 
         if (response.ok && data.success) {
-          this.showMessage('注册成功！请登录', 'success');
+          this.showMessage('🎉 注册成功！正在跳转到登录页面...', 'success');
 
           // Switch to login form
           setTimeout(() => {
             switchAuthForm('login');
           }, 1500);
         } else {
-          this.showMessage(data.message || '注册失败，请稍后重试');
+          // 根据错误类型显示友好的错误信息
+          const errorMessage = this.getRegisterErrorMessage(data.code, data.message);
+          this.showMessage(errorMessage);
         }
       } catch (error) {
         console.error('Register error:', error);
-        // Demo mode - simulate successful registration
-        this.showMessage('演示模式：注册成功！', 'success');
-        setTimeout(() => {
-          switchAuthForm('login');
-        }, 1500);
+        // 网络错误细分
+        if (!navigator.onLine) {
+          this.showMessage('网络连接已断开，请检查网络设置');
+        } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+          this.showMessage('无法连接到服务器，请稍后重试');
+        } else {
+          this.showMessage('服务器繁忙，请稍后重试');
+        }
       } finally {
         this.showLoading(submitBtn, false);
       }
+    }
+
+    /**
+     * 获取注册错误提示信息
+     */
+    getRegisterErrorMessage(code, message) {
+      // 根据后端错误码或消息映射用户友好的提示
+      if (message?.includes('Email already registered') || message?.includes('already exists')) {
+        return '该邮箱已被注册，请直接登录或找回密码';
+      }
+      if (message?.includes('Username already taken') || message?.includes('username exists')) {
+        return '该用户名已被使用，请更换其他用户名';
+      }
+      if (message?.includes('Invalid invite code') || message?.includes('invite')) {
+        return '邀请码无效或已过期，请检查输入';
+      }
+      if (message?.includes('password') && message?.includes('match')) {
+        return '两次输入的密码不一致';
+      }
+      if (code === 400) {
+        return '注册信息填写有误，请检查各项输入';
+      }
+      if (code === 429) {
+        return '注册请求过于频繁，请稍后再试';
+      }
+      if (code === 500) {
+        return '服务器内部错误，请稍后重试';
+      }
+      return message || '注册失败，请检查信息后重试';
     }
   }
 
@@ -578,14 +711,31 @@
   // Initialize
   // ============================================
   document.addEventListener('DOMContentLoaded', function() {
+    console.log('Landing page initializing...');
+
     // Initialize particle system
-    const particleSystem = new ParticleSystem('particle-canvas');
+    try {
+      window.particleSystem = new ParticleSystem('particle-canvas');
+      console.log('Particle system initialized');
+    } catch (error) {
+      console.error('Failed to initialize particle system:', error);
+    }
 
     // Initialize scroll animations
-    new ScrollAnimations();
+    try {
+      new ScrollAnimations();
+      console.log('Scroll animations initialized');
+    } catch (error) {
+      console.error('Failed to initialize scroll animations:', error);
+    }
 
     // Initialize navigation
-    new Navigation();
+    try {
+      new Navigation();
+      console.log('Navigation initialized');
+    } catch (error) {
+      console.error('Failed to initialize navigation:', error);
+    }
 
     // Check URL hash for auth form
     const hash = window.location.hash.slice(1);

@@ -1,4 +1,6 @@
 import db from '@/config/database';
+import http from 'http';
+import https from 'https';
 import { Node, NodeConnectionConfig, ConnectionTestResult, IpType, LineType } from '@/types/user';
 import { NotFoundError, ForbiddenError } from '@/errors/AppError';
 import logger from '@/utils/logger';
@@ -440,28 +442,74 @@ export class NodeService {
    * @returns 是否可达
    */
   private async checkNodeReachability(node: Node): Promise<boolean> {
-    // 简化实现：根据节点健康分数判断
-    // 实际生产环境应该实现真实的网络探测
     if (node.status !== 'active') {
       return false;
     }
 
-    if (node.healthScore < 30) {
+    try {
+      const result = await this.performRealConnectionTest(node);
+      return result.reachable;
+    } catch (error) {
+      logger.warn(`Node ${node.id} reachability check failed:`, error);
       return false;
     }
-
-    // 模拟网络延迟测试
-    await this.simulateNetworkDelay();
-
-    return true;
   }
 
   /**
-   * 模拟网络延迟
+   * 执行真实的网络连接测试
    */
-  private async simulateNetworkDelay(): Promise<void> {
+  private async performRealConnectionTest(node: Node): Promise<{
+    reachable: boolean;
+    latency: number;
+    error?: string;
+  }> {
     return new Promise((resolve) => {
-      setTimeout(resolve, Math.random() * 100 + 50);
+      const startTime = Date.now();
+      const timeout = 5000;
+
+      // Parse node address and port
+      const address = node.host;
+      const port = node.port || 443;
+
+      const options = {
+        hostname: address,
+        port: port,
+        path: '/',
+        method: 'HEAD',
+        timeout: timeout,
+      };
+
+      // Determine protocol based on node protocol or port
+      const useTls = node.port === 443 || node.protocol?.toLowerCase().includes('tls') || node.protocol?.toLowerCase().includes('reality');
+      const protocol = useTls ? https : http;
+
+      const req = protocol.request(options, (res) => {
+        const latency = Date.now() - startTime;
+        resolve({
+          reachable: res.statusCode !== undefined && res.statusCode < 500,
+          latency,
+        });
+      });
+
+      req.on('error', (error) => {
+        const latency = Date.now() - startTime;
+        resolve({
+          reachable: false,
+          latency,
+          error: error.message,
+        });
+      });
+
+      req.on('timeout', () => {
+        req.destroy();
+        resolve({
+          reachable: false,
+          latency: timeout,
+          error: 'Connection timeout',
+        });
+      });
+
+      req.end();
     });
   }
 }

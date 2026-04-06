@@ -2,12 +2,16 @@
 
 export interface User {
   id: string;
+  userId: string;
   email: string;
-  username: string;
+  username: string | null;
   avatar?: string;
-  role: 'user' | 'vip' | 'admin';
-  status: 'active' | 'inactive' | 'banned';
+  role: string;
+  status: number | string;
+  emailVerified: boolean;
+  twoFactorEnabled: boolean;
   createdAt: string;
+  updatedAt: string;
   lastLoginAt?: string;
 }
 

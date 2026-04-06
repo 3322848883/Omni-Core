@@ -4,7 +4,7 @@
  * 用于套餐服务体系升级
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PRESET_ISPS = exports.LineTypeMeta = exports.LineType = exports.IpTypeMeta = exports.IpType = void 0;
+exports.PRESET_ISPS = exports.LineTypeMeta = exports.LineType = exports.IpTypeMeta = exports.IpType = exports.RotationStrategy = void 0;
 exports.getIpTypeLabel = getIpTypeLabel;
 exports.getIpTypeDescription = getIpTypeDescription;
 exports.getIpTypePriceMultiplier = getIpTypePriceMultiplier;
@@ -17,6 +17,19 @@ exports.getAllIpTypes = getAllIpTypes;
 exports.getAllLineTypes = getAllLineTypes;
 exports.getISPById = getISPById;
 exports.getISPsByCountry = getISPsByCountry;
+// Rotation Strategy Enum
+var RotationStrategy;
+(function (RotationStrategy) {
+    RotationStrategy["FIXED"] = "fixed";
+    RotationStrategy["DAILY"] = "daily";
+    RotationStrategy["WEEKLY"] = "weekly";
+    RotationStrategy["MONTHLY"] = "monthly";
+    RotationStrategy["ON_DEMAND"] = "on_demand";
+    RotationStrategy["ROUND_ROBIN"] = "round_robin";
+    RotationStrategy["RANDOM"] = "random";
+    RotationStrategy["LEAST_USED"] = "least_used";
+    RotationStrategy["QUALITY_FIRST"] = "quality_first";
+})(RotationStrategy || (exports.RotationStrategy = RotationStrategy = {}));
 /**
  * IP类型枚举
  */
@@ -119,12 +132,12 @@ exports.LineTypeMeta = {
  * 预设ISP列表
  */
 exports.PRESET_ISPS = [
-    { id: 'starlink', name: 'Starlink', country: 'US', type: 'starlink', reputation: 95, features: ['卫星网络', '全球覆盖'] },
-    { id: 'comcast', name: 'Comcast', country: 'US', type: 'cable', reputation: 90, features: ['美国最大有线运营商'] },
-    { id: 'att', name: 'AT&T', country: 'US', type: 'fiber', reputation: 92, features: ['光纤网络'] },
-    { id: 'verizon', name: 'Verizon', country: 'US', type: 'fiber', reputation: 93, features: ['企业级服务'] },
-    { id: 'ucom', name: 'Ucom', country: 'JP', type: 'fiber', reputation: 88, features: ['日本本土运营商'] },
-    { id: 'ntt', name: 'NTT', country: 'JP', type: 'fiber', reputation: 94, features: ['日本最大运营商'] }
+    { id: 'starlink', name: 'Starlink', displayName: 'Starlink', country: 'US', type: 'starlink', reputation: 95, features: ['卫星网络', '全球覆盖'] },
+    { id: 'comcast', name: 'Comcast', displayName: 'Comcast', country: 'US', type: 'cable', reputation: 90, features: ['美国最大有线运营商'] },
+    { id: 'att', name: 'AT&T', displayName: 'AT&T', country: 'US', type: 'fiber', reputation: 92, features: ['光纤网络'] },
+    { id: 'verizon', name: 'Verizon', displayName: 'Verizon', country: 'US', type: 'fiber', reputation: 93, features: ['企业级服务'] },
+    { id: 'ucom', name: 'Ucom', displayName: 'Ucom', country: 'JP', type: 'fiber', reputation: 88, features: ['日本本土运营商'] },
+    { id: 'ntt', name: 'NTT', displayName: 'NTT', country: 'JP', type: 'fiber', reputation: 94, features: ['日本最大运营商'] }
 ];
 /**
  * 获取IP类型标签

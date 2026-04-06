@@ -1,13 +1,29 @@
 <template>
-  <router-view v-slot="{ Component }">
+  <router-view v-slot="{ Component, route }">
     <transition name="fade" mode="out-in">
-      <component :is="Component" />
+      <!-- Landing page doesn't use animated background -->
+      <template v-if="isLandingPage">
+        <component :is="Component" :key="route.path" />
+      </template>
+      <!-- Other pages use animated background -->
+      <AnimatedBackground v-else :key="route.path">
+        <component :is="Component" />
+      </AnimatedBackground>
     </transition>
   </router-view>
 </template>
 
 <script setup lang="ts">
-// App root component
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import AnimatedBackground from '@/components/common/AnimatedBackground.vue';
+
+const route = useRoute();
+
+// Check if current route is landing page
+const isLandingPage = computed(() => {
+  return route.path === '/' || route.name === 'landing';
+});
 </script>
 
 <style>

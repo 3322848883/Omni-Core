@@ -1,8 +1,12 @@
 import type { Knex } from 'knex';
 import dotenv from 'dotenv';
-import path from 'path';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 
-dotenv.config({ path: path.resolve(__dirname, '.env.production') });
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+dotenv.config({ path: resolve(__dirname, '.env.production') });
 
 const config: { [key: string]: Knex.Config } = {
   production: {

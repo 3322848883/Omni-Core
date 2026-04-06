@@ -20,10 +20,11 @@ export interface OrderStats {
 }
 
 // Get user orders
-export function getOrderList(
+export async function getOrderList(
   params?: OrderListParams
 ): Promise<PaginationResult<Order>> {
-  return request.get('/orders', { params });
+  // request.get already unwraps the response, returns data directly
+  return await request.get<PaginationResult<Order>>('/orders', { params });
 }
 
 // Get order by ID
@@ -45,13 +46,13 @@ export function payOrder(
 }
 
 // Cancel order
-export function cancelOrder(orderId: string, reason?: string): Promise<void> {
-  return request.post(`/orders/${orderId}/cancel`, { reason });
+export async function cancelOrder(orderId: string, reason?: string): Promise<void> {
+  await request.post(`/orders/${orderId}/cancel`, { reason });
 }
 
 // Get payment info
-export function getPaymentInfo(orderId: string): Promise<PaymentInfo> {
-  return request.get(`/orders/${orderId}/payment`);
+export async function getPaymentInfo(orderId: string): Promise<PaymentInfo> {
+  return await request.get<PaymentInfo>(`/orders/${orderId}/payment`);
 }
 
 // Verify payment
@@ -60,6 +61,6 @@ export function verifyPayment(orderId: string): Promise<void> {
 }
 
 // Get order statistics
-export function getOrderStats(): Promise<OrderStats> {
-  return request.get('/orders/stats');
+export async function getOrderStats(): Promise<OrderStats> {
+  return await request.get<OrderStats>('/orders/stats');
 }

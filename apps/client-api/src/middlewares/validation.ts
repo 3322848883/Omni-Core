@@ -62,7 +62,7 @@ export const ValidationRules = {
 
   // 支付方式验证
   paymentMethod: {
-    values: ['stripe', 'paypal', 'alipay', 'wechat', 'alipay_merchant', 'wechat_merchant'],
+    values: ['stripe', 'paypal', 'alipay', 'wechat', 'alipay_merchant', 'wechat_merchant', 'alipay_personal', 'wechat_personal'],
     message: '无效的支付方式',
   },
 
@@ -448,6 +448,11 @@ export const OrderValidation = {
         type: 'string',
         values: ValidationRules.paymentMethod.values,
         message: ValidationRules.paymentMethod.message,
+      },
+      qrCodeId: {
+        type: 'string',
+        min: 1,
+        max: 100,
       },
     },
   } as ValidationSchema,

@@ -78,7 +78,277 @@ router.get('/', authMiddleware, async (req: Request, res: Response, next: NextFu
   }
 });
 
-// GET /api/v1/invites/:id - Get invite code by ID
+// GET /api/v1/invites/records - Get invite usage records (MUST be before /:id)
+router.get('/records', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = (page - 1) * limit;
+
+    const [countResult] = await db('invite_usage_history').count('* as count');
+    const total = parseInt(countResult.count as string);
+
+    const records = await db('invite_usage_history')
+      .join('invite_codes', 'invite_usage_history.invite_code_id', 'invite_codes.id')
+      .select(
+        'invite_usage_history.*',
+        'invite_codes.code as invite_code'
+      )
+      .orderBy('invite_usage_history.created_at', 'desc')
+      .limit(limit)
+      .offset(offset);
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: {
+        items: records.map(record => ({
+          id: record.id,
+          inviteCode: record.invite_code,
+          inviterName: record.created_by || 'System',
+          inviteeName: record.used_by,
+          rewardDays: record.days_reward || 0,
+          rewardTraffic: record.traffic_reward || 0,
+          status: record.reward_given ? 2 : 1,
+          createdAt: record.created_at,
+          completedAt: record.reward_given ? record.created_at : null
+        })),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+          hasNext: page * limit < total,
+          hasPrev: page > 1
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/v1/invites/stats - Get invite stats (for dashboard) (MUST be before /:id)
+router.get('/stats', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const totalCodes = await db('invite_codes').count('* as count').first();
+    const activeCodes = await db('invite_codes').where('status', 'active').count('* as count').first();
+    const totalUses = await db('invite_usage_history').count('* as count').first();
+
+    // Calculate total reward days and traffic
+    const rewards = await db('invite_codes')
+      .select(
+        db.raw('SUM(days_reward) as total_days'),
+        db.raw('SUM(traffic_reward) as total_traffic')
+      )
+      .first();
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: {
+        totalCodes: parseInt(totalCodes?.count as string) || 0,
+        activeCodes: parseInt(activeCodes?.count as string) || 0,
+        totalUses: parseInt(totalUses?.count as string) || 0,
+        totalRewardDays: parseInt(rewards?.total_days as string) || 0,
+        totalRewardTraffic: parseInt(rewards?.total_traffic as string) || 0
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/v1/invites/stats/overview - Get invite statistics (MUST be before /:id)
+router.get('/stats/overview', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const totalCodes = await db('invite_codes').count('* as count').first();
+    const activeCodes = await db('invite_codes').where('status', 'active').count('* as count').first();
+    const usedCodes = await db('invite_codes').where('status', 'used').count('* as count').first();
+    const disabledCodes = await db('invite_codes').where('status', 'disabled').count('* as count').first();
+    const expiredCodes = await db('invite_codes').where('status', 'expired').count('* as count').first();
+
+    const totalUses = await db('invite_usage_history').count('* as count').first();
+
+    // Recent usage
+    const recentUsage = await db('invite_usage_history')
+      .orderBy('created_at', 'desc')
+      .limit(10)
+      .select('*');
+
+    // Top inviters
+    const topInviters = await db('invite_codes')
+      .whereNotNull('used_by')
+      .select('created_by')
+      .count('* as count')
+      .groupBy('created_by')
+      .orderBy('count', 'desc')
+      .limit(10);
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: {
+        total: parseInt(totalCodes?.count as string) || 0,
+        active: parseInt(activeCodes?.count as string) || 0,
+        used: parseInt(usedCodes?.count as string) || 0,
+        disabled: parseInt(disabledCodes?.count as string) || 0,
+        expired: parseInt(expiredCodes?.count as string) || 0,
+        totalUses: parseInt(totalUses?.count as string) || 0,
+        recentUsage: recentUsage.map(u => ({
+          inviteCodeId: u.invite_code_id,
+          usedBy: u.used_by,
+          usedAt: u.created_at,
+          rewardGiven: u.reward_given
+        })),
+        topInviters: topInviters.map(i => ({
+          username: i.created_by,
+          inviteCount: parseInt(i.count as string)
+        }))
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/v1/invites/validate - Validate and use invite code (MUST be before /:id)
+router.post('/validate', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { code, userId } = req.body;
+
+    if (!code || !userId) {
+      throw new ValidationError([
+        { field: 'code', message: 'Invite code is required' },
+        { field: 'userId', message: 'User ID is required' }
+      ]);
+    }
+
+    const invite = await db('invite_codes')
+      .where('code', code)
+      .first();
+
+    if (!invite) {
+      throw new NotFoundError('Invite code', code);
+    }
+
+    // Check if code is active
+    if (invite.status === 'used' && invite.used_count >= invite.max_uses) {
+      throw new ValidationError([
+        { field: 'code', message: 'Invite code has been fully used' }
+      ]);
+    }
+
+    if (invite.status === 'disabled') {
+      throw new ValidationError([
+        { field: 'code', message: 'Invite code has been disabled' }
+      ]);
+    }
+
+    if (invite.status === 'expired' || (invite.expire_at && new Date(invite.expire_at) < new Date())) {
+      throw new ValidationError([
+        { field: 'code', message: 'Invite code has expired' }
+      ]);
+    }
+
+    // Check if user has already used this code
+    const existingUsage = await db('invite_usage_history')
+      .where({
+        invite_code_id: invite.id,
+        used_by: userId
+      })
+      .first();
+
+    if (existingUsage) {
+      throw new ValidationError([
+        { field: 'code', message: 'You have already used this invite code' }
+      ]);
+    }
+
+    // Record usage
+    await db('invite_usage_history').insert({
+      invite_code_id: invite.id,
+      used_by: userId,
+      reward_given: true
+    });
+
+    // Update invite code
+    const newUsedCount = (invite.used_count || 0) + 1;
+    const newStatus = newUsedCount >= invite.max_uses ? 'used' : 'active';
+
+    await db('invite_codes')
+      .where('id', invite.id)
+      .update({
+        used_count: newUsedCount,
+        used_by: newStatus === 'used' ? userId : invite.used_by,
+        used_at: new Date(),
+        status: newStatus,
+        updated_at: new Date()
+      });
+
+    // Apply rewards to user
+    const user = await db('users').where('user_id', userId).first();
+    if (user) {
+      const updateData: any = {
+        updated_at: new Date()
+      };
+
+      if (invite.traffic_reward > 0) {
+        updateData.traffic_limit = (user.traffic_limit || 0) + invite.traffic_reward;
+      }
+
+      if (invite.days_reward > 0) {
+        const currentExpire = user.expire_date ? new Date(user.expire_date) : new Date();
+        if (currentExpire < new Date()) {
+          currentExpire.setTime(new Date().getTime());
+        }
+        currentExpire.setDate(currentExpire.getDate() + invite.days_reward);
+        updateData.expire_date = currentExpire;
+      }
+
+      await db('users')
+        .where('user_id', userId)
+        .update(updateData);
+    }
+
+    // Reward the inviter
+    if (invite.created_by) {
+      const inviter = await db('users')
+        .where('username', invite.created_by)
+        .orWhere('user_id', invite.created_by)
+        .first();
+
+      if (inviter) {
+        await db('users')
+          .where('user_id', inviter.user_id)
+          .update({
+            traffic_limit: (inviter.traffic_limit || 0) + 1073741824, // 1GB reward
+            updated_at: new Date()
+          });
+      }
+    }
+
+    logger.info(`Invite code ${code} used by ${userId}`);
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'Invite code applied successfully',
+      data: {
+        trafficReward: invite.traffic_reward,
+        daysReward: invite.days_reward,
+        remainingUses: invite.max_uses - newUsedCount
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/v1/invites/:id - Get invite code by ID (MUST be after all specific routes)
 router.get('/:id', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
@@ -217,6 +487,38 @@ router.delete('/:id', authMiddleware, async (req: Request, res: Response, next: 
   }
 });
 
+// POST /api/v1/invites/:id/enable - Enable invite code
+router.post('/:id/enable', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    const invite = await db('invite_codes')
+      .where('id', id)
+      .first();
+
+    if (!invite) {
+      throw new NotFoundError('Invite code', id);
+    }
+
+    await db('invite_codes')
+      .where('id', id)
+      .update({
+        status: 'active',
+        updated_at: new Date()
+      });
+
+    logger.info(`Invite code enabled: ${invite.code} by ${req.user?.username || 'system'}`);
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'Invite code enabled successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // POST /api/v1/invites/:id/disable - Disable invite code
 router.post('/:id/disable', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -243,193 +545,6 @@ router.post('/:id/disable', authMiddleware, async (req: Request, res: Response, 
       success: true,
       code: 200,
       message: 'Invite code disabled successfully'
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// GET /api/v1/invites/stats/overview - Get invite statistics
-router.get('/stats/overview', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const totalCodes = await db('invite_codes').count('* as count').first();
-    const activeCodes = await db('invite_codes').where('status', 'active').count('* as count').first();
-    const usedCodes = await db('invite_codes').where('status', 'used').count('* as count').first();
-    const disabledCodes = await db('invite_codes').where('status', 'disabled').count('* as count').first();
-    const expiredCodes = await db('invite_codes').where('status', 'expired').count('* as count').first();
-
-    const totalUses = await db('invite_usage_history').count('* as count').first();
-
-    // Recent usage
-    const recentUsage = await db('invite_usage_history')
-      .orderBy('created_at', 'desc')
-      .limit(10)
-      .select('*');
-
-    // Top inviters
-    const topInviters = await db('invite_codes')
-      .whereNotNull('used_by')
-      .select('created_by')
-      .count('* as count')
-      .groupBy('created_by')
-      .orderBy('count', 'desc')
-      .limit(10);
-
-    res.json({
-      success: true,
-      code: 200,
-      message: 'success',
-      data: {
-        total: parseInt(totalCodes?.count as string) || 0,
-        active: parseInt(activeCodes?.count as string) || 0,
-        used: parseInt(usedCodes?.count as string) || 0,
-        disabled: parseInt(disabledCodes?.count as string) || 0,
-        expired: parseInt(expiredCodes?.count as string) || 0,
-        totalUses: parseInt(totalUses?.count as string) || 0,
-        recentUsage: recentUsage.map(u => ({
-          inviteCodeId: u.invite_code_id,
-          usedBy: u.used_by,
-          usedAt: u.created_at,
-          rewardGiven: u.reward_given
-        })),
-        topInviters: topInviters.map(i => ({
-          username: i.created_by,
-          inviteCount: parseInt(i.count as string)
-        }))
-      }
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// POST /api/v1/invites/validate - Validate and use invite code
-router.post('/validate', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { code, userId } = req.body;
-
-    if (!code || !userId) {
-      throw new ValidationError([
-        { field: 'code', message: 'Invite code is required' },
-        { field: 'userId', message: 'User ID is required' }
-      ]);
-    }
-
-    const invite = await db('invite_codes')
-      .where('code', code)
-      .first();
-
-    if (!invite) {
-      throw new NotFoundError('Invite code', code);
-    }
-
-    // Check if code is active
-    if (invite.status === 'used' && invite.used_count >= invite.max_uses) {
-      throw new ValidationError([
-        { field: 'code', message: 'Invite code has been fully used' }
-      ]);
-    }
-
-    if (invite.status === 'disabled') {
-      throw new ValidationError([
-        { field: 'code', message: 'Invite code has been disabled' }
-      ]);
-    }
-
-    if (invite.status === 'expired' || (invite.expire_at && new Date(invite.expire_at) < new Date())) {
-      throw new ValidationError([
-        { field: 'code', message: 'Invite code has expired' }
-      ]);
-    }
-
-    // Check if user has already used this code
-    const existingUsage = await db('invite_usage_history')
-      .where({
-        invite_code_id: invite.id,
-        used_by: userId
-      })
-      .first();
-
-    if (existingUsage) {
-      throw new ValidationError([
-        { field: 'code', message: 'You have already used this invite code' }
-      ]);
-    }
-
-    // Record usage
-    await db('invite_usage_history').insert({
-      invite_code_id: invite.id,
-      used_by: userId,
-      reward_given: true
-    });
-
-    // Update invite code
-    const newUsedCount = (invite.used_count || 0) + 1;
-    const newStatus = newUsedCount >= invite.max_uses ? 'used' : 'active';
-
-    await db('invite_codes')
-      .where('id', invite.id)
-      .update({
-        used_count: newUsedCount,
-        used_by: newStatus === 'used' ? userId : invite.used_by,
-        used_at: new Date(),
-        status: newStatus,
-        updated_at: new Date()
-      });
-
-    // Apply rewards to user
-    const user = await db('users').where('user_id', userId).first();
-    if (user) {
-      const updateData: any = {
-        updated_at: new Date()
-      };
-
-      if (invite.traffic_reward > 0) {
-        updateData.traffic_limit = (user.traffic_limit || 0) + invite.traffic_reward;
-      }
-
-      if (invite.days_reward > 0) {
-        const currentExpire = user.expire_date ? new Date(user.expire_date) : new Date();
-        if (currentExpire < new Date()) {
-          currentExpire.setTime(new Date().getTime());
-        }
-        currentExpire.setDate(currentExpire.getDate() + invite.days_reward);
-        updateData.expire_date = currentExpire;
-      }
-
-      await db('users')
-        .where('user_id', userId)
-        .update(updateData);
-    }
-
-    // Reward the inviter
-    if (invite.created_by) {
-      const inviter = await db('users')
-        .where('username', invite.created_by)
-        .orWhere('user_id', invite.created_by)
-        .first();
-
-      if (inviter) {
-        await db('users')
-          .where('user_id', inviter.user_id)
-          .update({
-            traffic_limit: (inviter.traffic_limit || 0) + 1073741824, // 1GB reward
-            updated_at: new Date()
-          });
-      }
-    }
-
-    logger.info(`Invite code ${code} used by ${userId}`);
-
-    res.json({
-      success: true,
-      code: 200,
-      message: 'Invite code applied successfully',
-      data: {
-        trafficReward: invite.traffic_reward,
-        daysReward: invite.days_reward,
-        remainingUses: invite.max_uses - newUsedCount
-      }
     });
   } catch (error) {
     next(error);

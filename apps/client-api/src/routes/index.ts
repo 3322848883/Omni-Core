@@ -9,6 +9,7 @@ import inviteRoutes from './invites';
 import { xrayRoutes } from './xray';
 import devicesRoutes from './devices';
 import siteConfigRoutes from './site-config';
+import paymentQrCodesRoutes from './payment-qrcodes';
 
 const router = Router();
 
@@ -25,6 +26,7 @@ router.use('/nodes', nodeRoutes);
 router.use('/traffic', trafficRoutes);
 router.use('/orders', orderRoutes);
 router.use('/invites', inviteRoutes);
+router.use('/payment-qrcodes', paymentQrCodesRoutes);
 
 // Xray routes
 router.use('/xray', xrayRoutes);

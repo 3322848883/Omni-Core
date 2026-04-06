@@ -109,11 +109,28 @@
             </el-form-item>
             <el-form-item label="支付方式">
               <el-checkbox-group v-model="settings.paymentMethods">
-                <el-checkbox label="alipay">支付宝</el-checkbox>
-                <el-checkbox label="wechat">微信支付</el-checkbox>
-                <el-checkbox label="paypal">PayPal</el-checkbox>
-                <el-checkbox label="credit_card">信用卡</el-checkbox>
+                <el-checkbox label="alipay" value="alipay">支付宝</el-checkbox>
+                <el-checkbox label="wechat" value="wechat">微信支付</el-checkbox>
+                <el-checkbox label="paypal" value="paypal">PayPal</el-checkbox>
+                <el-checkbox label="credit_card" value="credit_card">信用卡</el-checkbox>
+                <el-checkbox label="wechat_personal" value="wechat_personal">微信收款码</el-checkbox>
+                <el-checkbox label="alipay_personal" value="alipay_personal">支付宝收款码</el-checkbox>
               </el-checkbox-group>
+            </el-form-item>
+            <el-divider />
+            <el-form-item>
+              <el-button type="primary" @click="$router.push('/payment/qrcodes')">
+                <el-icon><Picture /></el-icon>
+                管理收款码
+              </el-button>
+              <span class="form-tip">配置个人微信/支付宝收款码</span>
+            </el-form-item>
+            <el-form-item>
+              <el-button type="success" @click="$router.push('/orders/pending-confirmation')">
+                <el-icon><CircleCheck /></el-icon>
+                待确认订单
+              </el-button>
+              <span class="form-tip">查看和处理用户付款凭证</span>
             </el-form-item>
           </el-form>
 
@@ -211,7 +228,7 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { Setting, User, Money, Lock, DataLine, Message, More } from '@element-plus/icons-vue';
+import { Setting, User, Money, Lock, DataLine, Message, More, Picture, CircleCheck } from '@element-plus/icons-vue';
 import { getSettings, updateSettings, resetSettings, sendTestEmail } from '@api/settings';
 import type { SystemSettings } from '../../types/setting';
 

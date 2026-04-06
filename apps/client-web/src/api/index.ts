@@ -6,3 +6,4 @@ export * as subscription from './subscription';
 export * as order from './orders';
 export * as traffic from './traffic';
 export * as invite from './invite';
+export * as payment from './payment';

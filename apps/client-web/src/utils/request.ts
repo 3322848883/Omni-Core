@@ -90,8 +90,18 @@ instance.interceptors.request.use(
     }
 
     // 添加认证 Token
-    const authStore = useAuthStore();
-    const token = authStore.token;
+    // Try to get token from authStore first, fallback to localStorage
+    let token = '';
+    try {
+      const authStore = useAuthStore();
+      token = authStore.token;
+    } catch (e) {
+      // Store not initialized yet
+    }
+    // Fallback to localStorage if store token is empty
+    if (!token && typeof window !== 'undefined') {
+      token = localStorage.getItem('token') || '';
+    }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -172,9 +182,15 @@ instance.interceptors.response.use(
 
     // 处理 Token 过期
     if (response?.status === 401) {
+      const errorMessage = (response.data as any)?.message || '';
       const errorCode = (response.data as any)?.code;
 
-      if (errorCode === 'TOKEN_EXPIRED' || errorCode === 'UNAUTHORIZED') {
+      // Check for token expiration by message or code
+      const isTokenExpired = errorMessage.toLowerCase().includes('expired') ||
+                            errorCode === 'TOKEN_EXPIRED' ||
+                            errorCode === 401;
+
+      if (isTokenExpired) {
         const authStore = useAuthStore();
 
         // 尝试刷新 Token
@@ -286,8 +302,11 @@ export const request = {
   },
 };
 
-// 导出 axios 实例
-export default instance;
+// 导出封装后的 request 对象作为默认导出
+export default request;
+
+// 导出 axios 实例（供需要直接使用 instance 的场景）
+export { instance };
 
 // 导出类型
 export type { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError };

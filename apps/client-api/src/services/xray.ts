@@ -70,12 +70,19 @@ export interface NodeConfig {
   uuid?: string;
   password?: string;
   alterId?: number;
-  security?: 'none' | 'tls' | 'xtls';
+  security?: 'none' | 'tls' | 'xtls' | 'reality';
   network?: 'tcp' | 'ws' | 'grpc' | 'kcp';
   path?: string;
   serviceName?: string;
   flow?: string;
   encryption?: string;
+  // XRAY 扩展字段
+  sni?: string;
+  allowInsecure?: boolean;
+  realityPublicKey?: string;
+  realityShortId?: string;
+  hostHeader?: string;
+  serviceType?: string;
 }
 
 // 用户配置类型

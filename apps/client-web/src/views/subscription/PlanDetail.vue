@@ -447,8 +447,8 @@ const fetchPlanDetail = async () => {
 
   loading.value = true;
   try {
-    const response = await subscriptionApi.getPlanById(planId);
-    planDetail.value = response.data;
+    const data = await subscriptionApi.getPlanById(planId);
+    planDetail.value = data;
   } catch (error) {
     ElMessage.error('获取套餐详情失败');
     console.error('Failed to fetch plan detail:', error);

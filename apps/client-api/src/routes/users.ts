@@ -91,47 +91,23 @@ router.post('/me/avatar', async (req: UploadRequest, res, next) => {
   try {
     const userId = req.user!.user_id;
 
-    // Check if file is provided
-    // Note: In a real implementation, you would use a middleware like multer
-    // to handle file uploads. This is a simplified version.
-    if (!req.body.file && !req.file) {
+    // Check if avatar data is provided
+    // Support both base64 string and file upload
+    const avatarData = req.body.avatar || req.body.file;
+
+    if (!avatarData) {
       return errorResponse(
         res,
-        'Avatar file is required',
+        'Avatar image is required',
         ERROR_CODES.VALIDATION_ERROR,
         HTTP_STATUS.BAD_REQUEST,
-        [{ field: 'file', message: 'Avatar file is required' }]
+        [{ field: 'avatar', message: 'Avatar image is required' }]
       );
     }
 
-    // Get file buffer from request
-    // If using multer, the file would be in req.file.buffer
-    // If using raw body, the file would be in req.body.file
-    const fileBuffer = req.file?.buffer || Buffer.from(req.body.file, 'base64');
-
-    if (!fileBuffer || fileBuffer.length === 0) {
-      return errorResponse(
-        res,
-        'Invalid avatar file',
-        ERROR_CODES.VALIDATION_ERROR,
-        HTTP_STATUS.BAD_REQUEST,
-        [{ field: 'file', message: 'Invalid avatar file' }]
-      );
-    }
-
-    // Validate file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB
-    if (fileBuffer.length > maxSize) {
-      return errorResponse(
-        res,
-        'Avatar file size must be less than 5MB',
-        ERROR_CODES.VALIDATION_ERROR,
-        HTTP_STATUS.BAD_REQUEST,
-        [{ field: 'file', message: 'Avatar file size must be less than 5MB' }]
-      );
-    }
-
-    const result = await userService.uploadAvatar(userId, fileBuffer);
+    // If it's a base64 string, pass directly to service
+    // Service layer handles validation and saving
+    const result = await userService.uploadAvatar(userId, avatarData);
     successResponse(res, result, 'Avatar uploaded successfully');
   } catch (error) {
     next(error);

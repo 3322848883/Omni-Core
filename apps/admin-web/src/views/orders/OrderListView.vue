@@ -60,7 +60,16 @@
       <template #header>
         <div class="card-header">
           <span>订单列表</span>
-          <el-button type="primary" @click="handleCreate">新建订单</el-button>
+          <div class="header-actions">
+            <el-button type="warning" @click="handlePendingConfirmation">
+              <el-icon class="button-icon"><Warning /></el-icon>
+              待确认订单
+              <el-tag v-if="stats.pendingOrders > 0" type="danger" size="small" class="pending-badge">
+                {{ stats.pendingOrders }}
+              </el-tag>
+            </el-button>
+            <el-button type="primary" @click="handleCreate">新建订单</el-button>
+          </div>
         </div>
       </template>
 
@@ -227,12 +236,14 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue';
+import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { ShoppingCart, Money, Calendar, Timer } from '@element-plus/icons-vue';
+import { ShoppingCart, Money, Calendar, Timer, Warning } from '@element-plus/icons-vue';
 import { getOrders, getOrderById, createOrder, updateOrder, payOrder, cancelOrder, refundOrder, getOrderStats } from '@api/orders';
 import type { Order, OrderQuery, OrderStats } from '../../types/order';
 import type { FormInstance, FormRules } from 'element-plus';
 
+const router = useRouter();
 const loading = ref(false);
 const orderList = ref<Order[]>([]);
 const total = ref(0);
@@ -445,6 +456,10 @@ const handlePageChange = (page: number) => {
   fetchOrders();
 };
 
+const handlePendingConfirmation = () => {
+  router.push('/orders/pending-confirmation');
+};
+
 onMounted(() => {
   fetchOrders();
   fetchStats();
@@ -500,6 +515,20 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+
+      .button-icon {
+        margin-right: 4px;
+      }
+
+      .pending-badge {
+        margin-left: 6px;
+      }
+    }
   }
 
   .pagination {

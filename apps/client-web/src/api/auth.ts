@@ -50,8 +50,9 @@ export interface AuthResponse {
 }
 
 // Login
-export function login(data: LoginRequest) {
-  return request.post<AuthResponse>('/auth/login', data);
+export async function login(data: LoginRequest): Promise<AuthResponse> {
+  // request.post already unwraps the response, returns data directly
+  return await request.post<AuthResponse>('/auth/login', data);
 }
 
 // Register
@@ -60,13 +61,13 @@ export function register(data: RegisterRequest) {
 }
 
 // Logout
-export function logout() {
-  return request.post('/auth/logout');
+export async function logout(): Promise<void> {
+  await request.post('/auth/logout');
 }
 
 // Get current user info
-export function getCurrentUser() {
-  return request.get<UserInfo>('/auth/me');
+export async function getCurrentUser(): Promise<UserInfo> {
+  return await request.get<UserInfo>('/auth/me');
 }
 
 // Forgot password (alias for resetPassword)
@@ -75,8 +76,8 @@ export function forgotPassword(email: string) {
 }
 
 // Reset password
-export function resetPassword(data: ResetPasswordRequest) {
-  return request.post('/auth/reset-password', data);
+export async function resetPassword(data: ResetPasswordRequest): Promise<void> {
+  await request.post('/auth/reset-password', data);
 }
 
 // Update password
@@ -85,6 +86,6 @@ export function updatePassword(data: UpdatePasswordRequest) {
 }
 
 // Refresh token
-export function refreshToken() {
-  return request.post<{ token: string }>('/auth/refresh');
+export async function refreshToken(): Promise<{ token: string }> {
+  return await request.post<{ token: string }>('/auth/refresh');
 }

@@ -1213,6 +1213,37 @@ select {
   100% { background-position: 200% 0; }
 }
 
+@keyframes border-glow {
+  0%, 100% {
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 0 5px rgba(99, 102, 241, 0.2);
+  }
+  50% {
+    border-color: rgba(99, 102, 241, 0.6);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.4), 0 0 30px rgba(236, 72, 153, 0.2);
+  }
+}
+
+@keyframes neon-flicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+  52% { opacity: 0.3; }
+  54% { opacity: 1; }
+  90% { opacity: 1; }
+  92% { opacity: 0.5; }
+  94% { opacity: 1; }
+}
+
+@keyframes scale-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+
+@keyframes rotate-gradient {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 // 动画工具类
 .animate-fade-in {
   animation: fadeIn var(--duration-normal) var(--ease-out);
@@ -1252,6 +1283,94 @@ select {
 
 .animate-float {
   animation: float 3s var(--ease-in-out) infinite;
+}
+
+.animate-border-glow {
+  animation: border-glow 2s var(--ease-in-out) infinite;
+}
+
+.animate-neon-flicker {
+  animation: neon-flicker 3s var(--ease-in-out) infinite;
+}
+
+.animate-scale-pulse {
+  animation: scale-pulse 2s var(--ease-in-out) infinite;
+}
+
+.animate-gradient-shift {
+  background-size: 200% 200%;
+  animation: gradient-shift 3s var(--ease-in-out) infinite;
+}
+
+// 悬停特效类
+.hover-lift {
+  transition: transform 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(99, 102, 241, 0.15);
+  }
+}
+
+.hover-glow {
+  transition: box-shadow 0.3s var(--ease-out);
+
+  &:hover {
+    box-shadow: 0 0 20px rgba(99, 102, 241, 0.3), 0 0 40px rgba(99, 102, 241, 0.1);
+  }
+}
+
+.hover-scale {
+  transition: transform 0.3s var(--ease-out);
+
+  &:hover {
+    transform: scale(1.05);
+  }
+}
+
+// 玻璃拟态特效
+.glass-card {
+  background: rgba(26, 26, 37, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s var(--ease-out);
+
+  &:hover {
+    background: rgba(26, 26, 37, 0.8);
+    border-color: rgba(99, 102, 241, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 30px rgba(99, 102, 241, 0.1);
+  }
+}
+
+// 霓虹边框特效
+.neon-border {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    background: linear-gradient(45deg, #6366f1, #ec4899, #6366f1);
+    background-size: 200% 200%;
+    z-index: -1;
+    animation: gradient-shift 3s var(--ease-in-out) infinite;
+    opacity: 0;
+    transition: opacity 0.3s var(--ease-out);
+  }
+
+  &:hover::before {
+    opacity: 1;
+  }
+}
+
+// 渐变文字特效
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 // 延迟动画类

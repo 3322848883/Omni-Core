@@ -74,20 +74,41 @@ function validatePrimaryServiceType(
  * 数据库记录转换为套餐对象
  */
 function dbRecordToPlan(record: any): SubscriptionPlan {
+  // 解析 features JSON 字段
+  let features: string[] = [];
+  try {
+    if (record.features) {
+      // MySQL JSON 字段可能已经是对象或字符串
+      features = typeof record.features === 'string' ? JSON.parse(record.features) : record.features;
+    }
+  } catch (e) {
+    logger.warn(`Failed to parse features for plan ${record.id}: ${record.features}`);
+    features = [];
+  }
+
+  // 解析 settings JSON 字段
+  let settings: any = {};
+  try {
+    if (record.settings) {
+      settings = typeof record.settings === 'string' ? JSON.parse(record.settings) : record.settings;
+    }
+  } catch (e) {
+    settings = {};
+  }
+
   return {
-    id: record.id,
+    id: String(record.id),
     name: record.name,
     description: record.description || '',
-    group: record.group_id || 'standard',
-    price: record.price,
+    primaryServiceType: record.service_type || ServiceType.STANDARD,
+    allowedServiceTypes: [record.service_type || ServiceType.STANDARD],
+    trafficLimit: (record.max_traffic_gb || 0) * 1024 * 1024 * 1024, // GB to bytes
     durationDays: record.duration_days,
-    trafficLimit: record.traffic_limit,
-    serviceTypes: JSON.parse(record.service_types || '[]'),
-    primaryServiceType: record.primary_service_type || ServiceType.STANDARD,
-    priorityBoost: record.priority_boost || 0,
-    guaranteedBandwidth: record.guaranteed_bandwidth || 0,
-    maxConnections: record.max_connections || 3,
-    features: JSON.parse(record.features || '[]'),
+    price: parseFloat(record.price),
+    currency: record.currency || 'CNY',
+    features: features,
+    ipType: settings.ipType || 'shared',
+    lineType: settings.lineType || 'standard',
     isActive: record.is_active === 1 || record.is_active === true,
     sortOrder: record.sort_order || 0,
     createdAt: record.created_at,
@@ -115,7 +136,7 @@ export async function getPlans(query: PlanListQuery = {}): Promise<PlanListRespo
 
   // 应用筛选条件
   if (serviceType) {
-    dbQuery = dbQuery.where('primary_service_type', serviceType);
+    dbQuery = dbQuery.where('service_type', serviceType);
   }
 
   if (group) {
@@ -214,8 +235,12 @@ export async function createPlan(
   }
 
   // 验证服务类型
-  validateServiceTypes(data.serviceTypes);
-  validatePrimaryServiceType(data.primaryServiceType, data.serviceTypes);
+  if (!data.primaryServiceType) {
+    throw new ValidationError(
+      'Primary service type is required',
+      [{ field: 'primaryServiceType', message: 'Primary service type is required' }]
+    );
+  }
 
   // 检查名称是否已存在
   const existingPlan = await db('subscription_plans')
@@ -230,22 +255,22 @@ export async function createPlan(
   }
 
   const now = new Date();
-  const planId = generatePlanId();
 
   const insertData = {
-    id: planId,
     name: data.name.trim(),
     description: data.description || '',
-    group_id: data.group || 'standard',
     price: data.price,
+    currency: data.currency || 'CNY',
     duration_days: data.durationDays,
-    traffic_limit: data.trafficLimit,
-    service_types: JSON.stringify(data.serviceTypes),
-    primary_service_type: data.primaryServiceType,
-    priority_boost: data.priorityBoost || 0,
-    guaranteed_bandwidth: data.guaranteedBandwidth || 0,
-    max_connections: data.maxConnections || 3,
+    service_type: data.primaryServiceType,
+    group_id: data.group || 'standard',
+    max_devices: 3,
+    max_traffic_gb: Math.floor(data.trafficLimit / (1024 * 1024 * 1024)),
     features: JSON.stringify(data.features || []),
+    settings: JSON.stringify({
+      ipType: data.ipType || 'shared',
+      lineType: data.lineType || 'standard'
+    }),
     is_active: data.isActive !== false,
     sort_order: data.sortOrder || 0,
     created_at: now,
@@ -276,16 +301,6 @@ export async function updatePlan(
 
   if (!existingPlan) {
     throw new NotFoundError(`Subscription plan not found: ${id}`);
-  }
-
-  // 验证服务类型
-  if (data.serviceTypes !== undefined) {
-    validateServiceTypes(data.serviceTypes);
-  }
-
-  if (data.primaryServiceType !== undefined) {
-    const serviceTypes = data.serviceTypes || JSON.parse(existingPlan.service_types || '[]');
-    validatePrimaryServiceType(data.primaryServiceType, serviceTypes);
   }
 
   // 验证数值字段
@@ -332,15 +347,12 @@ export async function updatePlan(
 
   if (data.name !== undefined) updateData.name = data.name.trim();
   if (data.description !== undefined) updateData.description = data.description;
-  if (data.group !== undefined) updateData.group_id = data.group;
   if (data.price !== undefined) updateData.price = data.price;
+  if (data.currency !== undefined) updateData.currency = data.currency;
   if (data.durationDays !== undefined) updateData.duration_days = data.durationDays;
-  if (data.trafficLimit !== undefined) updateData.traffic_limit = data.trafficLimit;
-  if (data.serviceTypes !== undefined) updateData.service_types = JSON.stringify(data.serviceTypes);
-  if (data.primaryServiceType !== undefined) updateData.primary_service_type = data.primaryServiceType;
-  if (data.priorityBoost !== undefined) updateData.priority_boost = data.priorityBoost;
-  if (data.guaranteedBandwidth !== undefined) updateData.guaranteed_bandwidth = data.guaranteedBandwidth;
-  if (data.maxConnections !== undefined) updateData.max_connections = data.maxConnections;
+  if (data.trafficLimit !== undefined) updateData.max_traffic_gb = Math.floor(data.trafficLimit / (1024 * 1024 * 1024));
+  if (data.primaryServiceType !== undefined) updateData.service_type = data.primaryServiceType;
+  if (data.group !== undefined) updateData.group_id = data.group;
   if (data.features !== undefined) updateData.features = JSON.stringify(data.features);
   if (data.isActive !== undefined) updateData.is_active = data.isActive;
   if (data.sortOrder !== undefined) updateData.sort_order = data.sortOrder;
@@ -563,7 +575,7 @@ export async function getPlanOptions(
     .select('id', 'name', 'price');
 
   if (serviceType) {
-    query = query.where('primary_service_type', serviceType);
+    query = query.where('service_type', serviceType);
   }
 
   const plans = await query.orderBy('sort_order', 'asc');

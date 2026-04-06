@@ -128,8 +128,8 @@ import {
   getServiceTypeLabel,
   getServiceTypeColor,
   getServiceTypeBgColor,
-  PRESET_PLANS,
 } from '@shared/constants/service-type.mjs';
+import { getPlans, togglePlanStatus, deletePlan } from '@/api/plans';
 
 interface Plan {
   id: string;
@@ -165,35 +165,33 @@ const queryForm = reactive({
 const fetchPlans = async () => {
   loading.value = true;
   try {
-    // Mock data using PRESET_PLANS
-    const plans: Plan[] = PRESET_PLANS.map((plan) => ({
-      ...plan,
-      serviceTypes: [...plan.serviceTypes],
-      features: [...plan.features],
-      isEnabled: true,
-      subscriberCount: Math.floor(Math.random() * 500),
+    const res = await getPlans({
+      page: queryForm.page,
+      limit: queryForm.limit,
+      serviceType: queryForm.serviceType,
+      isActive: queryForm.status !== undefined ? queryForm.status === 1 : undefined,
+    });
+
+    // Transform API data to match component interface
+    planList.value = res.items.map((item: any) => ({
+      id: String(item.id),
+      name: item.name,
+      serviceTypes: item.serviceType ? [item.serviceType] : ['standard'],
+      primaryType: item.serviceType || 'standard',
+      price: Number(item.price),
+      durationDays: item.durationDays,
+      trafficLimit: item.maxTrafficGb ? item.maxTrafficGb * 1024 * 1024 * 1024 : 0,
+      maxConnections: item.maxDevices,
+      subscriberCount: 0, // TODO: get from API
+      isEnabled: item.isActive,
+      description: item.description,
+      features: item.features || [],
     }));
 
-    // Filter by service type
-    let filtered = plans;
-    if (queryForm.serviceType) {
-      filtered = plans.filter((p) => p.serviceTypes.includes(queryForm.serviceType!));
-    }
-
-    // Filter by keyword
-    if (queryForm.keyword) {
-      filtered = filtered.filter((p) =>
-        p.name.toLowerCase().includes(queryForm.keyword.toLowerCase())
-      );
-    }
-
-    // Filter by status
-    if (queryForm.status !== undefined) {
-      filtered = filtered.filter((p) => (p.isEnabled ? 1 : 0) === queryForm.status);
-    }
-
-    planList.value = filtered;
-    total.value = filtered.length;
+    total.value = res.pagination.total;
+  } catch (error) {
+    console.error('Failed to fetch plans:', error);
+    ElMessage.error('获取套餐列表失败');
   } finally {
     loading.value = false;
   }
@@ -232,7 +230,7 @@ const handleViewStats = (row: Plan) => {
 
 const handleToggleEnable = async (row: Plan, enabled: boolean) => {
   try {
-    // API call would go here
+    await togglePlanStatus(row.id, enabled);
     ElMessage.success(enabled ? '套餐已启用' : '套餐已禁用');
   } catch (error) {
     row.isEnabled = !enabled;
@@ -240,12 +238,12 @@ const handleToggleEnable = async (row: Plan, enabled: boolean) => {
   }
 };
 
-const handleDelete = async (_row: Plan) => {
+const handleDelete = async (row: Plan) => {
   try {
     await ElMessageBox.confirm('确定要删除该套餐吗？此操作不可恢复。', '警告', {
       type: 'error',
     });
-    // API call would go here
+    await deletePlan(row.id);
     ElMessage.success('删除成功');
     fetchPlans();
   } catch {

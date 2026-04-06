@@ -7,33 +7,30 @@ const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'your-refresh-secre
 const ACCESS_TOKEN_PREFIX = 'uat_';
 const REFRESH_TOKEN_PREFIX = 'urt_';
 
-export interface TokenPayload {
+interface TokenPayload {
   userId: string;
-  email: string;
-  role?: string;
+  email?: string;
 }
 
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
+/**
+ * Remove token prefix
+ */
+function removePrefix(token: string, prefix: string): string {
+  if (token.startsWith(prefix)) {
+    return token.slice(prefix.length);
+  }
+  return token;
 }
 
 /**
  * Generate access and refresh tokens with prefixes
  */
-export function generateTokens(userId: string, email: string): AuthTokens {
-  const payload: TokenPayload = { userId, email };
-  
+export function generateTokens(userId: string, email: string): { accessToken: string; refreshToken: string } {
+  const payload = { userId, email };
   const accessToken = ACCESS_TOKEN_PREFIX + jwt.sign(payload, JWT_SECRET, {
     expiresIn: '15m',
   });
-  
-  const refreshToken = REFRESH_TOKEN_PREFIX + jwt.sign(
-    { userId }, 
-    JWT_REFRESH_SECRET, 
-    { expiresIn: '7d' }
-  );
-  
+  const refreshToken = REFRESH_TOKEN_PREFIX + jwt.sign({ userId }, JWT_REFRESH_SECRET, { expiresIn: '7d' });
   return { accessToken, refreshToken };
 }
 
@@ -50,21 +47,7 @@ export function generateAccessToken(payload: TokenPayload): string {
  * Generate refresh token only
  */
 export function generateRefreshToken(payload: TokenPayload): string {
-  return REFRESH_TOKEN_PREFIX + jwt.sign(
-    { userId: payload.userId }, 
-    JWT_REFRESH_SECRET, 
-    { expiresIn: '7d' }
-  );
-}
-
-/**
- * Remove token prefix
- */
-function removePrefix(token: string, prefix: string): string {
-  if (token.startsWith(prefix)) {
-    return token.slice(prefix.length);
-  }
-  return token;
+  return REFRESH_TOKEN_PREFIX + jwt.sign({ userId: payload.userId }, JWT_REFRESH_SECRET, { expiresIn: '7d' });
 }
 
 /**
@@ -91,11 +74,17 @@ export function refreshAccessToken(refreshToken: string): string {
   return generateAccessToken({ userId: payload.userId, email: '' });
 }
 
+/**
+ * Verify token
+ */
 export function verifyToken(token: string): TokenPayload {
   const cleanToken = removePrefix(token, ACCESS_TOKEN_PREFIX);
   return jwt.verify(cleanToken, JWT_SECRET) as TokenPayload;
 }
 
+/**
+ * Decode token
+ */
 export function decodeToken(token: string): TokenPayload | null {
   try {
     const cleanToken = removePrefix(token, ACCESS_TOKEN_PREFIX);
@@ -105,6 +94,9 @@ export function decodeToken(token: string): TokenPayload | null {
   }
 }
 
+/**
+ * Extract token from authorization header
+ */
 export function extractTokenFromHeader(authHeader: string | undefined): string | null {
   if (!authHeader) return null;
   const parts = authHeader.split(' ');
@@ -112,7 +104,10 @@ export function extractTokenFromHeader(authHeader: string | undefined): string |
   return parts[1];
 }
 
-export function isValidAccessTokenFormat(token: string | undefined): boolean {
+/**
+ * Check if access token format is valid
+ */
+export function isValidAccessTokenFormat(token: string): boolean {
   if (!token) return false;
   try {
     const cleanToken = removePrefix(token, ACCESS_TOKEN_PREFIX);
@@ -123,7 +118,10 @@ export function isValidAccessTokenFormat(token: string | undefined): boolean {
   }
 }
 
-export function isValidRefreshTokenFormat(token: string | undefined): boolean {
+/**
+ * Check if refresh token format is valid
+ */
+export function isValidRefreshTokenFormat(token: string): boolean {
   if (!token) return false;
   try {
     const cleanToken = removePrefix(token, REFRESH_TOKEN_PREFIX);
@@ -134,7 +132,16 @@ export function isValidRefreshTokenFormat(token: string | undefined): boolean {
   }
 }
 
-export interface DecodedToken extends TokenPayload {
-  iat: number;
-  exp: number;
-}
+export default {
+  generateTokens,
+  generateAccessToken,
+  generateRefreshToken,
+  verifyAccessToken,
+  verifyRefreshToken,
+  refreshAccessToken,
+  verifyToken,
+  decodeToken,
+  extractTokenFromHeader,
+  isValidAccessTokenFormat,
+  isValidRefreshTokenFormat,
+};

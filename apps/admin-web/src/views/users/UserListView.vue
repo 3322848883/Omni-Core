@@ -99,12 +99,21 @@
             </el-tag>
           </template>
         </el-table-column>
+        <el-table-column prop="trafficLimit" label="流量限制" width="120">
+          <template #default="{ row }">
+            {{ formatTraffic(row.trafficLimit) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="trafficUsed" label="已用流量" width="120">
           <template #default="{ row }">
             {{ formatTraffic(row.trafficUsed) }}
           </template>
         </el-table-column>
-        <el-table-column prop="expireDate" label="到期时间" width="180" />
+        <el-table-column prop="expireDate" label="到期时间" width="180">
+          <template #default="{ row }">
+            {{ formatDate(row.expireDate) }}
+          </template>
+        </el-table-column>
         <el-table-column label="操作" width="200" fixed="right">
           <template #default="{ row }">
             <el-button type="primary" link @click="handleView(row)">查看</el-button>
@@ -217,8 +226,22 @@ const getStatusText = (status: number) => {
 };
 
 const formatTraffic = (bytes: number) => {
+  if (!bytes && bytes !== 0) return '0.00 GB';
   const gb = bytes / (1024 * 1024 * 1024);
   return `${gb.toFixed(2)} GB`;
+};
+
+const formatDate = (dateStr: string) => {
+  if (!dateStr) return '-';
+  try {
+    const date = new Date(dateStr);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  } catch {
+    return dateStr;
+  }
 };
 
 const handleSearch = () => {
@@ -258,7 +281,8 @@ const handleEdit = (row: User) => {
   currentUserId.value = row.id;
   formData.username = row.username;
   formData.email = row.email;
-  formData.trafficLimit = row.trafficLimit || 0;
+  // Convert bytes to GB for display
+  formData.trafficLimit = Math.round((row.trafficLimit || 0) / (1024 * 1024 * 1024) * 100) / 100;
   formData.expireDate = row.expireDate;
   formData.status = row.status;
   dialogVisible.value = true;
@@ -271,15 +295,37 @@ const handleSubmit = async () => {
     await formRef.value.validate();
 
     submitLoading.value = true;
-    const submitData = {
-      ...formData,
-      trafficLimit: formData.trafficLimit * 1024 * 1024 * 1024, // Convert GB to bytes
+
+    // Format date to YYYY-MM-DD HH:mm:ss
+    const formatDate = (dateStr: string) => {
+      if (!dateStr) return '';
+      const date = new Date(dateStr);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     };
 
     if (isEdit.value) {
+      // Edit mode - only send allowed fields
+      const submitData = {
+        username: formData.username,
+        trafficLimit: formData.trafficLimit * 1024 * 1024 * 1024, // Convert GB to bytes
+        expireDate: formatDate(formData.expireDate),
+        status: formData.status,
+      };
       await updateUser(currentUserId.value, submitData);
       ElMessage.success('用户更新成功');
     } else {
+      // Create mode - send all fields
+      const submitData = {
+        ...formData,
+        trafficLimit: formData.trafficLimit * 1024 * 1024 * 1024, // Convert GB to bytes
+        expireDate: formatDate(formData.expireDate),
+      };
       await createUser(submitData);
       ElMessage.success('用户创建成功');
     }

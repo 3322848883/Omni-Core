@@ -44,7 +44,7 @@
                   <el-icon><User /></el-icon>
                   用户名
                 </div>
-                <div class="info-value">{{ userStore.currentUser?.username }}</div>
+                <div class="info-value">{{ getDisplayName() }}</div>
               </div>
               <div class="info-item">
                 <div class="info-label">
@@ -219,6 +219,19 @@ import { formatDate } from '@/utils/format';
 
 const userStore = useUserStore();
 
+// 统一的用户名获取函数（带 fallback）
+const getDisplayName = (): string => {
+  // 优先使用 currentUser，其次 userInfo
+  const user = userStore.currentUser || userStore.userInfo;
+  console.log('[getDisplayName] currentUser:', userStore.currentUser);
+  console.log('[getDisplayName] userInfo:', userStore.userInfo);
+  console.log('[getDisplayName] selected user:', user);
+  console.log('[getDisplayName] user?.username:', user?.username);
+  if (user?.username) return user.username;
+  if (user?.email) return user.email.split('@')[0];
+  return '用户';
+};
+
 // Profile Edit
 const isEditing = ref(false);
 const saving = ref(false);
@@ -267,9 +280,9 @@ const passwordRules: FormRules = {
 };
 
 const getAvatarText = (): string => {
-  const username = userStore.currentUser?.username;
-  if (!username) return '?';
-  return username.charAt(0).toUpperCase();
+  const name = getDisplayName();
+  if (!name || name === '用户') return '?';
+  return name.charAt(0).toUpperCase();
 };
 
 const getRoleType = (role?: string): string => {
@@ -290,27 +303,30 @@ const getRoleText = (role?: string): string => {
   return textMap[role || 'user'] || '普通用户';
 };
 
-const getStatusType = (status?: string): string => {
+const getStatusType = (status?: string | number): string => {
+  const statusStr = String(status || 'inactive');
   const typeMap: Record<string, string> = {
     active: 'success',
     inactive: 'info',
     banned: 'danger',
   };
-  return typeMap[status || 'inactive'] || 'info';
+  return typeMap[statusStr] || 'info';
 };
 
-const getStatusText = (status?: string): string => {
+const getStatusText = (status?: string | number): string => {
+  const statusStr = String(status || 'inactive');
   const textMap: Record<string, string> = {
     active: '正常',
     inactive: '未激活',
     banned: '已封禁',
   };
-  return textMap[status || 'inactive'] || '未知';
+  return textMap[statusStr] || '未知';
 };
 
 const startEdit = () => {
-  profileForm.username = userStore.currentUser?.username || '';
-  profileForm.email = userStore.currentUser?.email || '';
+  const user = userStore.currentUser || userStore.userInfo;
+  profileForm.username = user?.username || (user?.email ? user.email.split('@')[0] : '');
+  profileForm.email = userStore.currentUser?.email || userStore.userInfo?.email || '';
   isEditing.value = true;
 };
 

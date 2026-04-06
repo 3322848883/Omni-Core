@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
+import path from 'path';
 import config from '@/config';
 import { errorHandler } from '@/middlewares/errorHandler';
 import { createRequestId } from '@/utils/response';
@@ -29,11 +30,16 @@ app.use(helmet({
   },
 }));
 
-// CORS
+// CORS - allow all origins for development
 app.use(cors({
-  origin: config.cors.origin,
-  credentials: config.cors.credentials,
+  origin: '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Compression
 app.use(compression() as any);
@@ -41,6 +47,10 @@ app.use(compression() as any);
 // Body parsing
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Static file serving for uploads
+const uploadsDir = process.env.UPLOAD_DIR || path.join(process.cwd(), 'uploads');
+app.use('/uploads', express.static(uploadsDir));
 
 // Request ID and logging
 app.use(requestId);

@@ -361,6 +361,16 @@ ${needsManualConfirmation ? `
   isEmailConfigured(): boolean {
     return this.isConfigured;
   }
+
+  /**
+   * 重新初始化邮件传输器（用于配置更新后热重载）
+   */
+  reinitialize(): void {
+    logger.info('Reinitializing email service with new configuration...');
+    this.transporter = null;
+    this.isConfigured = false;
+    this.initializeTransporter();
+  }
 }
 
 // 导出单例实例

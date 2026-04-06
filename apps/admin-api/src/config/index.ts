@@ -181,4 +181,10 @@ export const config = {
     },
     defaultCurrency: process.env.PAYMENT_DEFAULT_CURRENCY || 'USD',
   },
+
+  // JWT shortcuts for backward compatibility
+  jwtSecret: process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || 'default_secret_key',
+  jwtRefreshSecret: process.env.ADMIN_JWT_REFRESH_SECRET || process.env.JWT_REFRESH_SECRET || 'default_refresh_secret',
+  jwtExpiresIn: process.env.ADMIN_JWT_EXPIRES_IN || process.env.JWT_EXPIRES_IN || '2h',
+  jwtRefreshExpiresIn: process.env.ADMIN_JWT_REFRESH_EXPIRES_IN || process.env.JWT_REFRESH_EXPIRES_IN || '7d',
 };

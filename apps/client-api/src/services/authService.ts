@@ -115,19 +115,19 @@ export const login = async (data: LoginData): Promise<{ user: UserInfo; tokens: 
   // Find user by email
   const user = await db('users').where({ email }).first();
   if (!user) {
-    throw new UnauthorizedError('Invalid credentials');
+    throw new UnauthorizedError('邮箱或密码错误');
   }
 
   // Check if user is active (兼容 Admin API 的整数状态值)
   const isActive = user.status === 1 || String(user.status) === '1';
   if (!isActive) {
-    throw new UnauthorizedError('Account is not active');
+    throw new UnauthorizedError('账号已被禁用，请联系客服');
   }
 
   // Verify password
   const isValidPassword = await verifyPassword(password, user.password_hash);
   if (!isValidPassword) {
-    throw new UnauthorizedError('Invalid credentials');
+    throw new UnauthorizedError('邮箱或密码错误');
   }
 
   // Update last login
@@ -372,31 +372,17 @@ export const updatePassword = async (
  * Format user to UserInfo
  */
 const formatUserInfo = (user: User): UserInfo => {
-  const trafficLimit = user.traffic_limit || 0;
-  const trafficUsed = user.traffic_used || 0;
-  const trafficRemaining = Math.max(0, trafficLimit - trafficUsed);
-  const usagePercent = trafficLimit > 0 ? Math.round((trafficUsed / trafficLimit) * 100) : 0;
-
-  let daysRemaining = 0;
-  if (user.expire_date) {
-    const now = new Date();
-    const expireDate = new Date(user.expire_date);
-    daysRemaining = Math.max(0, Math.ceil((expireDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-  }
-
   return {
     id: user.id?.toString() || user.user_id,
     userId: user.user_id,
     email: user.email,
-    username: user.username,
-    vpnUuid: user.vpn_uuid,
+    username: user.username || null,
+    role: 'user',
     status: user.status,
-    trafficLimit,
-    trafficUsed,
-    trafficRemaining,
-    usagePercent,
-    expireDate: user.expire_date ? new Date(user.expire_date).toISOString() : null,
-    daysRemaining,
-    createdAt: new Date(user.created_at).toISOString(),
+    emailVerified: true,
+    twoFactorEnabled: false,
+    lastLoginAt: user.last_login_at || undefined,
+    createdAt: new Date(user.created_at),
+    updatedAt: new Date(user.updated_at),
   };
 };

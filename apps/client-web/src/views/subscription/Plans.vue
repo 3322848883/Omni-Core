@@ -368,16 +368,17 @@ interface PlanWithSelection extends Plan {
 }
 
 // 套餐组配置
+// 套餐组定义 - 与后端数据库中的 group_id 匹配
 const planGroups = ref<PlanGroup[]>([
   {
-    id: 'airport_traffic',
-    name: '机场大流量',
-    shortDesc: '大流量下载',
-    description: '机房IP，超大流量，适合大流量下载、视频观看和日常使用',
-    color: '#3B82F6',
+    id: 'standard',
+    name: '标准套餐',
+    shortDesc: '入门到专业',
+    description: '标准套餐系列，包含入门版到专业版，适合各种使用场景',
+    color: '#6366F1',
     icon: 'plane',
-    features: ['机房IP', '超大流量', '性价比高', '多节点覆盖'],
-    scenarios: ['大流量下载', '视频观看', '日常浏览', '文件传输']
+    features: ['多节点选择', '稳定连接', '性价比高', '适合日常使用'],
+    scenarios: ['日常浏览', '视频观看', '轻度下载', '办公使用']
   },
   {
     id: 'dedicated_line',
@@ -596,13 +597,39 @@ const clearComparison = () => {
 const fetchPlans = async () => {
   loading.value = true;
   try {
+    console.log('[fetchPlans] Fetching plans...');
     const response = await subscriptionApi.getPlanList();
+    console.log('[fetchPlans] Raw response:', response);
+    console.log('[fetchPlans] Response type:', typeof response);
+    console.log('[fetchPlans] Is array:', Array.isArray(response));
+    
+    // Handle different response formats
+    let planList: Plan[] = [];
+    if (Array.isArray(response)) {
+      planList = response;
+    } else if (response && typeof response === 'object') {
+      // Check if response has items property
+      if ('items' in response && Array.isArray(response.items)) {
+        planList = response.items;
+      } else if ('data' in response && Array.isArray(response.data)) {
+        planList = response.data;
+      } else {
+        console.error('[fetchPlans] Unexpected response format:', response);
+      }
+    }
+    
+    console.log('[fetchPlans] Plan list:', planList);
+    console.log('[fetchPlans] Plan count:', planList.length);
+    
     // 为每个套餐添加选择状态
-    plans.value = (response as unknown as Plan[]).map(plan => ({
+    plans.value = planList.map(plan => ({
       ...plan,
       selected: false
     }));
+    
+    console.log('[fetchPlans] Plans after mapping:', plans.value);
   } catch (error) {
+    console.error('[fetchPlans] Error:', error);
     ElMessage.error('获取套餐列表失败');
   } finally {
     loading.value = false;
@@ -668,12 +695,12 @@ onMounted(() => {
   .page-title {
     font-size: 32px;
     font-weight: 600;
-    color: #303133;
+    color: var(--text-primary);
     margin-bottom: 8px;
   }
 
   .page-subtitle {
-    color: #909399;
+    color: var(--text-tertiary);
     font-size: 16px;
   }
 }
@@ -702,21 +729,57 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  background: #fff;
-  border: 2px solid #e4e7ed;
+  background: rgba(26, 26, 37, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 2px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(99, 102, 241, 0.1),
+      transparent
+    );
+    transition: left 0.6s;
+  }
 
   &:hover {
-    border-color: #c0c4cc;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: rgba(99, 102, 241, 0.5);
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 30px rgba(99, 102, 241, 0.15);
+
+    &::before {
+      left: 100%;
+    }
+
+    .tab-icon {
+      transform: scale(1.1) rotate(5deg);
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(236, 72, 153, 0.2));
+    }
   }
 
   &.active {
-    border-width: 2px;
-    font-weight: 500;
+    border-color: transparent;
+    background: linear-gradient(var(--bg-card), var(--bg-card)) padding-box,
+                linear-gradient(135deg, #6366f1, #ec4899) border-box;
+    animation: border-glow 3s ease-in-out infinite;
+
+    .tab-icon {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(236, 72, 153, 0.3));
+      box-shadow: 0 0 15px rgba(99, 102, 241, 0.3);
+    }
   }
 
   .tab-icon {
@@ -726,7 +789,8 @@ onMounted(() => {
     width: 48px;
     height: 48px;
     border-radius: 12px;
-    background: #f5f7fa;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease;
   }
 
   .tab-content {
@@ -736,11 +800,13 @@ onMounted(() => {
       font-size: 16px;
       font-weight: 600;
       margin-bottom: 4px;
+      color: var(--text-primary);
+      transition: color 0.3s ease;
     }
 
     .tab-desc {
       font-size: 12px;
-      color: #909399;
+      color: var(--text-tertiary);
     }
   }
 }
@@ -843,9 +909,12 @@ onMounted(() => {
   gap: 8px;
   margin-bottom: 20px;
   padding: 16px 20px;
-  background: #fff;
+  background: rgba(26, 26, 37, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-radius: 12px;
   border-left: 4px solid;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 
   .group-title {
     display: flex;
@@ -853,7 +922,7 @@ onMounted(() => {
     gap: 12px;
     font-size: 20px;
     font-weight: 600;
-    color: #303133;
+    color: var(--text-primary);
 
     .el-tag {
       font-size: 12px;
@@ -861,7 +930,7 @@ onMounted(() => {
   }
 
   .group-desc {
-    color: #606266;
+    color: var(--text-secondary);
     font-size: 14px;
     margin: 0;
   }
@@ -904,17 +973,17 @@ onMounted(() => {
       font-size: 16px;
 
       .price {
-        color: #f56c6c;
+        color: var(--color-danger);
         font-size: 20px;
       }
     }
 
     .label {
-      color: #606266;
+      color: var(--text-secondary);
     }
 
     .value {
-      color: #303133;
+      color: var(--text-primary);
       display: flex;
       gap: 4px;
 
@@ -930,7 +999,7 @@ onMounted(() => {
 
   h4 {
     margin-bottom: 16px;
-    color: #303133;
+    color: var(--text-primary);
   }
 
   .el-radio-group {

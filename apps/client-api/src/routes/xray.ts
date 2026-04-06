@@ -7,6 +7,7 @@ import { HttpStatus, ErrorCode } from '@/constants';
 import db from '@/config/database';
 import logger from '@/utils/logger';
 import { nodeFilterService } from '@/services/nodeFilterService';
+import { authenticateByVpnUuid } from '@/middlewares/auth';
 
 const router = Router();
 
@@ -221,8 +222,9 @@ router.get('/nodes/:id/latency', async (req, res) => {
 
 /**
  * GET /subscription/config - 获取订阅配置（用户）
+ * 支持通过 VPN UUID (token 参数) 或 JWT Token 认证
  */
-router.get('/subscription/config', async (req, res) => {
+router.get('/subscription/config', authenticateByVpnUuid, async (req, res) => {
   try {
     const user = req.user;
 
@@ -324,8 +326,9 @@ router.get('/subscription/qr', async (req, res) => {
 
 /**
  * GET /subscription/clash - 获取 Clash 配置（用户）
+ * 支持通过 VPN UUID (token 参数) 或 JWT Token 认证
  */
-router.get('/subscription/clash', async (req, res) => {
+router.get('/subscription/clash', authenticateByVpnUuid, async (req, res) => {
   try {
     const user = req.user;
 
@@ -366,6 +369,55 @@ router.get('/subscription/clash', async (req, res) => {
       ErrorCode.INTERNAL_ERROR,
       HttpStatus.INTERNAL_ERROR,
       [{ field: 'general', message: '获取 Clash 配置失败' }]
+    );
+  }
+});
+
+/**
+ * GET /subscription/surge - 获取 Surge 配置（用户）
+ * 支持通过 VPN UUID (token 参数) 或 JWT Token 认证
+ */
+router.get('/subscription/surge', authenticateByVpnUuid, async (req, res) => {
+  try {
+    const user = req.user;
+
+    if (!user) {
+      return errorResponse(
+        res,
+        '未授权',
+        ErrorCode.UNAUTHORIZED,
+        HttpStatus.UNAUTHORIZED,
+        [{ field: 'authorization', message: '未授权' }]
+      );
+    }
+
+    // 使用新的 generateSubscriptionConfig 方法
+    const config = await subscriptionService.generateSubscriptionConfig(user.user_id);
+
+    // 如果没有可访问的节点，返回 404
+    if (!config || config.nodes.length === 0) {
+      return errorResponse(
+        res,
+        '没有可访问的节点',
+        ErrorCode.NOT_FOUND,
+        HttpStatus.NOT_FOUND,
+        [{ field: 'nodes', message: '没有可访问的节点' }]
+      );
+    }
+
+    const surgeConfig = subscriptionService.generateSurgeConfig(config);
+
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${user.user_id}.conf"`);
+    res.send(Buffer.from(surgeConfig, 'base64').toString('utf-8'));
+  } catch (error) {
+    logger.error('Failed to get Surge config:', error);
+    errorResponse(
+      res,
+      '获取 Surge 配置失败',
+      ErrorCode.INTERNAL_ERROR,
+      HttpStatus.INTERNAL_ERROR,
+      [{ field: 'general', message: '获取 Surge 配置失败' }]
     );
   }
 });

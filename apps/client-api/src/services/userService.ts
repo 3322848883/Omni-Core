@@ -2,6 +2,13 @@ import db from '@/config/database';
 import { hashPassword, verifyPassword } from '@/utils/crypto';
 import { NotFoundError, UnauthorizedError, ConflictError } from '@/errors/AppError';
 import { User, UserInfo, UpdateUserData } from '@/types/user';
+import {
+  saveBase64Image,
+  deleteFile,
+  generateSecureFilename,
+  isValidBase64Image,
+  getImageExtension,
+} from '@/utils/file';
 
 /**
  * Get user by ID
@@ -112,7 +119,7 @@ export const changePassword = async (
  */
 export const uploadAvatar = async (
   userId: string,
-  file: Buffer
+  avatarData: string
 ): Promise<{ avatarUrl: string }> => {
   const user = await db('users').where({ user_id: userId }).first();
 
@@ -120,14 +127,26 @@ export const uploadAvatar = async (
     throw new NotFoundError('User', userId);
   }
 
-  // In a production environment, you would:
-  // 1. Upload the file to a storage service (S3, MinIO, etc.)
-  // 2. Get the URL of the uploaded file
-  // 3. Update the user's avatar_url in the database
+  // Validate base64 image data
+  if (!avatarData || typeof avatarData !== 'string') {
+    throw new Error('Invalid avatar data: must be a base64 encoded image string');
+  }
 
-  // For now, we'll simulate this by generating a placeholder URL
-  // In production, replace this with actual file upload logic
-  const avatarUrl = `/uploads/avatars/${userId}_${Date.now()}.png`;
+  if (!isValidBase64Image(avatarData)) {
+    throw new Error('Invalid avatar image: must be a valid base64 encoded image (JPEG, PNG, GIF, WebP) under 5MB');
+  }
+
+  // Delete old avatar if exists
+  if (user.avatar_url) {
+    deleteFile(user.avatar_url);
+  }
+
+  // Generate secure filename
+  const extension = getImageExtension(avatarData.match(/data:image\/(\w+);base64,/)?.[1] || 'png');
+  const filename = generateSecureFilename(userId, extension);
+
+  // Save the image file
+  const avatarUrl = await saveBase64Image(avatarData, filename, 'avatars');
 
   // Update user's avatar URL in database
   await db('users')
@@ -144,31 +163,17 @@ export const uploadAvatar = async (
  * Format user to UserInfo
  */
 const formatUserInfo = (user: User): UserInfo => {
-  const trafficLimit = user.traffic_limit || 0;
-  const trafficUsed = user.traffic_used || 0;
-  const trafficRemaining = Math.max(0, trafficLimit - trafficUsed);
-  const usagePercent = trafficLimit > 0 ? Math.round((trafficUsed / trafficLimit) * 100) : 0;
-
-  let daysRemaining = 0;
-  if (user.expire_date) {
-    const now = new Date();
-    const expireDate = new Date(user.expire_date);
-    daysRemaining = Math.max(0, Math.ceil((expireDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
-  }
-
   return {
     id: user.id.toString(),
     userId: user.user_id,
     email: user.email,
-    username: user.username,
-    vpnUuid: user.vpn_uuid,
+    username: user.username || null,
+    role: 'user',
     status: user.status,
-    trafficLimit,
-    trafficUsed,
-    trafficRemaining,
-    usagePercent,
-    expireDate: user.expire_date ? new Date(user.expire_date).toISOString() : null,
-    daysRemaining,
-    createdAt: new Date(user.created_at).toISOString(),
+    emailVerified: true,
+    twoFactorEnabled: false,
+    lastLoginAt: user.last_login_at || undefined,
+    createdAt: new Date(user.created_at),
+    updatedAt: new Date(user.updated_at),
   };
 };

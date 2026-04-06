@@ -4,7 +4,7 @@
     <div class="dashboard-welcome glass-panel">
       <div class="welcome-content">
         <h1 class="welcome-title">
-          欢迎回来，<span class="gradient-text">{{ userStore.userInfo?.username || '用户' }}</span>
+          欢迎回来，<span class="gradient-text">{{ displayUsername }}</span>
         </h1>
         <p class="welcome-subtitle">这里是您的网络加速控制中心</p>
       </div>
@@ -109,13 +109,18 @@
               </div>
 
               <div class="subscription-links">
+                <!-- 通用订阅链接 -->
                 <div class="link-item">
-                  <div class="link-item__label">订阅地址</div>
+                  <div class="link-item__label">
+                    <span>通用订阅</span>
+                    <el-tag size="small" type="info" class="client-tag">V2RayNG/V2RayN</el-tag>
+                  </div>
                   <div class="link-item__input">
                     <el-input
                       v-model="subscriptionUrl"
                       readonly
                       class="subscription-input"
+                      placeholder="加载中..."
                     >
                       <template #append>
                         <el-button @click="copyLink(subscriptionUrl)" class="copy-btn">
@@ -126,10 +131,64 @@
                   </div>
                 </div>
 
+                <!-- Clash 订阅链接 -->
+                <div class="link-item">
+                  <div class="link-item__label">
+                    <span>Clash 订阅</span>
+                    <el-tag size="small" type="warning" class="client-tag">Clash Verge/CFA</el-tag>
+                  </div>
+                  <div class="link-item__input">
+                    <el-input
+                      v-model="clashUrl"
+                      readonly
+                      class="subscription-input"
+                      placeholder="加载中..."
+                    >
+                      <template #append>
+                        <el-button @click="copyLink(clashUrl)" class="copy-btn">
+                          <el-icon><CopyDocument /></el-icon>
+                        </el-button>
+                      </template>
+                    </el-input>
+                  </div>
+                </div>
+
+                <!-- Surge 订阅链接 -->
+                <div class="link-item">
+                  <div class="link-item__label">
+                    <span>Surge 订阅</span>
+                    <el-tag size="small" type="success" class="client-tag">Surge/Shadowrocket</el-tag>
+                  </div>
+                  <div class="link-item__input">
+                    <el-input
+                      v-model="surgeUrl"
+                      readonly
+                      class="subscription-input"
+                      placeholder="加载中..."
+                    >
+                      <template #append>
+                        <el-button @click="copyLink(surgeUrl)" class="copy-btn">
+                          <el-icon><CopyDocument /></el-icon>
+                        </el-button>
+                      </template>
+                    </el-input>
+                  </div>
+                </div>
+
                 <div class="link-item">
                   <div class="link-item__label">二维码</div>
                   <div class="link-item__qrcode">
-                    <div class="qrcode-placeholder" @click="showQRCodeDialog">
+                    <!-- Show QR code image if available -->
+                    <div v-if="subscriptionQrCode" class="qrcode-image-wrapper" @click="showQRCodeDialog">
+                      <img
+                        :src="subscriptionQrCode"
+                        alt="订阅二维码"
+                        style="width: 100px; height: 100px; cursor: pointer;"
+                      />
+                      <span class="qrcode-hint">点击放大</span>
+                    </div>
+                    <!-- Show placeholder if no QR code -->
+                    <div v-else class="qrcode-placeholder" @click="showQRCodeDialog">
                       <el-icon size="48"><Picture /></el-icon>
                       <span>点击生成二维码</span>
                     </div>
@@ -236,8 +295,17 @@
     <el-dialog v-model="qrCodeDialogVisible" title="订阅二维码" width="360px" center class="glass-dialog">
       <div class="qrcode-dialog-content">
         <div class="qrcode-container">
+          <!-- Use API returned QR code image -->
+          <img
+            v-if="subscriptionQrCode"
+            :src="subscriptionQrCode"
+            alt="订阅二维码"
+            class="qrcode-image"
+            style="width: 200px; height: 200px;"
+          />
+          <!-- Fallback to qrcode-vue if API doesn't return QR code -->
           <qrcode-vue
-            v-if="subscriptionUrl"
+            v-else-if="subscriptionUrl"
             :value="subscriptionUrl"
             :size="200"
             level="H"
@@ -282,9 +350,25 @@ import * as orderApi from '@/api/orders';
 const router = useRouter();
 const userStore = useUserStore();
 
+// 用户名 computed - 直接从 userStore 获取，带 fallback
+const displayUsername = computed(() => {
+  const userInfo = userStore.userInfo;
+  // 优先使用 username，其次使用 email 的用户名部分
+  if (userInfo?.username) {
+    return userInfo.username;
+  }
+  if (userInfo?.email) {
+    // 从邮箱提取用户名 (xxx@yyy.com -> xxx)
+    return userInfo.email.split('@')[0];
+  }
+  return '用户';
+});
+
 const loading = ref(false);
 const trafficPeriod = ref('week');
-const subscriptionUrl = ref('https://api.fgvpn.com/subscribe/xxxxxxxxxxxx');
+const subscriptionUrl = ref('');
+const clashUrl = ref('');
+const surgeUrl = ref('');
 const qrCodeDialogVisible = ref(false);
 
 // 统计数据
@@ -363,47 +447,19 @@ const quickActions = [
   }
 ];
 
-// 流量数据（模拟）
-const usedTraffic = ref(35.2 * 1024 * 1024 * 1024); // 35.2 GB
+// 流量数据（从 userStore 获取真实数据）
+const usedTraffic = computed(() => userStore.userInfo?.trafficUsed || 0);
 const remainingTraffic = computed(() => {
-  const total = (userStore.userInfo?.trafficLimit || 100) * 1024 * 1024 * 1024;
-  return total - usedTraffic.value;
+  const limit = userStore.userInfo?.trafficLimit || 0;
+  const used = userStore.userInfo?.trafficUsed || 0;
+  return Math.max(0, limit - used);
 });
 
-const trafficData = ref([
-  { label: '周一', value: 45, color: 'linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%)' },
-  { label: '周二', value: 62, color: 'linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%)' },
-  { label: '周三', value: 38, color: 'linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%)' },
-  { label: '周四', value: 75, color: 'linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%)' },
-  { label: '周五', value: 55, color: 'linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%)' },
-  { label: '周六', value: 82, color: 'linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%)' },
-  { label: '周日', value: 48, color: 'linear-gradient(180deg, #6366f1 0%, #8b5cf6 100%)' }
-]);
+// 流量图表数据（从 API 获取）
+const trafficData = ref<{ label: string; value: number; color: string }[]>([]);
 
-// 最近订单（模拟）
-const recentOrders = ref([
-  {
-    orderNo: 'ORD202403210001',
-    planName: '月度套餐',
-    amount: 29.9,
-    status: 'completed',
-    createdAt: '2024-03-21 10:30:00'
-  },
-  {
-    orderNo: 'ORD202403150002',
-    planName: '季度套餐',
-    amount: 79.9,
-    status: 'paid',
-    createdAt: '2024-03-15 14:20:00'
-  },
-  {
-    orderNo: 'ORD202403100003',
-    planName: '月度套餐',
-    amount: 29.9,
-    status: 'pending',
-    createdAt: '2024-03-10 09:15:00'
-  }
-]);
+// 最近订单（从 API 获取）
+const recentOrders = ref<any[]>([]);
 
 // 订阅状态
 const subscriptionStatus = computed(() => {
@@ -523,10 +579,35 @@ function refreshData() {
     });
 }
 
+const subscriptionQrCode = ref('');
+
 async function fetchSubscriptionUrl() {
   try {
-    const response = await subscriptionApi.getSubscriptionUrl();
-    subscriptionUrl.value = (response as unknown as { url: string }).url;
+    console.log('[fetchSubscriptionUrl] Starting...');
+    const data = await subscriptionApi.getSubscriptionUrl();
+    console.log('[fetchSubscriptionUrl] Response:', data);
+
+    if (data && data.url) {
+      // 设置基础订阅URL（已包含token参数）
+      subscriptionUrl.value = data.url;
+
+      // 从基础URL提取基础路径和token参数
+      const urlObj = new URL(data.url);
+      const token = urlObj.searchParams.get('token');
+      const baseUrl = `${urlObj.protocol}//${urlObj.host}`;
+
+      // 构建其他格式的URL（包含相同的token参数）
+      clashUrl.value = `${baseUrl}/xray/subscription/clash?token=${token}`;
+      surgeUrl.value = `${baseUrl}/xray/subscription/surge?token=${token}`;
+
+      subscriptionQrCode.value = data.qrCode || '';
+      console.log('[fetchSubscriptionUrl] Success - URL:', data.url);
+      console.log('[fetchSubscriptionUrl] Clash URL:', clashUrl.value);
+      console.log('[fetchSubscriptionUrl] Surge URL:', surgeUrl.value);
+      console.log('[fetchSubscriptionUrl] QR Code length:', data.qrCode ? data.qrCode.length : 0);
+    } else {
+      console.error('[fetchSubscriptionUrl] Invalid data - no url found:', data);
+    }
   } catch (error) {
     console.error('Failed to fetch subscription URL:', error);
   }
@@ -534,15 +615,25 @@ async function fetchSubscriptionUrl() {
 
 async function fetchRecentOrders() {
   try {
-    const response = await orderApi.getOrderList({ page: 1, limit: 5 });
-    recentOrders.value = (response as unknown as { items: typeof recentOrders.value }).items;
+    const data = await orderApi.getOrderList({ page: 1, limit: 5 });
+    console.log('[fetchRecentOrders] Response:', data);
+    recentOrders.value = data.items || [];
   } catch (error) {
     console.error('Failed to fetch recent orders:', error);
   }
 }
 
 onMounted(async () => {
+  // Debug: log userStore state
+  console.log('[DEBUG] Dashboard onMounted - token:', userStore.token);
+  console.log('[DEBUG] Dashboard onMounted - userInfo:', userStore.userInfo);
+
   await userStore.fetchUserInfo();
+
+  // Debug: log after fetch
+  console.log('[DEBUG] After fetchUserInfo - userInfo:', userStore.userInfo);
+  console.log('[DEBUG] userInfo.username:', userStore.userInfo?.username);
+
   fetchSubscriptionUrl();
   fetchRecentOrders();
 });
@@ -934,7 +1025,7 @@ onMounted(async () => {
 
 .subscription-links {
   .link-item {
-    margin-bottom: var(--space-5);
+    margin-bottom: var(--space-4);
 
     &:last-child {
       margin-bottom: 0;
@@ -945,6 +1036,14 @@ onMounted(async () => {
       font-weight: var(--font-medium);
       color: var(--text-secondary);
       margin-bottom: var(--space-2);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+
+      .client-tag {
+        font-size: var(--text-xs);
+        font-weight: var(--font-normal);
+      }
     }
 
     &__input {
@@ -971,6 +1070,23 @@ onMounted(async () => {
     }
 
     &__qrcode {
+      .qrcode-image-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--space-2);
+
+        img {
+          border-radius: var(--radius-md);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .qrcode-hint {
+          font-size: var(--text-xs);
+          color: var(--text-tertiary);
+        }
+      }
+
       .qrcode-placeholder {
         width: 120px;
         height: 120px;

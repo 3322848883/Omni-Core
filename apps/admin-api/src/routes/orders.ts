@@ -14,6 +14,12 @@ import {
 import { emailService } from '../services/email';
 import { authMiddleware } from '../middlewares/auth';
 import { validate, OrderValidation } from '../middlewares/validation';
+import {
+  getPendingConfirmationOrders,
+  confirmOrderPayment,
+  rejectOrderPayment,
+  getPendingConfirmationCount,
+} from '../services/order-confirmation.service';
 
 const router = Router();
 
@@ -27,25 +33,102 @@ function generateOrderNo(): string {
   return `ORD${dateStr}${random}`;
 }
 
+// 状态映射函数：字符串转数字
+function mapStatusToNumber(status: string): number {
+  const statusMap: Record<string, number> = {
+    'pending': 1,
+    'completed': 2,
+    'cancelled': 3,
+    'refunded': 4,
+  };
+  return statusMap[status] || 0;
+}
+
+// 支付方式映射函数
+function mapPaymentMethod(method: string | null): string {
+  if (!method) return '';
+  const methodMap: Record<string, string> = {
+    'alipay': 'alipay',
+    'wechat': 'wechat',
+    'alipay_personal': 'qrcode',
+    'wechat_personal': 'qrcode',
+    'qrcode': 'qrcode',
+    'card': 'card',
+  };
+  return methodMap[method] || method;
+}
+
 // GET /api/v1/orders - Get all orders with pagination and filters
 router.get('/', authMiddleware, validate(OrderValidation.list), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 20;
-    const offset = (page - 1) * limit;
+    const pageSize = parseInt(req.query.pageSize as string) || parseInt(req.query.limit as string) || 20;
+    const offset = (page - 1) * pageSize;
     const status = req.query.status as string;
     const userId = req.query.userId as string;
+    const orderNo = req.query.orderNo as string;
+    const keyword = req.query.keyword as string;
+    const username = req.query.username as string;
+    const paymentMethod = req.query.paymentMethod as string;
     const startDate = req.query.startDate as string;
     const endDate = req.query.endDate as string;
 
     let query = db('orders');
 
+    // 支持多种状态查询方式
     if (status) {
-      query = query.where('status', status);
+      const statusNum = parseInt(status, 10);
+      if (!isNaN(statusNum)) {
+        // 数字状态需要反向映射到字符串
+        const statusStrMap: Record<number, string> = {
+          1: 'pending',
+          2: 'completed',
+          3: 'cancelled',
+          4: 'refunded',
+        };
+        const statusStr = statusStrMap[statusNum];
+        if (statusStr) {
+          query = query.where('status', statusStr);
+        }
+      } else {
+        query = query.where('status', status);
+      }
     }
 
     if (userId) {
       query = query.where('user_id', userId);
+    }
+
+    // 支持订单号查询
+    if (orderNo) {
+      query = query.where('order_no', 'like', `%${orderNo}%`);
+    }
+
+    // 支持关键字查询（订单号）
+    if (keyword) {
+      query = query.where('order_no', 'like', `%${keyword}%`);
+    }
+
+    // 支持用户名查询（需要关联 users 表）
+    if (username) {
+      query = query.whereExists(function() {
+        this.select('*')
+          .from('users')
+          .whereRaw('users.user_id = orders.user_id')
+          .andWhere(function() {
+            this.where('username', 'like', `%${username}%`)
+              .orWhere('email', 'like', `%${username}%`);
+          });
+      });
+    }
+
+    // 支持支付方式查询
+    if (paymentMethod) {
+      if (paymentMethod === 'qrcode') {
+        query = query.whereIn('payment_method', ['alipay_personal', 'wechat_personal', 'qrcode']);
+      } else {
+        query = query.where('payment_method', paymentMethod);
+      }
     }
 
     if (startDate) {
@@ -62,38 +145,45 @@ router.get('/', authMiddleware, validate(OrderValidation.list), async (req: Requ
     const orders = await query
       .select('*')
       .orderBy('created_at', 'desc')
-      .limit(limit)
+      .limit(pageSize)
       .offset(offset);
+
+    // 获取用户信息
+    const userIds = Array.from(new Set(orders.map(o => o.user_id)));
+    const users = await db('users')
+      .whereIn('user_id', userIds)
+      .select('user_id', 'username', 'email');
+    const userMap = new Map(users.map(u => [u.user_id, u]));
 
     res.json({
       success: true,
       code: 200,
       message: 'success',
       data: {
-        items: orders.map(order => ({
-          id: order.id,
-          orderNo: order.order_no,
-          userId: order.user_id,
-          orderType: order.order_type,
-          status: order.status,
-          amount: order.amount,
-          trafficLimit: order.traffic_limit,
-          durationDays: order.duration_days,
-          startDate: order.start_date,
-          endDate: order.end_date,
-          paymentMethod: order.payment_method,
-          paymentTime: order.payment_time,
-          createdAt: order.created_at,
-          updatedAt: order.updated_at
-        })),
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-          hasNext: page * limit < total,
-          hasPrev: page > 1
-        }
+        list: orders.map(order => {
+          const user = userMap.get(order.user_id);
+          return {
+            id: order.id,
+            orderNo: order.order_no,
+            userId: order.user_id,
+            username: user?.username || '',
+            email: user?.email || '',
+            orderType: order.order_type,
+            status: mapStatusToNumber(order.status),
+            amount: order.amount,
+            trafficLimit: order.traffic_limit,
+            durationDays: order.duration_days,
+            startDate: order.start_date,
+            endDate: order.end_date,
+            paymentMethod: mapPaymentMethod(order.payment_method),
+            paymentTime: order.payment_time,
+            createdAt: order.created_at,
+            updatedAt: order.updated_at
+          };
+        }),
+        total,
+        page,
+        pageSize
       }
     });
   } catch (error) {
@@ -187,11 +277,11 @@ router.post('/', authMiddleware, validate(OrderValidation.create), async (req: R
       order_id: order.id,
       from_status: null,
       to_status: 'pending',
-      changed_by: req.user?.username || 'system',
+      changed_by: req.user?.email || 'system',
       reason: 'Order created'
     });
 
-    logger.info(`Order created: ${orderNo} for user ${userId} by ${req.user?.username || 'system'}`);
+    logger.info(`Order created: ${orderNo} for user ${userId} by ${req.user?.email || 'system'}`);
 
     res.status(201).json({
       success: true,
@@ -253,7 +343,7 @@ router.put('/:id', authMiddleware, validate(OrderValidation.update), async (req:
       .update(updateData)
       .returning('*');
 
-    logger.info(`Order updated: ${order.order_no} by ${req.user?.username || 'system'}`);
+    logger.info(`Order updated: ${order.order_no} by ${req.user?.email || 'system'}`);
 
     res.json({
       success: true,
@@ -320,7 +410,7 @@ router.post('/:id/pay', authMiddleware, validate(OrderValidation.pay), async (re
       order_id: order.id,
       from_status: order.status,
       to_status: 'completed',
-      changed_by: req.user?.username || 'system',
+      changed_by: req.user?.email || 'system',
       reason: 'Payment received'
     });
 
@@ -334,7 +424,7 @@ router.post('/:id/pay', authMiddleware, validate(OrderValidation.pay), async (re
         });
     }
 
-    logger.info(`Order paid: ${order.order_no} by ${req.user?.username || 'system'}`);
+    logger.info(`Order paid: ${order.order_no} by ${req.user?.email || 'system'}`);
 
     res.json({
       success: true,
@@ -378,11 +468,11 @@ router.post('/:id/cancel', authMiddleware, validate(OrderValidation.cancel), asy
       order_id: order.id,
       from_status: order.status,
       to_status: 'cancelled',
-      changed_by: req.user?.username || 'system',
+      changed_by: req.user?.email || 'system',
       reason: reason || 'Order cancelled'
     });
 
-    logger.info(`Order cancelled: ${order.order_no} by ${req.user?.username || 'system'}`);
+    logger.info(`Order cancelled: ${order.order_no} by ${req.user?.email || 'system'}`);
 
     res.json({
       success: true,
@@ -426,7 +516,7 @@ router.post('/:id/refund', authMiddleware, validate(OrderValidation.refund), asy
       order_id: order.id,
       from_status: order.status,
       to_status: 'refunded',
-      changed_by: req.user?.username || 'system',
+      changed_by: req.user?.email || 'system',
       reason: reason || 'Order refunded'
     });
 
@@ -439,7 +529,7 @@ router.post('/:id/refund', authMiddleware, validate(OrderValidation.refund), asy
         });
     }
 
-    logger.info(`Order refunded: ${order.order_no} by ${req.user?.username || 'system'}`);
+    logger.info(`Order refunded: ${order.order_no} by ${req.user?.email || 'system'}`);
 
     res.json({
       success: true,
@@ -642,7 +732,7 @@ router.post('/:id/payment-refund', authMiddleware, validate(OrderValidation.paym
       order.id.toString(),
       amount,
       reason,
-      req.user?.username || 'system'
+      req.user?.email || 'system'
     );
 
     res.json({
@@ -730,6 +820,39 @@ router.get('/payment/qrcode/:provider', async (req: Request, res: Response, next
   }
 });
 
+// GET /api/v1/orders/stats - Get order statistics (for frontend)
+router.get('/stats', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const pendingCount = await getPendingConfirmationCount();
+    
+    // 获取各状态订单数量
+    const statusCounts = await db('orders')
+      .select('status')
+      .count('* as count')
+      .groupBy('status');
+    
+    const statusCountMap = statusCounts.reduce((acc, curr) => {
+      acc[curr.status] = parseInt(curr.count as string);
+      return acc;
+    }, {} as Record<string, number>);
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: {
+        pendingOrders: pendingCount,
+        pending: statusCountMap['pending'] || 0,
+        completed: statusCountMap['completed'] || 0,
+        cancelled: statusCountMap['cancelled'] || 0,
+        refunded: statusCountMap['refunded'] || 0,
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/v1/orders/stats/overview - Get order statistics
 router.get('/stats/overview', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -799,6 +922,154 @@ router.get('/stats/overview', authMiddleware, async (req: Request, res: Response
           createdAt: order.created_at
         }))
       }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/v1/admin/orders/pending-confirmation - 获取待确认订单列表
+// 条件：payment_method 为 wechat_personal 或 alipay_personal 且状态为 pending
+router.get('/pending-confirmation', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+
+    const result = await getPendingConfirmationOrders(page, limit);
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: {
+        items: result.items.map(order => ({
+          id: order.id,
+          orderNo: order.orderNo,
+          userId: order.userId,
+          orderType: order.orderType,
+          status: order.status,
+          amount: order.amount,
+          trafficLimit: order.trafficLimit,
+          durationDays: order.durationDays,
+          paymentMethod: order.paymentMethod,
+          createdAt: order.createdAt,
+          updatedAt: order.updatedAt,
+          user: order.user,
+          paymentProof: order.paymentProof ? {
+            id: order.paymentProof.id,
+            imageUrl: order.paymentProof.imageUrl,
+            remark: order.paymentProof.remark,
+            status: order.paymentProof.status,
+            createdAt: order.paymentProof.createdAt,
+          } : null,
+        })),
+        pagination: {
+          page: result.page,
+          limit,
+          total: result.total,
+          totalPages: result.totalPages,
+          hasNext: page < result.totalPages,
+          hasPrev: page > 1,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/v1/admin/orders/:id/confirm - 确认收款
+router.post('/:id/confirm', authMiddleware, validate({
+  params: {
+    id: {
+      required: true,
+      type: 'string',
+    },
+  },
+  body: {
+    remark: {
+      type: 'string',
+      max: 500,
+    },
+  },
+}), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { remark } = req.body;
+    const adminId = req.user?.sub ? parseInt(req.user.sub, 10) : 0;
+    const adminUsername = req.user?.email || 'system';
+
+    const result = await confirmOrderPayment(id, adminId, adminUsername, remark);
+
+    res.json({
+      success: true,
+      code: 200,
+      message: '订单确认收款成功',
+      data: {
+        orderId: result.orderId,
+        orderNo: result.orderNo,
+        newStatus: result.newStatus,
+        userUpdated: result.userUpdated,
+        subscriptionUpdated: result.subscriptionUpdated,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// POST /api/v1/admin/orders/:id/reject - 拒绝收款
+router.post('/:id/reject', authMiddleware, validate({
+  params: {
+    id: {
+      required: true,
+      type: 'string',
+    },
+  },
+  body: {
+    reason: {
+      required: true,
+      type: 'string',
+      max: 500,
+    },
+  },
+}), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const adminId = req.user?.sub ? parseInt(req.user.sub, 10) : 0;
+    const adminUsername = req.user?.email || 'system';
+
+    const result = await rejectOrderPayment(id, adminId, adminUsername, reason);
+
+    res.json({
+      success: true,
+      code: 200,
+      message: '订单已拒绝收款',
+      data: {
+        orderId: result.orderId,
+        orderNo: result.orderNo,
+        newStatus: result.newStatus,
+        reason: result.reason,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/v1/admin/orders/pending-confirmation/count - 获取待确认订单数量
+router.get('/pending-confirmation/count', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const count = await getPendingConfirmationCount();
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: {
+        count,
+      },
     });
   } catch (error) {
     next(error);

@@ -46,7 +46,7 @@ router.get('/', authMiddleware, validate(UserValidation.list), async (req: Reque
       code: 200,
       message: 'success',
       data: {
-        items: users.map(user => ({
+        list: users.map(user => ({
           id: user.id,
           userId: user.user_id,
           email: user.email,
@@ -59,14 +59,9 @@ router.get('/', authMiddleware, validate(UserValidation.list), async (req: Reque
           createdAt: user.created_at,
           updatedAt: user.updated_at
         })),
-        pagination: {
-          page,
-          limit,
-          total,
-          totalPages: Math.ceil(total / limit),
-          hasNext: page * limit < total,
-          hasPrev: page > 1
-        }
+        total,
+        page,
+        pageSize: limit
       }
     });
   } catch (error) {
@@ -79,10 +74,19 @@ router.get('/:id', authMiddleware, validate(UserValidation.byId), async (req: Re
   try {
     const { id } = req.params;
 
-    const user = await db('users')
-      .where('user_id', id)
+    // Try to find user by id (numeric) or user_id (string)
+    let user = await db('users')
+      .where('id', id)
       .where('status', '!=', 3)
       .first();
+
+    // If not found by id, try user_id
+    if (!user) {
+      user = await db('users')
+        .where('user_id', id)
+        .where('status', '!=', 3)
+        .first();
+    }
 
     if (!user) {
       throw new NotFoundError('User', id);
@@ -193,10 +197,19 @@ router.put('/:id', authMiddleware, validate(UserValidation.update), async (req: 
     const { id } = req.params;
     const { username, trafficLimit, expireDate, status } = req.body;
 
-    const user = await db('users')
-      .where('user_id', id)
+    // Try to find user by id (numeric) or user_id (string)
+    let user = await db('users')
+      .where('id', id)
       .where('status', '!=', 3)
       .first();
+
+    // If not found by id, try user_id
+    if (!user) {
+      user = await db('users')
+        .where('user_id', id)
+        .where('status', '!=', 3)
+        .first();
+    }
 
     if (!user) {
       throw new NotFoundError('User', id);
@@ -214,18 +227,18 @@ router.put('/:id', authMiddleware, validate(UserValidation.update), async (req: 
 
     // MySQL compatible update (no returning)
     await db('users')
-      .where('user_id', id)
+      .where('user_id', user.user_id)
       .update(updateData);
 
     // Fetch updated user
     const updatedUser = await db('users')
-      .where('user_id', id)
+      .where('user_id', user.user_id)
       .first();
 
     for (const [key, value] of Object.entries(updateData)) {
       if (key !== 'updated_at' && key !== 'version') {
         await db('user_history').insert({
-          user_id: id,
+          user_id: user.user_id,
           field_name: key,
           old_value: user[key],
           new_value: value,
@@ -235,7 +248,7 @@ router.put('/:id', authMiddleware, validate(UserValidation.update), async (req: 
       }
     }
 
-    logger.info(`User updated: ${id} by ${req.user?.username || 'system'}`);
+    logger.info(`User updated: ${user.user_id} by ${req.user?.username || 'system'}`);
 
     res.json({
       success: true,
@@ -266,17 +279,26 @@ router.delete('/:id', authMiddleware, validate(UserValidation.byId), async (req:
   try {
     const { id } = req.params;
 
-    const user = await db('users')
-      .where('user_id', id)
+    // Try to find user by id (numeric) or user_id (string)
+    let user = await db('users')
+      .where('id', id)
       .where('status', '!=', 3)
       .first();
+
+    // If not found by id, try user_id
+    if (!user) {
+      user = await db('users')
+        .where('user_id', id)
+        .where('status', '!=', 3)
+        .first();
+    }
 
     if (!user) {
       throw new NotFoundError('User', id);
     }
 
     await db('users')
-      .where('user_id', id)
+      .where('user_id', user.user_id)
       .update({
         status: 3,
         updated_at: new Date(),
@@ -284,7 +306,7 @@ router.delete('/:id', authMiddleware, validate(UserValidation.byId), async (req:
       });
 
     await db('user_history').insert({
-      user_id: id,
+      user_id: user.user_id,
       field_name: 'deleted',
       old_value: user.status,
       new_value: 3,
@@ -292,7 +314,7 @@ router.delete('/:id', authMiddleware, validate(UserValidation.byId), async (req:
       ip_address: req.ip
     });
 
-    logger.info(`User deleted: ${id} by ${req.user?.username || 'system'}`);
+    logger.info(`User deleted: ${user.user_id} by ${req.user?.username || 'system'}`);
 
     res.json({
       success: true,
@@ -310,17 +332,26 @@ router.post('/:id/ban', authMiddleware, validate(UserValidation.ban), async (req
     const { id } = req.params;
     const { reason } = req.body;
 
-    const user = await db('users')
-      .where('user_id', id)
+    // Try to find user by id (numeric) or user_id (string)
+    let user = await db('users')
+      .where('id', id)
       .where('status', '!=', 3)
       .first();
+
+    // If not found by id, try user_id
+    if (!user) {
+      user = await db('users')
+        .where('user_id', id)
+        .where('status', '!=', 3)
+        .first();
+    }
 
     if (!user) {
       throw new NotFoundError('User', id);
     }
 
     await db('users')
-      .where('user_id', id)
+      .where('user_id', user.user_id)
       .update({
         status: 2,
         updated_at: new Date(),
@@ -328,7 +359,7 @@ router.post('/:id/ban', authMiddleware, validate(UserValidation.ban), async (req
       });
 
     await db('user_history').insert({
-      user_id: id,
+      user_id: user.user_id,
       field_name: 'banned',
       old_value: String(user.status),
       new_value: '2',
@@ -336,7 +367,7 @@ router.post('/:id/ban', authMiddleware, validate(UserValidation.ban), async (req
       ip_address: req.ip
     });
 
-    logger.info(`User banned: ${id} by ${req.user?.username || 'system'}`);
+    logger.info(`User banned: ${user.user_id} by ${req.user?.username || 'system'}`);
 
     res.json({
       success: true,
@@ -353,17 +384,26 @@ router.post('/:id/unban', authMiddleware, validate(UserValidation.byId), async (
   try {
     const { id } = req.params;
 
-    const user = await db('users')
-      .where('user_id', id)
+    // Try to find user by id (numeric) or user_id (string)
+    let user = await db('users')
+      .where('id', id)
       .where('status', '!=', 3)
       .first();
+
+    // If not found by id, try user_id
+    if (!user) {
+      user = await db('users')
+        .where('user_id', id)
+        .where('status', '!=', 3)
+        .first();
+    }
 
     if (!user) {
       throw new NotFoundError('User', id);
     }
 
     await db('users')
-      .where('user_id', id)
+      .where('user_id', user.user_id)
       .update({
         status: 1,
         updated_at: new Date(),
@@ -371,7 +411,7 @@ router.post('/:id/unban', authMiddleware, validate(UserValidation.byId), async (
       });
 
     await db('user_history').insert({
-      user_id: id,
+      user_id: user.user_id,
       field_name: 'unbanned',
       old_value: user.status,
       new_value: 1,
@@ -379,7 +419,7 @@ router.post('/:id/unban', authMiddleware, validate(UserValidation.byId), async (
       ip_address: req.ip
     });
 
-    logger.info(`User unbanned: ${id} by ${req.user?.username || 'system'}`);
+    logger.info(`User unbanned: ${user.user_id} by ${req.user?.username || 'system'}`);
 
     res.json({
       success: true,
@@ -397,10 +437,19 @@ router.get('/:id/traffic', authMiddleware, validate(UserValidation.traffic), asy
     const { id } = req.params;
     const days = parseInt(req.query.days as string) || 30;
 
-    const user = await db('users')
-      .where('user_id', id)
+    // Try to find user by id (numeric) or user_id (string)
+    let user = await db('users')
+      .where('id', id)
       .where('status', '!=', 3)
       .first();
+
+    // If not found by id, try user_id
+    if (!user) {
+      user = await db('users')
+        .where('user_id', id)
+        .where('status', '!=', 3)
+        .first();
+    }
 
     if (!user) {
       throw new NotFoundError('User', id);
@@ -410,7 +459,7 @@ router.get('/:id/traffic', authMiddleware, validate(UserValidation.traffic), asy
     startDate.setDate(startDate.getDate() - days);
 
     const trafficStats = await db('traffic_stats_daily')
-      .where('user_id', id)
+      .where('user_id', user.user_id)
       .where('stat_date', '>=', startDate.toISOString().split('T')[0])
       .orderBy('stat_date', 'asc')
       .select('*');
@@ -451,22 +500,31 @@ router.get('/:id/orders', authMiddleware, validate(UserValidation.byId), async (
     const limit = parseInt(req.query.limit as string) || 20;
     const offset = (page - 1) * limit;
 
-    const user = await db('users')
-      .where('user_id', id)
+    // Try to find user by id (numeric) or user_id (string)
+    let user = await db('users')
+      .where('id', id)
       .where('status', '!=', 3)
       .first();
+
+    // If not found by id, try user_id
+    if (!user) {
+      user = await db('users')
+        .where('user_id', id)
+        .where('status', '!=', 3)
+        .first();
+    }
 
     if (!user) {
       throw new NotFoundError('User', id);
     }
 
     const [countResult] = await db('orders')
-      .where('user_id', id)
+      .where('user_id', user.user_id)
       .count('* as count');
     const total = parseInt(countResult.count as string);
 
     const orders = await db('orders')
-      .where('user_id', id)
+      .where('user_id', user.user_id)
       .orderBy('created_at', 'desc')
       .limit(limit)
       .offset(offset)

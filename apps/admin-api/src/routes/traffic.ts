@@ -8,6 +8,103 @@ import { authMiddleware } from '../middlewares/auth';
 
 const router = Router();
 
+// GET /api/v1/traffic - Get traffic records list
+router.get('/', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    const offset = (page - 1) * limit;
+    const userId = req.query.userId as string;
+    const nodeId = req.query.nodeId as string;
+
+    let query = db('traffic_stats_daily');
+
+    if (userId) {
+      query = query.where('user_id', userId);
+    }
+
+    const [countResult] = await query.clone().count('* as count');
+    const total = parseInt(countResult.count as string);
+
+    const records = await query
+      .orderBy('stat_date', 'desc')
+      .limit(limit)
+      .offset(offset);
+
+    // Get user details
+    const userIds = [...new Set(records.map(r => r.user_id))];
+    const users = await db('users')
+      .whereIn('user_id', userIds)
+      .select('user_id', 'username', 'email');
+
+    const userMap = users.reduce((acc, user) => {
+      acc[user.user_id] = user;
+      return acc;
+    }, {} as Record<string, any>);
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: {
+        list: records.map(record => ({
+          id: record.id,
+          userId: record.user_id,
+          username: userMap[record.user_id]?.username || 'Unknown',
+          email: userMap[record.user_id]?.email || 'Unknown',
+          nodeName: 'All Nodes',
+          upload: record.upload_bytes || 0,
+          download: record.download_bytes || 0,
+          total: record.total_bytes || 0,
+          recordedAt: record.stat_date
+        })),
+        total
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /api/v1/traffic/stats - Get traffic statistics (alias for /trend)
+router.get('/stats', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { startDate, endDate } = req.query;
+
+    let query = db('traffic_stats_daily');
+
+    if (startDate) {
+      query = query.where('stat_date', '>=', startDate);
+    }
+
+    if (endDate) {
+      query = query.where('stat_date', '<=', endDate);
+    }
+
+    const trafficData = await query
+      .select('stat_date')
+      .sum('total_bytes as total')
+      .sum('upload_bytes as upload')
+      .sum('download_bytes as download')
+      .groupBy('stat_date')
+      .orderBy('stat_date', 'asc');
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: trafficData.map(day => ({
+        date: day.stat_date,
+        total: parseInt(day.total as string) || 0,
+        upload: parseInt(day.upload as string) || 0,
+        download: parseInt(day.download as string) || 0
+      }))
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 // GET /api/v1/traffic/overview - Get traffic overview statistics
 router.get('/overview', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -129,17 +226,20 @@ router.get('/trend', authMiddleware, async (req: Request, res: Response, next: N
       .groupBy('stat_date')
       .orderBy('stat_date', 'asc');
 
+    // Return real traffic data (empty array if no data)
+    const resultData = (trafficData || []).map(day => ({
+      date: day.stat_date,
+      total: parseInt(day.total_bytes as string) || 0,
+      upload: parseInt(day.upload_bytes as string) || 0,
+      download: parseInt(day.download_bytes as string) || 0,
+      activeUsers: parseInt(day.active_users as string) || 0
+    }));
+
     res.json({
       success: true,
       code: 200,
       message: 'success',
-      data: trafficData.map(day => ({
-        date: day.stat_date,
-        total: parseInt(day.total_bytes as string) || 0,
-        upload: parseInt(day.upload_bytes as string) || 0,
-        download: parseInt(day.download_bytes as string) || 0,
-        activeUsers: parseInt(day.active_users as string) || 0
-      }))
+      data: resultData
     });
   } catch (error) {
     next(error);

@@ -17,11 +17,11 @@
       <div class="status-content">
         <div class="status-item">
           <div class="item-label">套餐类型</div>
-          <div class="item-value">{{ subscriptionInfo?.planName || '暂无订阅' }}</div>
+          <div class="item-value">{{ subscriptionInfo?.planName || userStore.userInfo?.planName || '标准套餐' }}</div>
         </div>
         <div class="status-item">
           <div class="item-label">到期时间</div>
-          <div class="item-value">{{ formatDate(subscriptionInfo?.expireDate || null) }}</div>
+          <div class="item-value">{{ formatDate(subscriptionInfo?.expireDate || userStore.userInfo?.expireDate || null) }}</div>
         </div>
         <div class="status-item">
           <div class="item-label">剩余天数</div>
@@ -380,8 +380,10 @@ import * as subscriptionApi from '@/api/subscription';
 import type { SubscriptionInfo } from '@/types/subscription';
 import { ServiceType, ServiceTypeMeta } from '@/constants/service-type';
 import ServiceTypePermissions from '@/components/subscription/ServiceTypePermissions.vue';
+import { useUserStore } from '@/stores/user';
 
 const router = useRouter();
+const userStore = useUserStore();
 
 // IP类型
 enum IpType {
@@ -408,11 +410,26 @@ const subscriptionHistory = ref([
   { type: 'info', time: '2024-01-15 10:31', content: '订阅已激活' },
 ]);
 
-const trafficLimit = computed(() => subscriptionInfo.value?.trafficLimit || 0);
-const trafficUsed = computed(() => subscriptionInfo.value?.trafficUsed || 0);
-const trafficRemaining = computed(() => subscriptionInfo.value?.trafficRemaining || 0);
-const trafficPercentage = computed(() => subscriptionInfo.value?.usagePercent || 0);
-const daysRemaining = computed(() => subscriptionInfo.value?.daysRemaining || 0);
+// 使用 subscriptionInfo 或 userStore.userInfo 作为数据源
+const trafficLimit = computed(() => subscriptionInfo.value?.trafficLimit ?? userStore.userInfo?.trafficLimit ?? 0);
+const trafficUsed = computed(() => subscriptionInfo.value?.trafficUsed ?? userStore.userInfo?.trafficUsed ?? 0);
+const trafficRemaining = computed(() => {
+  const limit = subscriptionInfo.value?.trafficLimit ?? userStore.userInfo?.trafficLimit ?? 0;
+  const used = subscriptionInfo.value?.trafficUsed ?? userStore.userInfo?.trafficUsed ?? 0;
+  return Math.max(0, limit - used);
+});
+const trafficPercentage = computed(() => {
+  const limit = trafficLimit.value;
+  const used = trafficUsed.value;
+  return limit > 0 ? Math.round((used / limit) * 100) : 0;
+});
+const daysRemaining = computed(() => {
+  const expireDate = subscriptionInfo.value?.expireDate ?? userStore.userInfo?.expireDate;
+  if (!expireDate) return 0;
+  const now = new Date();
+  const expire = new Date(expireDate);
+  return Math.max(0, Math.ceil((expire.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+});
 const isExpired = computed(() => daysRemaining.value <= 0);
 
 const subscriptionStatusText = computed(() => {
@@ -540,14 +557,30 @@ const getLineTypeStyle = (type: LineType) => {
 
 const fetchSubscriptionData = async () => {
   try {
+    console.log('[fetchSubscriptionData] Fetching subscription info...');
     const info = await subscriptionApi.getCurrentSubscription();
-    subscriptionInfo.value = info as unknown as typeof subscriptionInfo.value;
+    console.log('[fetchSubscriptionData] Subscription info:', info);
+    
+    // 检查数据结构
+    if (info && typeof info === 'object') {
+      subscriptionInfo.value = info;
+      console.log('[fetchSubscriptionData] planName:', info.planName);
+      console.log('[fetchSubscriptionData] expireDate:', info.expireDate);
+      console.log('[fetchSubscriptionData] daysRemaining:', info.daysRemaining);
+    } else {
+      console.error('[fetchSubscriptionData] Invalid info data:', info);
+    }
 
+    console.log('[fetchSubscriptionData] Fetching subscription URL...');
     const urlData = await subscriptionApi.getSubscriptionUrl();
-    subscriptionUrl.value = (urlData as unknown as { url: string }).url;
-    qrCodeUrl.value = (urlData as unknown as { qrCode: string }).qrCode;
+    console.log('[fetchSubscriptionData] URL data:', urlData);
+    
+    if (urlData && typeof urlData === 'object') {
+      subscriptionUrl.value = urlData.url || '';
+      qrCodeUrl.value = urlData.qrCode || '';
+    }
   } catch (error) {
-    console.error('Failed to fetch subscription data:', error);
+    console.error('[fetchSubscriptionData] Error:', error);
   }
 };
 

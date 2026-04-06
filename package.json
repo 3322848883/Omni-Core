@@ -1,0 +1,50 @@
+{
+  "name": "omni-core",
+  "version": "1.0.0",
+  "description": "Omni Core - High-performance VPN Service Platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "shared/*"
+  ],
+  "scripts": {
+    "postinstall": "bash scripts/postinstall.sh",
+    "dev:admin-api": "npm run dev -w @omnicore/admin-api",
+    "dev:admin-web": "npm run dev -w @omnicore/admin-web",
+    "dev:client-api": "npm run dev -w @omnicore/client-api",
+    "dev:client-web": "npm run dev -w @omnicore/client-web",
+    "build:admin-api": "npm run build -w @omnicore/admin-api",
+    "build:admin-web": "npm run build -w @omnicore/admin-web",
+    "build:client-api": "npm run build -w @omnicore/client-api",
+    "build:client-web": "npm run build -w @omnicore/client-web",
+    "lint": "npm run lint --workspaces",
+    "lint:fix": "npm run lint:fix --workspaces",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:run": "vitest run",
+    "clean": "rimraf apps/*/dist apps/*/node_modules node_modules",
+    "docker:build": "docker-compose -f infrastructure/docker/docker-compose.yml build",
+    "docker:up": "docker-compose -f infrastructure/docker/docker-compose.yml up -d",
+    "docker:down": "docker-compose -f infrastructure/docker/docker-compose.yml down"
+  },
+  "devDependencies": {
+    "@types/multer": "^2.1.0",
+    "@vitest/coverage-v8": "^4.1.1",
+    "@vitest/ui": "^4.1.1",
+    "@vue/test-utils": "^2.4.6",
+    "concurrently": "^8.2.2",
+    "jsdom": "^29.0.1",
+    "playwright": "^1.58.2",
+    "rimraf": "^5.0.5",
+    "vitest": "^4.1.1"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "dependencies": {
+    "multer": "^2.1.1",
+    "mysql2": "^3.20.0"
+  }
+}

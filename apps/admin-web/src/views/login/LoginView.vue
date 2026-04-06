@@ -97,9 +97,19 @@ const handleLogin = async () => {
       try {
         await authStore.login(form);
         ElMessage.success('登录成功');
-        router.push('/dashboard');
-      } catch (error) {
-        ElMessage.error('登录失败');
+        // 使用 window.location 进行完整页面跳转，确保状态正确
+        window.location.href = '/dashboard';
+      } catch (error: any) {
+        // 显示详细的错误信息
+        const errorMessage = error?.response?.data?.message 
+          || error?.message 
+          || '登录失败，请检查用户名和密码';
+        
+        ElMessage.error({
+          message: errorMessage,
+          duration: 3000,
+          showClose: true,
+        });
       }
     }
   });

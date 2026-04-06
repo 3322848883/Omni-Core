@@ -2,6 +2,17 @@
  * IP类型和线路类型常量定义
  * 用于套餐服务体系升级
  */
+export declare enum RotationStrategy {
+    FIXED = "fixed",
+    DAILY = "daily",
+    WEEKLY = "weekly",
+    MONTHLY = "monthly",
+    ON_DEMAND = "on_demand",
+    ROUND_ROBIN = "round_robin",
+    RANDOM = "random",
+    LEAST_USED = "least_used",
+    QUALITY_FIRST = "quality_first"
+}
 /**
  * IP类型枚举
  */
@@ -108,6 +119,7 @@ export type ISPType = 'starlink' | 'cable' | 'fiber' | 'mobile';
 export interface ISP {
     id: string;
     name: string;
+    displayName: string;
     country: string;
     type: ISPType;
     reputation: number;

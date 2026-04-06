@@ -20,8 +20,9 @@ export interface SubscriptionUrl {
 }
 
 // Get subscription plans (aliased as getPlanList for store compat)
-export function getPlanList() {
-  return request.get<Plan[]>('/subscription/plans');
+export async function getPlanList(): Promise<Plan[]> {
+  // request.get already unwraps the response, returns data directly
+  return await request.get<Plan[]>('/subscription/plans');
 }
 
 export function getSubscriptionPlans() {
@@ -29,8 +30,8 @@ export function getSubscriptionPlans() {
 }
 
 // Get plan by ID
-export function getPlanById(planId: string) {
-  return request.get<PlanDetail>(`/subscription/plans/${planId}`);
+export async function getPlanById(planId: string): Promise<PlanDetail> {
+  return await request.get<PlanDetail>(`/subscription/plans/${planId}`);
 }
 
 // Get plans by group
@@ -39,8 +40,8 @@ export function getPlansByGroup(groupId: string) {
 }
 
 // Get current subscription (aliased as getCurrentSubscription for store compat)
-export function getCurrentSubscription() {
-  return request.get<SubscriptionInfo>('/subscription/info');
+export async function getCurrentSubscription(): Promise<SubscriptionInfo> {
+  return await request.get<SubscriptionInfo>('/subscription/info');
 }
 
 export function getSubscriptionInfo() {
@@ -48,8 +49,8 @@ export function getSubscriptionInfo() {
 }
 
 // Get subscription URL
-export function getSubscriptionUrl() {
-  return request.get<SubscriptionUrl>('/subscription/url');
+export async function getSubscriptionUrl(): Promise<SubscriptionUrl> {
+  return await request.get<SubscriptionUrl>('/subscription/url');
 }
 
 // Reset subscription UUID

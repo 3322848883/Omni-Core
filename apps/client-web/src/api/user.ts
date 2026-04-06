@@ -6,64 +6,66 @@ import type { User, UpdateUserData, ChangePasswordData } from '@/types/user';
  * Get current user info
  * @returns User info
  */
-export const getCurrentUser = (): Promise<User> => {
-  return request.get('/users/me');
-};
+export async function getCurrentUser(): Promise<User> {
+  // request.get already unwraps the response, returns data directly
+  return await request.get<User>('/users/me');
+}
 
 /**
  * Update user info
  * @param data Update data
  * @returns Updated user info
  */
-export const updateUser = (data: UpdateUserData): Promise<User> => {
+export function updateUser(data: UpdateUserData): Promise<User> {
   return request.patch('/users/me', data);
-};
+}
 
 /**
  * Change password
  * @param data Password data
  */
-export const changePassword = (data: ChangePasswordData): Promise<void> => {
-  return request.post('/users/me/change-password', data);
-};
+export async function changePassword(data: ChangePasswordData): Promise<void> {
+  await request.post('/users/me/change-password', data);
+}
 
 /**
  * Upload avatar
  * @param file Avatar file
  * @returns Avatar URL
  */
-export const uploadAvatar = (
-  file: File
-): Promise<{ avatar_url: string }> => {
-  const formData = new FormData();
-  formData.append('avatar', file);
-
-  return request.post('/users/me/avatar', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
+export async function uploadAvatar(file: File): Promise<{ avatar_url: string }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      request.post('/users/me/avatar', { avatar: base64 })
+        .then(resolve)
+        .catch(reject);
+    };
+    reader.onerror = () => reject(new Error('Failed to read file'));
+    reader.readAsDataURL(file);
   });
-};
+}
 
 /**
  * Verify two-factor authentication code
  * @param code 6-digit verification code
  */
-export const verifyTwoFactor = (code: string): Promise<void> => {
-  return request.post('/users/me/2fa/verify', { code });
-};
+export async function verifyTwoFactor(code: string): Promise<void> {
+  await request.post('/users/me/2fa/verify', { code });
+}
 
 /**
  * Disable two-factor authentication
  */
-export const disableTwoFactor = (): Promise<void> => {
+export function disableTwoFactor(): Promise<void> {
   return request.post('/users/me/2fa/disable');
-};
+}
 
 /**
  * Delete user account
  * @param confirmation Confirmation string
  */
-export const deleteAccount = (confirmation: string): Promise<void> => {
-  return request.post('/users/me/delete', { confirmation });
-};
+export async function deleteAccount(confirmation: string): Promise<void> {
+  await request.post('/users/me/delete', { confirmation });
+}

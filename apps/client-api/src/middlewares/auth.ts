@@ -122,3 +122,63 @@ export const optionalAuth = async (
     next(error);
   }
 };
+
+/**
+ * Subscription authentication middleware - authenticates via VPN UUID in query param
+ * Used for external VPN clients that cannot carry session/cookie
+ */
+export const authenticateByVpnUuid = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    // First try normal token authentication
+    const authHeader = req.headers.authorization;
+    const token = extractTokenFromHeader(authHeader);
+
+    if (token) {
+      try {
+        const blacklisted = await isBlacklisted(token);
+        if (!blacklisted) {
+          const decoded = verifyAccessToken(token);
+          const dbUser = await db('users')
+            .where({ user_id: decoded.userId })
+            .first();
+
+          if (dbUser) {
+            const isActive = dbUser.status === 1 || String(dbUser.status) === '1';
+            if (isActive) {
+              req.user = formatUser(dbUser);
+              return next();
+            }
+          }
+        }
+      } catch {
+        // Token auth failed, try VPN UUID
+      }
+    }
+
+    // Try VPN UUID from query parameter
+    const { token: vpnUuid } = req.query;
+
+    if (vpnUuid && typeof vpnUuid === 'string') {
+      const dbUser = await db('users')
+        .where({ vpn_uuid: vpnUuid })
+        .first();
+
+      if (dbUser) {
+        const isActive = dbUser.status === 1 || String(dbUser.status) === '1';
+        if (isActive) {
+          req.user = formatUser(dbUser);
+          return next();
+        }
+      }
+    }
+
+    // If no valid authentication found
+    throw new UnauthorizedError('Valid authentication required');
+  } catch (error) {
+    next(error);
+  }
+};

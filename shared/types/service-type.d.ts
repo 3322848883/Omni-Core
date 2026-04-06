@@ -3,6 +3,7 @@
  * 用于套餐服务类型支持功能
  */
 import { ServiceType } from '../constants/service-type';
+import { IpType, LineType } from '../constants/ip-type';
 /**
  * 节点服务类型扩展
  */
@@ -59,9 +60,13 @@ export interface PlanGroupConfig {
     name: string;
     description: string;
     serviceTypes: ServiceType[];
-    icon: string;
-    color: string;
-    recommendedFor: string[];
+    ipTypes: IpType[];
+    lineTypes: LineType[];
+    allowedIpTypes?: IpType[];
+    allowedLineTypes?: LineType[];
+    icon?: string;
+    color?: string;
+    recommendedFor?: string[];
 }
 /**
  * 套餐配置
@@ -79,6 +84,11 @@ export interface PlanConfig {
     guaranteedBandwidth: number;
     maxConnections: number;
     features: string[];
+    allowedIpTypes?: IpType[];
+    allowedLineTypes?: LineType[];
+    minIpScore?: number;
+    ipRotationEnabled?: boolean;
+    ipRotationInterval?: number;
 }
 /**
  * 流量记录（带服务类型）
@@ -98,6 +108,7 @@ export interface TrafficByServiceType {
     [ServiceType.STANDARD]: number;
     [ServiceType.DEDICATED_LINE]: number;
     [ServiceType.EXCLUSIVE]: number;
+    [ServiceType.STATIC_RESIDENTIAL]: number;
 }
 /**
  * 流量概览
@@ -135,6 +146,14 @@ export interface NodeFilterOptions {
     isPremium?: boolean;
     minQosLevel?: number;
     region?: string;
+    ipType?: IpType;
+    ipTypes?: IpType[];
+    lineType?: LineType;
+    lineTypes?: LineType[];
+    ispName?: string;
+    minIpScore?: number;
+    supportsIPv6?: boolean;
+    ipPoolId?: string;
 }
 /**
  * 缓存的节点配置
@@ -153,6 +172,16 @@ export interface CachedNodeConfig {
     protocol: string;
     network: string;
     security: string;
+    ipType: IpType;
+    lineType: LineType;
+    ispName?: string;
+    ipScore?: number;
+    supportsIPv6: boolean;
+    ipPoolId?: string;
+    currentIp?: string;
+    ipRotationEnabled: boolean;
+    ipRotationInterval?: number;
+    lastIpRotationAt?: Date;
 }
 /**
  * 缓存的用户配置
@@ -165,5 +194,28 @@ export interface CachedUserConfig {
     trafficLimit: number;
     trafficUsed: number;
     expireDate: Date | null;
+}
+export type { IPReputation, IPPoolConfig, IPPoolIP, IPRotationResult } from './ip-assets';
+/**
+ * 套餐权益验证结果
+ */
+export interface PlanValidationResult {
+    allowed: boolean;
+    reason?: string;
+    planGroup?: string;
+    allowedIpTypes?: IpType[];
+    allowedLineTypes?: LineType[];
+    minIpScore?: number;
+}
+/**
+ * 节点访问权限检查参数
+ */
+export interface NodeAccessCheckParams {
+    userId: string;
+    nodeId: string;
+    nodeIpType: IpType;
+    nodeLineType: LineType;
+    nodeServiceType: ServiceType;
+    nodeIpScore?: number;
 }
 //# sourceMappingURL=service-type.d.ts.map

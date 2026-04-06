@@ -6,6 +6,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { authMiddleware } from '../middlewares/auth';
 import { ValidationError } from '../utils/errors';
+import { db } from '../database';
 import {
   ServiceType,
   isValidServiceType,
@@ -303,6 +304,158 @@ router.post('/:id/deactivate', authMiddleware, async (req: Request, res: Respons
       code: 200,
       message: 'Plan deactivated successfully',
       data: plan
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/**
+ * GET /api/v1/plans/stats/overview - 获取套餐统计概览
+ */
+router.get('/stats/overview', authMiddleware, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { startDate, endDate, planId } = req.query;
+
+    // Get all plans
+    let plansQuery = db('subscription_plans').where('is_active', true);
+    if (planId) {
+      plansQuery = plansQuery.where('id', planId);
+    }
+    const plans = await plansQuery.select('id', 'name', 'price');
+
+    // Get all subscriptions with plan info
+    let subscriptionsQuery = db('user_subscriptions')
+      .join('subscription_plans', 'user_subscriptions.plan_id', 'subscription_plans.id')
+      .select(
+        'user_subscriptions.*',
+        'subscription_plans.name as plan_name',
+        'subscription_plans.price as plan_price'
+      );
+
+    if (planId) {
+      subscriptionsQuery = subscriptionsQuery.where('user_subscriptions.plan_id', planId);
+    }
+
+    if (startDate) {
+      subscriptionsQuery = subscriptionsQuery.where('user_subscriptions.created_at', '>=', startDate);
+    }
+
+    if (endDate) {
+      subscriptionsQuery = subscriptionsQuery.where('user_subscriptions.created_at', '<=', endDate);
+    }
+
+    const subscriptions = await subscriptionsQuery;
+
+    // Calculate total subscribers (unique users)
+    const uniqueUsers = new Set(subscriptions.map(s => s.user_id));
+    const totalSubscribers = uniqueUsers.size;
+
+    // Calculate total revenue
+    const totalRevenue = subscriptions.reduce((sum, s) => sum + parseFloat(s.plan_price || 0), 0);
+
+    // Calculate new subscribers (created in the last 30 days if no date range specified)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const newSubscribers = subscriptions.filter(s => {
+      const createdAt = new Date(s.created_at);
+      return createdAt >= thirtyDaysAgo;
+    }).length;
+
+    // Calculate average revenue per user
+    const avgRevenuePerUser = totalSubscribers > 0 ? totalRevenue / totalSubscribers : 0;
+
+    // Plans distribution
+    const planCounts: Record<string, number> = {};
+    subscriptions.forEach(s => {
+      const planName = s.plan_name || 'Unknown';
+      planCounts[planName] = (planCounts[planName] || 0) + 1;
+    });
+    const plansDistribution = Object.entries(planCounts).map(([name, value]) => ({
+      name,
+      value
+    }));
+
+    // Revenue trend (by month)
+    const revenueByMonth: Record<string, { revenue: number; cumulative: number }> = {};
+    let cumulativeRevenue = 0;
+    subscriptions.forEach(s => {
+      const month = new Date(s.created_at).toISOString().slice(0, 7); // YYYY-MM
+      if (!revenueByMonth[month]) {
+        revenueByMonth[month] = { revenue: 0, cumulative: 0 };
+      }
+      revenueByMonth[month].revenue += parseFloat(s.plan_price || 0);
+    });
+
+    // Sort months and calculate cumulative
+    const sortedMonths = Object.keys(revenueByMonth).sort();
+    const revenueTrend = sortedMonths.map(month => {
+      cumulativeRevenue += revenueByMonth[month].revenue;
+      return {
+        month,
+        revenue: Math.round(revenueByMonth[month].revenue * 100) / 100,
+        cumulative: Math.round(cumulativeRevenue * 100) / 100
+      };
+    });
+
+    // Subscriber trend (by date)
+    const subscribersByDate: Record<string, { newSubscribers: number; totalSubscribers: number }> = {};
+    subscriptions.forEach(s => {
+      const date = new Date(s.created_at).toISOString().split('T')[0];
+      if (!subscribersByDate[date]) {
+        subscribersByDate[date] = { newSubscribers: 0, totalSubscribers: 0 };
+      }
+      subscribersByDate[date].newSubscribers += 1;
+    });
+
+    // Calculate cumulative subscribers
+    const sortedDates = Object.keys(subscribersByDate).sort();
+    let runningTotal = 0;
+    const subscriberTrend = sortedDates.map(date => {
+      runningTotal += subscribersByDate[date].newSubscribers;
+      return {
+        date,
+        newSubscribers: subscribersByDate[date].newSubscribers,
+        totalSubscribers: runningTotal
+      };
+    });
+
+    // Top plans
+    const planStats: Record<string, { name: string; subscriberCount: number; revenue: number }> = {};
+    subscriptions.forEach(s => {
+      const planName = s.plan_name || 'Unknown';
+      if (!planStats[planName]) {
+        planStats[planName] = { name: planName, subscriberCount: 0, revenue: 0 };
+      }
+      planStats[planName].subscriberCount += 1;
+      planStats[planName].revenue += parseFloat(s.plan_price || 0);
+    });
+
+    const topPlans = Object.values(planStats)
+      .map(p => ({
+        name: p.name,
+        subscriberCount: p.subscriberCount,
+        revenue: Math.round(p.revenue * 100) / 100,
+        conversionRate: Math.round((p.subscriberCount / (subscriptions.length || 1)) * 100),
+        growth: 0 // Would need historical data to calculate
+      }))
+      .sort((a, b) => b.subscriberCount - a.subscriberCount)
+      .slice(0, 10);
+
+    res.json({
+      success: true,
+      code: 200,
+      message: 'success',
+      data: {
+        totalSubscribers,
+        totalRevenue: Math.round(totalRevenue * 100) / 100,
+        newSubscribers,
+        avgRevenuePerUser: Math.round(avgRevenuePerUser * 100) / 100,
+        plansDistribution,
+        revenueTrend,
+        subscriberTrend,
+        topPlans
+      }
     });
   } catch (error) {
     next(error);

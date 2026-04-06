@@ -11,6 +11,8 @@ import {
 } from '@/types/user';
 import { ServiceType, ServiceTypeMeta, PLAN_GROUPS } from '@/constants/service-type';
 import { nodeFilterService } from './nodeFilterService';
+import config from '@/config';
+import QRCode from 'qrcode';
 
 /**
  * Get all available subscription plans
@@ -63,6 +65,24 @@ export const getPlans = async (): Promise<
       g.serviceTypes.every((st) => serviceTypes.includes(st))
     );
 
+    // 解析 features，处理各种格式的情况
+    let features: string[] = [];
+    if (plan.features) {
+      if (typeof plan.features === 'string') {
+        try {
+          const parsed = JSON.parse(plan.features);
+          features = Array.isArray(parsed) ? parsed : [String(parsed)];
+        } catch {
+          // 如果不是 JSON，按逗号分隔处理
+          features = plan.features.split(',').map(f => f.trim()).filter(Boolean);
+        }
+      } else if (Array.isArray(plan.features)) {
+        features = plan.features.map(String);
+      } else {
+        features = [String(plan.features)];
+      }
+    }
+
     return {
       id: plan.id,
       name: plan.name,
@@ -70,7 +90,7 @@ export const getPlans = async (): Promise<
       price: plan.price,
       durationDays: plan.duration_days,
       trafficLimit: plan.traffic_limit,
-      features: plan.features ? JSON.parse(plan.features) : [],
+      features,
       isPopular: plan.is_popular === 1,
       sortOrder: plan.sort_order,
       status: plan.status,
@@ -183,6 +203,7 @@ export const getUserSubscription = async (
 
 /**
  * Generate subscription URL for user
+ * 支持多种XRAY客户端格式：V2RayNG、Clash、Shadowrocket、Surge等
  */
 export const generateSubscriptionUrl = async (userId: string): Promise<SubscriptionUrl> => {
   const user = await db('users').where({ user_id: userId }).first();
@@ -191,12 +212,44 @@ export const generateSubscriptionUrl = async (userId: string): Promise<Subscript
     throw new NotFoundError('User', userId);
   }
 
-  // Generate subscription URL using VPN UUID
-  const baseUrl = process.env.SUBSCRIPTION_BASE_URL || 'https://api.embarks.uk/sub';
-  const url = `${baseUrl}/${user.vpn_uuid}`;
+  // 获取基础URL配置
+  const baseUrl = config.subscription.baseUrl || 'http://localhost:3002';
+  const vpnUuid = user.vpn_uuid;
 
-  // Generate QR code URL (using a QR code service or generate locally)
-  const qrCode = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(url)}`;
+  // 生成多种格式的订阅URL，适配不同客户端
+  // 所有URL都包含token参数用于外部客户端认证
+  // 1. 通用Base64格式 (V2RayNG, V2RayN, Shadowrocket等)
+  const base64Url = `${baseUrl}/xray/subscription/config?token=${vpnUuid}`;
+
+  // 2. Clash格式
+  const clashUrl = `${baseUrl}/xray/subscription/clash?token=${vpnUuid}`;
+
+  // 3. Surge格式
+  const surgeUrl = `${baseUrl}/xray/subscription/surge?token=${vpnUuid}`;
+
+  // 使用通用订阅URL作为默认链接
+  const url = base64Url;
+
+  // 生成二维码内容 - 使用通用订阅URL（最兼容的格式）
+  // 二维码直接包含可导入的订阅URL
+  const qrCodeData = base64Url;
+
+  // 生成二维码 (使用本地QRCode库)
+  let qrCode: string;
+  try {
+    qrCode = await QRCode.toDataURL(qrCodeData, {
+      width: 200,
+      margin: 2,
+      color: {
+        dark: '#000000',
+        light: '#FFFFFF',
+      },
+      errorCorrectionLevel: 'H',
+    });
+  } catch (error) {
+    // 如果本地生成失败，使用在线服务作为备选
+    qrCode = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(base64Url)}`;
+  }
 
   return {
     url,
@@ -308,11 +361,13 @@ export const createSubscriptionOrder = async (
     .returning('*');
 
   // Generate payment URL if payment method provided
+  // Note: Client API should call Admin API to get actual payment URL
+  // For now, we return the order number for the user to complete payment
   let paymentUrl: string | undefined;
   if (paymentMethod) {
-    // In production, integrate with actual payment gateway
-    // For now, return a mock payment URL
-    paymentUrl = `${process.env.PAYMENT_BASE_URL || 'https://pay.embarks.uk'}/pay/${orderNo}`;
+    // Payment URL will be provided after Admin API processes the payment request
+    // Client should poll verifyPayment or wait for webhook callback
+    paymentUrl = null; // Will be updated via webhook or payment confirmation
   }
 
   return {

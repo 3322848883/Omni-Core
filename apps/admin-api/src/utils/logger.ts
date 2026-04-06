@@ -1,62 +1,53 @@
 import winston from 'winston';
+import path from 'path';
 
-const { combine, timestamp, printf, colorize, errors } = winston.format;
+// 日志级别
+const levels = {
+  error: 0,
+  warn: 1,
+  info: 2,
+  http: 3,
+  debug: 4,
+};
 
-// Custom format for console output
-const consoleFormat = printf(({ level, message, timestamp, stack, ...metadata }) => {
-  let msg = `${timestamp} [${level}]: ${message}`;
-  if (Object.keys(metadata).length > 0) {
-    msg += ` ${JSON.stringify(metadata)}`;
-  }
-  if (stack) {
-    msg += `\n${stack}`;
-  }
-  return msg;
-});
+// 日志颜色
+const colors = {
+  error: 'red',
+  warn: 'yellow',
+  info: 'green',
+  http: 'magenta',
+  debug: 'white',
+};
 
-// Create logger instance
+winston.addColors(colors);
+
+// 日志格式
+const format = winston.format.combine(
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss:ms' }),
+  winston.format.colorize({ all: true }),
+  winston.format.printf(
+    (info) => `${info.timestamp} ${info.level}: ${info.message}`,
+  ),
+);
+
+// 传输方式
+const transports = [
+  new winston.transports.Console(),
+  new winston.transports.File({
+    filename: path.join(process.cwd(), 'logs', 'error.log'),
+    level: 'error',
+  }),
+  new winston.transports.File({
+    filename: path.join(process.cwd(), 'logs', 'all.log'),
+  }),
+];
+
+// 创建 logger 实例
 export const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || 'info',
-  defaultMeta: {
-    service: 'admin-api',
-  },
-  transports: [
-    // Console transport
-    new winston.transports.Console({
-      format: combine(
-        colorize(),
-        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        errors({ stack: true }),
-        consoleFormat
-      ),
-    }),
-  ],
+  level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+  levels,
+  format,
+  transports,
 });
-
-// Add file transport in production
-if (process.env.NODE_ENV === 'production') {
-  logger.add(
-    new winston.transports.File({
-      filename: '/var/log/omnicore/admin-api-error.log',
-      level: 'error',
-      format: combine(
-        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        errors({ stack: true }),
-        winston.format.json()
-      ),
-    })
-  );
-
-  logger.add(
-    new winston.transports.File({
-      filename: '/var/log/omnicore/admin-api-combined.log',
-      format: combine(
-        timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-        errors({ stack: true }),
-        winston.format.json()
-      ),
-    })
-  );
-}
 
 export default logger;

@@ -24,7 +24,7 @@
             end-placeholder="结束日期"
             style="width: 240px"
           />
-          <el-button type="primary" @click="fetchStats">
+          <el-button type="primary" @click="fetchStats" :loading="loading">
             <el-icon><Refresh /></el-icon>
             刷新
           </el-button>
@@ -103,6 +103,7 @@
             </div>
           </template>
           <div ref="subscriberChartRef" class="chart-container"></div>
+          <el-empty v-if="!hasSubscriberData" description="暂无订阅数据" />
         </el-card>
       </el-col>
     </el-row>
@@ -116,6 +117,7 @@
             </div>
           </template>
           <div ref="revenueChartRef" class="chart-container"></div>
+          <el-empty v-if="!hasRevenueData" description="暂无收入数据" />
         </el-card>
       </el-col>
       <el-col :xs="24" :lg="12">
@@ -126,6 +128,7 @@
             </div>
           </template>
           <div ref="distributionChartRef" class="chart-container"></div>
+          <el-empty v-if="!hasDistributionData" description="暂无套餐分布数据" />
         </el-card>
       </el-col>
     </el-row>
@@ -137,7 +140,7 @@
           <span>热门套餐排行</span>
         </div>
       </template>
-      <el-table :data="topPlans" stripe>
+      <el-table :data="topPlans" stripe v-loading="loading">
         <el-table-column type="index" label="排名" width="80" />
         <el-table-column prop="name" label="套餐名称" />
         <el-table-column prop="subscriberCount" label="订阅数" width="120">
@@ -163,41 +166,41 @@
           </template>
         </el-table-column>
       </el-table>
+      <el-empty v-if="topPlans.length === 0 && !loading" description="暂无套餐数据" />
     </el-card>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, nextTick, watch } from 'vue';
+import { ref, reactive, onMounted, onUnmounted, nextTick, watch, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import * as echarts from 'echarts';
 import { Refresh, User, Wallet, TrendCharts, Money } from '@element-plus/icons-vue';
-import { PRESET_PLANS } from '@shared/constants/service-type.mjs';
+import { ElMessage } from 'element-plus';
+import { getPlans, getPlansOverviewStats, type PlansOverviewStats, type Plan } from '@/api/plans';
 
 const route = useRoute();
 
 // Data
-const plans = PRESET_PLANS.map((p) => ({ id: p.id, name: p.name }));
+const plans = ref<Plan[]>([]);
 const selectedPlan = ref(route.query.planId as string || '');
 const dateRange = ref<[Date, Date]>([new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), new Date()]);
 const subscriberTimeRange = ref('30d');
+const loading = ref(false);
 
 // Summary
 const summary = reactive({
-  totalSubscribers: 1730,
-  totalRevenue: 45680.5,
-  newSubscribers: 156,
-  avgRevenuePerUser: 26.4,
+  totalSubscribers: 0,
+  totalRevenue: 0,
+  newSubscribers: 0,
+  avgRevenuePerUser: 0,
 });
 
+// Stats data
+const statsData = ref<PlansOverviewStats | null>(null);
+
 // Top plans
-const topPlans = ref([
-  { name: '专线-标准版', subscriberCount: 450, revenue: 22495.5, conversionRate: 35, growth: 12.5 },
-  { name: '标准-专业版', subscriberCount: 380, revenue: 7596.2, conversionRate: 28, growth: 8.3 },
-  { name: '专线-入门版', subscriberCount: 290, revenue: 8697.1, conversionRate: 22, growth: -2.1 },
-  { name: '标准-轻量版', subscriberCount: 250, revenue: 2497.5, conversionRate: 18, growth: 5.7 },
-  { name: '专线-高级版', subscriberCount: 180, revenue: 14398.2, conversionRate: 15, growth: 18.9 },
-]);
+const topPlans = ref<PlansOverviewStats['topPlans']>([]);
 
 // Chart refs
 const subscriberChartRef = ref<HTMLDivElement>();
@@ -208,22 +211,47 @@ let subscriberChart: echarts.ECharts | null = null;
 let revenueChart: echarts.ECharts | null = null;
 let distributionChart: echarts.ECharts | null = null;
 
+// Computed
+const hasSubscriberData = computed(() => {
+  return statsData.value?.subscriberTrend && statsData.value.subscriberTrend.length > 0;
+});
+
+const hasRevenueData = computed(() => {
+  return statsData.value?.revenueTrend && statsData.value.revenueTrend.length > 0;
+});
+
+const hasDistributionData = computed(() => {
+  return statsData.value?.plansDistribution && statsData.value.plansDistribution.length > 0;
+});
+
 const getConversionColor = (rate: number): string => {
   if (rate >= 30) return '#67c23a';
   if (rate >= 20) return '#e6a23c';
   return '#f56c6c';
 };
 
+// Load plans list
+const loadPlans = async () => {
+  try {
+    const response = await getPlans({ limit: 100 });
+    plans.value = response.data?.items || [];
+  } catch (error) {
+    console.error('Failed to load plans:', error);
+    plans.value = [];
+  }
+};
+
+// Initialize charts with real data
 const initCharts = () => {
+  if (!statsData.value) return;
+
   // Subscriber trend chart
-  if (subscriberChartRef.value) {
+  if (subscriberChartRef.value && hasSubscriberData.value) {
     subscriberChart = echarts.init(subscriberChartRef.value);
-    const days = subscriberTimeRange.value === '7d' ? 7 : subscriberTimeRange.value === '30d' ? 30 : 90;
-    const dates = Array.from({ length: days }, (_, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - (days - i - 1));
-      return `${d.getMonth() + 1}/${d.getDate()}`;
-    });
+    const trendData = statsData.value.subscriberTrend;
+    const dates = trendData.map(item => item.date);
+    const newSubscribers = trendData.map(item => item.newSubscribers);
+    const totalSubscribers = trendData.map(item => item.totalSubscribers);
 
     subscriberChart.setOption({
       tooltip: { trigger: 'axis' },
@@ -233,14 +261,14 @@ const initCharts = () => {
         {
           name: '新增订阅',
           type: 'bar',
-          data: Array.from({ length: days }, () => Math.floor(Math.random() * 20) + 5),
+          data: newSubscribers,
           itemStyle: { color: '#409eff' },
         },
         {
           name: '累计订阅',
           type: 'line',
           smooth: true,
-          data: Array.from({ length: days }, (_, i) => 1500 + i * 5 + Math.floor(Math.random() * 50)),
+          data: totalSubscribers,
           itemStyle: { color: '#67c23a' },
         },
       ],
@@ -248,27 +276,32 @@ const initCharts = () => {
   }
 
   // Revenue chart
-  if (revenueChartRef.value) {
+  if (revenueChartRef.value && hasRevenueData.value) {
     revenueChart = echarts.init(revenueChartRef.value);
+    const revenueData = statsData.value.revenueTrend;
+    const months = revenueData.map(item => item.month);
+    const revenues = revenueData.map(item => item.revenue);
+    const cumulative = revenueData.map(item => item.cumulative);
+
     revenueChart.setOption({
       tooltip: { trigger: 'axis' },
       xAxis: {
         type: 'category',
-        data: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        data: months,
       },
       yAxis: { type: 'value', name: '收入 (USD)' },
       series: [
         {
           name: '月收入',
           type: 'bar',
-          data: [3200, 4500, 5200, 6100, 7200, 8500],
+          data: revenues,
           itemStyle: { color: '#67c23a' },
         },
         {
           name: '累计收入',
           type: 'line',
           smooth: true,
-          data: [3200, 7700, 12900, 19000, 26200, 34700],
+          data: cumulative,
           itemStyle: { color: '#409eff' },
         },
       ],
@@ -276,8 +309,10 @@ const initCharts = () => {
   }
 
   // Distribution chart
-  if (distributionChartRef.value) {
+  if (distributionChartRef.value && hasDistributionData.value) {
     distributionChart = echarts.init(distributionChartRef.value);
+    const distributionData = statsData.value.plansDistribution;
+
     distributionChart.setOption({
       tooltip: { trigger: 'item' },
       legend: { orient: 'vertical', right: 10, top: 'center' },
@@ -295,29 +330,76 @@ const initCharts = () => {
           emphasis: {
             label: { show: true, fontSize: 16, fontWeight: 'bold' },
           },
-          data: [
-            { value: 450, name: '专线-标准版', itemStyle: { color: '#409eff' } },
-            { value: 380, name: '标准-专业版', itemStyle: { color: '#67c23a' } },
-            { value: 290, name: '专线-入门版', itemStyle: { color: '#e6a23c' } },
-            { value: 250, name: '标准-轻量版', itemStyle: { color: '#909399' } },
-            { value: 180, name: '专线-高级版', itemStyle: { color: '#f56c6c' } },
-            { value: 180, name: '其他', itemStyle: { color: '#dcdfe6' } },
-          ],
+          data: distributionData.map((item, index) => ({
+            value: item.value,
+            name: item.name,
+            itemStyle: {
+              color: ['#409eff', '#67c23a', '#e6a23c', '#909399', '#f56c6c', '#dcdfe6'][index % 6]
+            }
+          })),
         },
       ],
     });
   }
 };
 
-const fetchStats = () => {
-  // Mock API call
-  nextTick(() => {
-    initCharts();
-  });
+// Fetch stats from API
+const fetchStats = async () => {
+  loading.value = true;
+  try {
+    const params: { startDate?: string; endDate?: string; planId?: string } = {};
+
+    if (dateRange.value && dateRange.value[0] && dateRange.value[1]) {
+      params.startDate = dateRange.value[0].toISOString().split('T')[0];
+      params.endDate = dateRange.value[1].toISOString().split('T')[0];
+    }
+
+    if (selectedPlan.value) {
+      params.planId = selectedPlan.value;
+    }
+
+    const response = await getPlansOverviewStats(params);
+    const data = response.data;
+
+    // Update summary with safe access
+    if (data) {
+      summary.totalSubscribers = data.totalSubscribers || 0;
+      summary.totalRevenue = data.totalRevenue || 0;
+      summary.newSubscribers = data.newSubscribers || 0;
+      summary.avgRevenuePerUser = data.avgRevenuePerUser || 0;
+      topPlans.value = data.topPlans || [];
+      statsData.value = data;
+    } else {
+      // Reset to defaults if no data
+      summary.totalSubscribers = 0;
+      summary.totalRevenue = 0;
+      summary.newSubscribers = 0;
+      summary.avgRevenuePerUser = 0;
+      topPlans.value = [];
+      statsData.value = null;
+    }
+
+    nextTick(() => {
+      initCharts();
+    });
+  } catch (error) {
+    console.error('Failed to fetch stats:', error);
+    ElMessage.error('获取统计数据失败');
+    // Reset data on error
+    summary.totalSubscribers = 0;
+    summary.totalRevenue = 0;
+    summary.newSubscribers = 0;
+    summary.avgRevenuePerUser = 0;
+    topPlans.value = [];
+    statsData.value = null;
+  } finally {
+    loading.value = false;
+  }
 };
 
 // Watch for time range changes
 watch(subscriberTimeRange, () => {
+  // In real implementation, this would refetch data with different time range
   nextTick(() => {
     initCharts();
   });
@@ -325,6 +407,7 @@ watch(subscriberTimeRange, () => {
 
 // Lifecycle
 onMounted(() => {
+  loadPlans();
   fetchStats();
   window.addEventListener('resize', handleResize);
 });
@@ -346,6 +429,10 @@ const handleResize = () => {
 <style scoped lang="scss">
 .plan-stats {
   min-height: calc(100vh - 120px);
+
+  .el-card {
+    height: 100%;
+  }
 
   .header-card {
     margin-bottom: 20px;

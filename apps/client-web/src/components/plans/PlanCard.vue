@@ -234,44 +234,77 @@ const getLineTypeStyle = (type: string) => {
 .plan-card {
   position: relative;
   height: 100%;
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.1),
+      transparent
+    );
+    transition: left 0.7s;
+  }
 
   &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 30px rgba(99, 102, 241, 0.2);
+
+    &::before {
+      left: 100%;
+    }
   }
 
   &.popular {
-    border: 2px solid #409eff;
+    border: 2px solid transparent;
+    background: linear-gradient(var(--bg-card), var(--bg-card)) padding-box,
+                linear-gradient(135deg, #6366f1, #ec4899) border-box;
+    animation: border-glow 3s ease-in-out infinite;
+
+    &:hover {
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 40px rgba(99, 102, 241, 0.3);
+    }
   }
 
   &.current {
-    opacity: 0.9;
-    background-color: #f5f7fa;
+    opacity: 0.95;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(236, 72, 153, 0.1));
+    border: 1px solid rgba(99, 102, 241, 0.3);
   }
 
   .popular-badge {
     position: absolute;
     top: 0;
     right: 20px;
-    background: linear-gradient(135deg, #409eff 0%, #1677ff 100%);
+    background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+    background-size: 200% 200%;
     color: #fff;
     padding: 4px 12px;
     font-size: 12px;
     border-radius: 0 0 8px 8px;
     font-weight: 500;
+    animation: gradient-shift 3s ease infinite;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
   }
 
   .current-badge {
     position: absolute;
     top: 0;
     right: 20px;
-    background: linear-gradient(135deg, #67c23a 0%, #52c41a 100%);
+    background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
     color: #fff;
     padding: 4px 12px;
     font-size: 12px;
     border-radius: 0 0 8px 8px;
     font-weight: 500;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
   }
 
   .plan-header {
@@ -281,12 +314,12 @@ const getLineTypeStyle = (type: string) => {
     .plan-name {
       font-size: 20px;
       font-weight: 600;
-      color: #303133;
+      color: var(--text-primary);
       margin-bottom: 8px;
     }
 
     .plan-description {
-      color: #909399;
+      color: var(--text-tertiary);
       font-size: 14px;
       line-height: 1.5;
     }
@@ -317,20 +350,20 @@ const getLineTypeStyle = (type: string) => {
 
     .currency {
       font-size: 20px;
-      color: #f56c6c;
+      color: var(--color-danger);
       font-weight: 500;
     }
 
     .amount {
       font-size: 42px;
       font-weight: 700;
-      color: #f56c6c;
+      color: var(--color-danger);
       margin: 0 4px;
     }
 
     .period {
       font-size: 14px;
-      color: #909399;
+      color: var(--text-tertiary);
     }
   }
 
@@ -340,7 +373,7 @@ const getLineTypeStyle = (type: string) => {
     gap: 12px;
     margin-bottom: 16px;
     padding: 12px;
-    background-color: #f5f7fa;
+    background-color: rgba(255, 255, 255, 0.03);
     border-radius: 8px;
 
     .metric-item {
@@ -351,19 +384,19 @@ const getLineTypeStyle = (type: string) => {
 
       .el-icon {
         font-size: 18px;
-        color: #409eff;
+        color: var(--brand-primary);
         margin-bottom: 4px;
       }
 
       .metric-value {
         font-size: 14px;
         font-weight: 600;
-        color: #303133;
+        color: var(--text-primary);
       }
 
       .metric-label {
         font-size: 11px;
-        color: #909399;
+        color: var(--text-tertiary);
         margin-top: 2px;
       }
     }
@@ -372,11 +405,11 @@ const getLineTypeStyle = (type: string) => {
   .plan-scenarios {
     margin-bottom: 12px;
     padding: 8px 0;
-    border-top: 1px solid #f0f0f0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
 
     .scenarios-label {
       font-size: 12px;
-      color: #909399;
+      color: var(--text-tertiary);
       margin-bottom: 6px;
     }
 
@@ -395,7 +428,7 @@ const getLineTypeStyle = (type: string) => {
       align-items: center;
       gap: 8px;
       padding: 6px 0;
-      color: #606266;
+      color: var(--text-secondary);
       font-size: 13px;
 
       .el-icon {
@@ -410,29 +443,63 @@ const getLineTypeStyle = (type: string) => {
 
     .subscribe-btn {
       flex: 1;
-      background: linear-gradient(135deg, #409eff 0%, #1677ff 100%);
+      background: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+      background-size: 200% 200%;
       border: none;
-      font-weight: 500;
+      font-weight: 600;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.3),
+          transparent
+        );
+        transition: left 0.6s;
+      }
 
       &:hover:not(:disabled) {
-        background: linear-gradient(135deg, #66b1ff 0%, #409eff 100%);
+        background-position: 100% 0;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4), 0 0 30px rgba(236, 72, 153, 0.2);
+
+        &::before {
+          left: 100%;
+        }
+      }
+
+      &:active:not(:disabled) {
+        transform: translateY(0);
       }
 
       &:disabled {
-        background: #c0c4cc;
+        background: linear-gradient(135deg, #4b5563 0%, #6b7280 100%);
+        opacity: 0.7;
       }
     }
 
     .detail-btn {
       flex: 1;
-      background: #f5f7fa;
-      border: 1px solid #dcdfe6;
-      color: #606266;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: var(--text-secondary);
+      font-weight: 500;
+      transition: all 0.3s ease;
 
       &:hover {
-        background: #e4e7ed;
-        border-color: #c0c4cc;
-        color: #303133;
+        background: rgba(255, 255, 255, 0.05);
+        border-color: rgba(99, 102, 241, 0.5);
+        color: var(--text-primary);
+        box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
       }
     }
   }

@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { v4 as uuidv4 } from 'uuid';
 import bcrypt from 'bcryptjs';
 
 const ALGORITHM = 'aes-256-gcm';
@@ -6,12 +7,11 @@ const IV_LENGTH = 16;
 const SALT_LENGTH = 64;
 const TAG_LENGTH = 16;
 const KEY_LENGTH = 32;
-const BCRYPT_ROUNDS = 12;
 
 /**
  * Generate a random token
  */
-export function generateToken(length: number = 32): string {
+export function generateToken(length = 32): string {
   return crypto.randomBytes(length).toString('hex');
 }
 
@@ -19,7 +19,8 @@ export function generateToken(length: number = 32): string {
  * Hash a password using bcrypt
  */
 export async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, BCRYPT_ROUNDS);
+  const saltRounds = 12;
+  return bcrypt.hash(password, saltRounds);
 }
 
 /**
@@ -35,13 +36,10 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 export function encrypt(text: string, secretKey: string): string {
   const iv = crypto.randomBytes(IV_LENGTH);
   const salt = crypto.randomBytes(SALT_LENGTH);
-  
   const key = crypto.pbkdf2Sync(secretKey, salt, 100000, KEY_LENGTH, 'sha512');
-  
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
   const encrypted = Buffer.concat([cipher.update(text, 'utf8'), cipher.final()]);
   const tag = cipher.getAuthTag();
-  
   const result = Buffer.concat([salt, iv, tag, encrypted]).toString('base64');
   return result;
 }
@@ -51,17 +49,13 @@ export function encrypt(text: string, secretKey: string): string {
  */
 export function decrypt(encryptedData: string, secretKey: string): string {
   const data = Buffer.from(encryptedData, 'base64');
-  
   const salt = data.subarray(0, SALT_LENGTH);
   const iv = data.subarray(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
   const tag = data.subarray(SALT_LENGTH + IV_LENGTH, SALT_LENGTH + IV_LENGTH + TAG_LENGTH);
   const encrypted = data.subarray(SALT_LENGTH + IV_LENGTH + TAG_LENGTH);
-  
   const key = crypto.pbkdf2Sync(secretKey, salt, 100000, KEY_LENGTH, 'sha512');
-  
   const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
   decipher.setAuthTag(tag);
-  
   const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
   return decrypted.toString('utf8');
 }
@@ -69,7 +63,7 @@ export function decrypt(encryptedData: string, secretKey: string): string {
 /**
  * Generate a secure random string
  */
-export function generateRandomString(length: number = 32): string {
+export function generateRandomString(length = 32): string {
   return crypto.randomBytes(Math.ceil(length / 2)).toString('hex').slice(0, length);
 }
 
@@ -83,7 +77,7 @@ export function generateUUID(): string {
 /**
  * Create a hash of data using specified algorithm
  */
-export function createHash(data: string, algorithm: string = 'sha256'): string {
+export function createHash(data: string, algorithm = 'sha256'): string {
   return crypto.createHash(algorithm).update(data).digest('hex');
 }
 
@@ -108,15 +102,61 @@ export function constantTimeCompare(a: string, b: string): boolean {
 }
 
 /**
- * Generate VPN UUID for user
+ * Generate a unique VPN UUID
  */
 export function generateVpnUuid(): string {
-  return crypto.randomUUID();
+  return uuidv4();
 }
 
 /**
- * Generate unique user ID
+ * Generate a unique user ID
  */
 export function generateUserId(): string {
-  return 'usr_' + crypto.randomBytes(8).toString('hex');
+  return generateRandomString(16);
 }
+
+/**
+ * Generate a unique order ID
+ */
+export function generateOrderId(): string {
+  return `ord_${Date.now()}_${generateRandomString(8)}`;
+}
+
+/**
+ * Generate a unique order number
+ */
+export function generateOrderNo(): string {
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = generateRandomString(4).toUpperCase();
+  return `ORD${timestamp}${random}`;
+}
+
+/**
+ * Generate a unique invite code
+ */
+export function generateInviteCode(length: number = 8): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
+export default {
+  generateToken,
+  hashPassword,
+  verifyPassword,
+  encrypt,
+  decrypt,
+  generateRandomString,
+  generateUUID,
+  createHash,
+  generateRandomNumber,
+  constantTimeCompare,
+  generateVpnUuid,
+  generateUserId,
+  generateOrderId,
+  generateOrderNo,
+  generateInviteCode,
+};

@@ -32,6 +32,8 @@ import { serviceTypeRoutes } from './routes/service-types';
 import { ipPoolRoutes } from './routes/ip-pools';
 import { ispRoutes } from './routes/isps';
 import { metaRoutes } from './routes/meta';
+import { paymentQrcodeRoutes } from './routes/payment-qrcodes';
+import paymentStatisticsRoutes from './routes/payment-statistics';
 
 dotenv.config();
 
@@ -118,6 +120,11 @@ app.use('/webhooks', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Static file serving for uploads
+import path from 'path';
+const adminUploadDir = process.env.ADMIN_UPLOAD_DIR || path.join(process.cwd(), 'uploads');
+app.use('/uploads', express.static(adminUploadDir));
+
 // Request logging
 app.use(requestLogger);
 
@@ -166,6 +173,8 @@ app.use(`${apiPrefix}/service-types`, serviceTypeRoutes);
 app.use(`${apiPrefix}/ip-pools`, ipPoolRoutes);
 app.use(`${apiPrefix}/isps`, ispRoutes);
 app.use(`${apiPrefix}/meta`, metaRoutes);
+app.use(`${apiPrefix}/payment-qrcodes`, paymentQrcodeRoutes);
+app.use(`${apiPrefix}/payment-statistics`, paymentStatisticsRoutes);
 
 // Webhook routes (no API prefix, separate path)
 app.use('/webhooks', webhookRoutes);

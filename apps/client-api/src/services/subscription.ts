@@ -63,6 +63,13 @@ export class SubscriptionService {
           flow: node.flow,
           encryption: node.encryption,
           serviceType: node.service_type,
+          // XRAY 扩展字段
+          sni: node.sni,
+          allowInsecure: node.allow_insecure,
+          realityPublicKey: node.reality_public_key,
+          realityShortId: node.reality_short_id,
+          hostHeader: node.host_header,
+          alterId: node.alter_id,
         })),
         userServiceTypes
       );
@@ -91,28 +98,54 @@ export class SubscriptionService {
 
   /**
    * 生成 VLESS 分享链接
+   * 格式: vless://uuid@host:port?参数#名称
    */
   generateVlessLink(node: NodeConfig, uuid: string, email: string): string {
     const params = new URLSearchParams();
 
+    // 安全类型
     if (node.security && node.security !== 'none') {
       params.set('security', node.security);
     }
 
+    // 传输协议
     if (node.network && node.network !== 'tcp') {
       params.set('type', node.network);
     }
 
+    // XTLS 流控
     if (node.flow) {
       params.set('flow', node.flow);
     }
 
+    // WebSocket/gRPC 路径
     if (node.path) {
       params.set('path', node.path);
     }
 
-    if (node.host) {
+    // Host 请求头或 SNI
+    if (node.sni) {
+      params.set('sni', node.sni);
+    }
+
+    // Host header (用于 WebSocket)
+    if (node.hostHeader) {
+      params.set('host', node.hostHeader);
+    } else if (node.host) {
       params.set('host', node.host);
+    }
+
+    // REALITY 配置
+    if (node.security === 'reality' && node.realityPublicKey) {
+      params.set('pbk', node.realityPublicKey);
+      if (node.realityShortId) {
+        params.set('sid', node.realityShortId);
+      }
+    }
+
+    // 允许不安全连接
+    if (node.allowInsecure) {
+      params.set('allowInsecure', '1');
     }
 
     const queryString = params.toString();
@@ -123,9 +156,10 @@ export class SubscriptionService {
 
   /**
    * 生成 VMess 分享链接
+   * 格式: vmess://base64(json配置)
    */
   generateVmessLink(node: NodeConfig, uuid: string, email: string): string {
-    const config = {
+    const config: Record<string, string> = {
       v: '2',
       ps: node.name,
       add: node.host,
@@ -135,10 +169,20 @@ export class SubscriptionService {
       scy: 'auto',
       net: node.network || 'tcp',
       type: 'none',
-      host: node.host,
+      host: node.hostHeader || node.host || '',
       path: node.path || '/',
       tls: node.security === 'tls' || node.security === 'xtls' ? 'tls' : '',
     };
+
+    // 添加 SNI 如果存在
+    if (node.sni) {
+      config.sni = node.sni;
+    }
+
+    // 添加 allowInsecure 如果存在
+    if (node.allowInsecure) {
+      config.verify_cert = 'false';
+    }
 
     const base64Config = Buffer.from(JSON.stringify(config)).toString('base64');
     return `vmess://${base64Config}`;
@@ -146,20 +190,39 @@ export class SubscriptionService {
 
   /**
    * 生成 Trojan 分享链接
+   * 格式: trojan://password@host:port?参数#名称
    */
   generateTrojanLink(node: NodeConfig, password: string, email: string): string {
     const params = new URLSearchParams();
 
-    if (node.security && node.security !== 'none') {
-      params.set('security', node.security);
-    }
+    // Trojan 默认使用 TLS
+    params.set('security', 'tls');
 
+    // 传输协议
     if (node.network && node.network !== 'tcp') {
       params.set('type', node.network);
     }
 
+    // WebSocket 路径
     if (node.path) {
       params.set('path', node.path);
+    }
+
+    // SNI
+    if (node.sni) {
+      params.set('sni', node.sni);
+    } else if (node.host) {
+      params.set('sni', node.host);
+    }
+
+    // Host header (用于 WebSocket)
+    if (node.hostHeader) {
+      params.set('host', node.hostHeader);
+    }
+
+    // 允许不安全连接
+    if (node.allowInsecure) {
+      params.set('allowInsecure', '1');
     }
 
     const queryString = params.toString();
@@ -170,12 +233,30 @@ export class SubscriptionService {
 
   /**
    * 生成 Shadowsocks 分享链接
+   * 格式: ss://base64(method:password)@host:port#名称
    */
   generateShadowsocksLink(node: NodeConfig, password: string, email: string): string {
     const method = node.encryption || 'aes-256-gcm';
-    const userInfo = Buffer.from(`${method}:${password}`).toString('base64');
+    // 使用 SIP002 标准格式
+    const userInfo = Buffer.from(`${method}:${password}`).toString('base64url');
 
-    return `ss://${userInfo}@${node.host}:${node.port}#${encodeURIComponent(node.name)}`;
+    // 构建插件参数（如果有）
+    const params = new URLSearchParams();
+
+    // WebSocket 路径（用于某些 Shadowsocks 插件）
+    if (node.path) {
+      params.set('path', node.path);
+    }
+
+    // Host header
+    if (node.hostHeader) {
+      params.set('host', node.hostHeader);
+    }
+
+    const queryString = params.toString();
+    const query = queryString ? `?${queryString}` : '';
+
+    return `ss://${userInfo}@${node.host}:${node.port}${query}#${encodeURIComponent(node.name)}`;
   }
 
   /**
@@ -475,7 +556,10 @@ export class SubscriptionService {
     return {
       'subscription-userinfo': `upload=${config.trafficUsed}; download=${config.trafficUsed}; total=${config.trafficLimit}; expire=${config.expireDate ? Math.floor(config.expireDate.getTime() / 1000) : 0}`,
       'profile-update-interval': '1',
-      'content-disposition': `attachment; filename*=utf-8''${encodeURIComponent('FGVPN')}`,
+      // 移除 content-disposition，让VPN客户端正常获取内容而不是下载文件
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
+      'Pragma': 'no-cache',
+      'Expires': '0',
     };
   }
 }

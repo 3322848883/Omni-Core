@@ -101,6 +101,25 @@ export const routes: RouteRecordRaw[] = [
         component: () => import('@/views/profile/Settings.vue'),
         meta: { title: '账户设置', icon: 'Setting' },
       },
+      // Payment routes
+      {
+        path: 'payment/methods',
+        name: 'PaymentMethods',
+        component: () => import('@/views/payment/PaymentMethodSelect.vue'),
+        meta: { title: '选择支付方式', icon: 'Wallet' },
+      },
+      {
+        path: 'payment/qrcode',
+        name: 'QRCodePayment',
+        component: () => import('@/views/payment/QRCodePayment.vue'),
+        meta: { title: '扫码支付', icon: 'FullScreen' },
+      },
+      {
+        path: 'payment/result',
+        name: 'PaymentResult',
+        component: () => import('@/views/payment/PaymentResult.vue'),
+        meta: { title: '支付结果', icon: 'CircleCheck' },
+      },
     ],
   },
 

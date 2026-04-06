@@ -280,16 +280,13 @@ export const verifyPayment = async (
     throw new NotFoundError('Order', orderId);
   }
 
-  // In production, this would check with the actual payment gateway
-  // For now, we simulate the verification
-
   let paymentStatus: string;
 
   if (order.status === ORDER_STATUS.COMPLETED) {
     paymentStatus = PAYMENT_STATUS.SUCCESS;
   } else if (order.status === ORDER_STATUS.CANCELLED) {
     paymentStatus = PAYMENT_STATUS.FAILED;
-  } else {
+  } else if (order.status === ORDER_STATUS.PENDING) {
     // Check if there's a payment record
     const payment = await db('payments')
       .where({ order_id: orderId })
@@ -300,7 +297,7 @@ export const verifyPayment = async (
       paymentStatus = payment.status;
 
       // If payment is successful but order is still pending, update order
-      if (paymentStatus === PAYMENT_STATUS.SUCCESS && order.status === ORDER_STATUS.PENDING) {
+      if (paymentStatus === PAYMENT_STATUS.SUCCESS) {
         await db('orders')
           .where({ order_id: orderId })
           .update({
@@ -313,8 +310,25 @@ export const verifyPayment = async (
         await updateUserSubscription(userId, order);
       }
     } else {
-      paymentStatus = PAYMENT_STATUS.PENDING;
+      // No payment record found, check if order has expired
+      const orderTime = new Date(order.created_at).getTime();
+      const now = Date.now();
+      const expireMinutes = 30;
+      if (now - orderTime > expireMinutes * 60 * 1000) {
+        // Order expired
+        await db('orders')
+          .where({ order_id: orderId })
+          .update({
+            status: ORDER_STATUS.CANCELLED,
+            updated_at: new Date(),
+          });
+        paymentStatus = PAYMENT_STATUS.FAILED;
+      } else {
+        paymentStatus = PAYMENT_STATUS.PENDING;
+      }
     }
+  } else {
+    paymentStatus = PAYMENT_STATUS.PENDING;
   }
 
   const updatedOrder = await db('orders').where({ order_id: orderId }).first();

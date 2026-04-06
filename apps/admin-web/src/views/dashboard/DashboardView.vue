@@ -139,18 +139,49 @@ const trafficChartOption = computed(() => ({
 const userDistribution = ref<UserDistribution[]>([]);
 const hasUserData = computed(() => userDistribution.value.length > 0);
 
+// Status mapping to Chinese
+const statusMap: Record<string, string> = {
+  'Active': '活跃',
+  'Inactive': '非活跃',
+  'Pending': '待激活',
+  'Suspended': '已暂停',
+  'Expired': '已过期',
+};
+
 // User chart option
 const userChartOption = computed(() => ({
-  tooltip: { trigger: 'item' },
-  legend: { bottom: '5%' },
+  tooltip: { 
+    trigger: 'item',
+    formatter: '{b}: {c} ({d}%)'
+  },
+  legend: { 
+    bottom: '0%',
+    itemGap: 10,
+    textStyle: {
+      fontSize: 12
+    }
+  },
   series: [
     {
       type: 'pie',
-      radius: ['40%', '70%'],
+      radius: ['40%', '65%'],
+      center: ['50%', '45%'],
       data: userDistribution.value.map(item => ({
         value: item.count,
-        name: item.status,
+        name: statusMap[item.status] || item.status,
       })),
+      label: {
+        show: true,
+        formatter: '{b}',
+        fontSize: 12
+      },
+      emphasis: {
+        label: {
+          show: true,
+          fontSize: 14,
+          fontWeight: 'bold'
+        }
+      }
     },
   ],
 }));

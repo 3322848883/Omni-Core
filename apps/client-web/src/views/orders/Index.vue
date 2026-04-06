@@ -261,13 +261,21 @@ const getStatusText = (status: OrderStatus): string => {
 const fetchOrders = async () => {
   loading.value = true;
   try {
+    console.log('[fetchOrders] Fetching orders...');
     const res = await orderApi.getOrderList({
       page: currentPage.value,
       limit: pageSize.value,
       status: filterStatus.value || undefined,
     });
-    orders.value = res.items;
-    total.value = res.pagination.total;
+    console.log('[fetchOrders] Response:', res);
+    console.log('[fetchOrders] res.items:', res?.items);
+    console.log('[fetchOrders] res.pagination:', res?.pagination);
+    orders.value = res?.items || [];
+    total.value = res?.pagination?.total || 0;
+  } catch (error) {
+    console.error('[fetchOrders] Error:', error);
+    orders.value = [];
+    total.value = 0;
   } finally {
     loading.value = false;
   }

@@ -31,7 +31,7 @@
         <el-dropdown trigger="click" @command="handleCommand">
           <span class="user-info">
             <el-avatar :size="32" :src="userStore.currentUser?.avatar" />
-            <span class="username">{{ userStore.currentUser?.username || '用户' }}</span>
+            <span class="username">{{ displayName }}</span>
             <el-icon><ArrowDown /></el-icon>
           </span>
           <template #dropdown>
@@ -93,6 +93,14 @@ const emit = defineEmits<{
 const router = useRouter();
 const userStore = useUserStore();
 const authStore = useAuthStore();
+
+// 统一的用户名显示（带 fallback）
+const displayName = computed(() => {
+  const user = userStore.currentUser || userStore.userInfo;
+  if (user?.username) return user.username;
+  if (user?.email) return user.email.split('@')[0];
+  return '用户';
+});
 
 const isDark = computed(() => document.documentElement.classList.contains('dark'));
 

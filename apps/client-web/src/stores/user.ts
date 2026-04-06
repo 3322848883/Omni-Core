@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import type { UserInfo, AuthResponse } from '@/api/auth';
+import type { UserInfo } from '@/api/auth';
 import * as authApi from '@/api/auth';
 import * as userApi from '@/api/user';
 import type { User } from '@/types/user';
@@ -93,11 +93,15 @@ export const useUserStore = defineStore('user', () => {
   const login = async (email: string, password: string) => {
     isLoading.value = true;
     try {
-      const response = await authApi.login({ email, password }) as unknown as AuthResponse;
-      setToken(response.tokens.accessToken);
-      setUserInfo(response.user);
-      return true;
+      const response = await authApi.login({ email, password });
+      if (response && response.tokens && response.user) {
+        setToken(response.tokens.accessToken);
+        setUserInfo(response.user);
+        return true;
+      }
+      return false;
     } catch (error) {
+      console.error('[login] Error:', error);
       return false;
     } finally {
       isLoading.value = false;
@@ -121,11 +125,15 @@ export const useUserStore = defineStore('user', () => {
         confirmPassword: confirmPassword || password,
         agreeTerms: agreeTerms ?? true,
         inviteCode
-      }) as unknown as AuthResponse;
-      setToken(response.tokens.accessToken);
-      setUserInfo(response.user);
-      return true;
+      });
+      if (response && response.tokens && response.user) {
+        setToken(response.tokens.accessToken);
+        setUserInfo(response.user);
+        return true;
+      }
+      return false;
     } catch (error) {
+      console.error('[register] Error:', error);
       return false;
     } finally {
       isLoading.value = false;
@@ -144,13 +152,45 @@ export const useUserStore = defineStore('user', () => {
   };
 
   const fetchUserInfo = async () => {
-    if (!token.value) return false;
+    // Ensure initialized from storage
+    initFromStorage();
+
+    // Check token again after initialization
+    const currentToken = token.value || getStoredToken();
+    if (!currentToken) {
+      console.log('[fetchUserInfo] No token available');
+      return false;
+    }
+
+    // Update token if it was loaded from storage
+    if (!token.value && currentToken) {
+      token.value = currentToken;
+    }
+
     try {
-      const data = await authApi.getCurrentUser() as unknown as UserInfo;
-      userInfo.value = data;
-      return true;
-    } catch (error) {
-      clearToken();
+      console.log('[fetchUserInfo] Fetching with token:', currentToken.substring(0, 20) + '...');
+      const data = await authApi.getCurrentUser();
+      console.log('[fetchUserInfo] Success:', data);
+      if (data && data.userId) {
+        userInfo.value = data as UserInfo;
+        // Sync to localStorage
+        localStorage.setItem('userInfo', JSON.stringify(data));
+        return true;
+      }
+      console.error('[fetchUserInfo] Invalid data received:', data);
+      return false;
+    } catch (error: any) {
+      console.error('[fetchUserInfo] Error:', error?.response?.status, error?.response?.data);
+      // Don't clear token here - let the request interceptor handle 401 and token refresh
+      // Only clear if it's a definitive auth failure (not network error, etc.)
+      if (error?.response?.status === 401) {
+        const errorCode = error?.response?.data?.code;
+        // Only clear for definitive auth failures, not token expired (which should be handled by interceptor)
+        if (errorCode === 'UNAUTHORIZED' || errorCode === 'INVALID_TOKEN') {
+          clearToken();
+        }
+        // For TOKEN_EXPIRED, let the request interceptor handle it
+      }
       return false;
     }
   };
@@ -167,9 +207,19 @@ export const useUserStore = defineStore('user', () => {
   const fetchUser = async () => {
     loading.value = true;
     try {
+      console.log('[fetchUser] Starting...');
       const data = await userApi.getCurrentUser();
-      currentUser.value = data as unknown as User;
-      return data;
+      console.log('[fetchUser] Raw data:', data);
+      if (data && data.userId) {
+        currentUser.value = data as User;
+        console.log('[fetchUser] currentUser set to:', currentUser.value);
+        return data;
+      }
+      console.error('[fetchUser] Invalid data received:', data);
+      return null;
+    } catch (error) {
+      console.error('[fetchUser] Error:', error);
+      throw error;
     } finally {
       loading.value = false;
     }
@@ -180,8 +230,20 @@ export const useUserStore = defineStore('user', () => {
     loading.value = true;
     try {
       const updated = await userApi.updateUser(data);
-      currentUser.value = updated as unknown as User;
-      return updated;
+      if (updated && updated.userId) {
+        currentUser.value = updated as User;
+        // Also update userInfo if it exists
+        if (userInfo.value) {
+          userInfo.value = { ...userInfo.value, ...updated } as UserInfo;
+          localStorage.setItem('userInfo', JSON.stringify(userInfo.value));
+        }
+        return updated;
+      }
+      console.error('[updateUser] Invalid data received:', updated);
+      return null;
+    } catch (error) {
+      console.error('[updateUser] Error:', error);
+      throw error;
     } finally {
       loading.value = false;
     }

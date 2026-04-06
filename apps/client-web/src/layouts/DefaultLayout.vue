@@ -108,7 +108,7 @@
                 <el-icon><User /></el-icon>
               </el-avatar>
               <span v-if="!isMobile" class="header-user__name">
-                {{ userStore.userInfo?.username || '用户' }}
+                {{ username }}
               </span>
               <el-icon class="header-user__arrow"><ArrowDown /></el-icon>
             </div>
@@ -131,11 +131,7 @@
 
       <!-- 页面内容 -->
       <el-main class="layout-content">
-        <router-view v-slot="{ Component }">
-          <transition name="fade-transform" mode="out-in">
-            <component :is="Component" />
-          </transition>
-        </router-view>
+        <router-view />
       </el-main>
     </el-container>
   </el-container>
@@ -166,6 +162,18 @@ import OmniCoreLogo from '@/components/common/OmniCoreLogo.vue';
 const route = useRoute();
 const router = useRouter();
 const userStore = useUserStore();
+
+// 计算属性：用户名，带 fallback
+const username = computed(() => {
+  const userInfo = userStore.userInfo;
+  if (userInfo?.username) {
+    return userInfo.username;
+  }
+  if (userInfo?.email) {
+    return userInfo.email.split('@')[0];
+  }
+  return '用户';
+});
 
 const isCollapse = ref(false);
 const isMobile = ref(false);

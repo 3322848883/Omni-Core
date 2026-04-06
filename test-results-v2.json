@@ -1,0 +1,51 @@
+{
+  "adminWeb": {
+    "pageLoad": {
+      "success": true,
+      "title": "Omni Core 管理后台"
+    },
+    "loginPage": {
+      "hasLoginForm": false,
+      "hasPasswordInput": false,
+      "inputCount": 0,
+      "buttonCount": 0
+    },
+    "inputTest": {
+      "usernameFilled": false,
+      "passwordFilled": false,
+      "reason": "Not enough input fields"
+    },
+    "loginResult": {
+      "currentUrl": "http://localhost:8081/",
+      "hasDashboard": false,
+      "hasMenu": false
+    },
+    "menuItems": {
+      "count": 0,
+      "items": []
+    }
+  },
+  "clientWeb": {
+    "pageLoad": {
+      "success": true,
+      "title": "Omni Core - 安全、快速、匿名的网络体验 - FGVPN Client"
+    },
+    "authFeatures": {
+      "hasLoginLink": false,
+      "hasRegisterLink": false,
+      "linkTexts": []
+    },
+    "subscription": {
+      "hasSubscriptionLink": false
+    },
+    "profile": {
+      "hasProfileLink": false
+    },
+    "structure": {
+      "hasHeader": false,
+      "hasFooter": false,
+      "hasMainContent": true
+    }
+  },
+  "timestamp": "2026-03-29T12:06:42.533Z"
+}
