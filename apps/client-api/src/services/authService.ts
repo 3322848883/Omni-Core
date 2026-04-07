@@ -112,8 +112,14 @@ export const register = async (data: RegisterData): Promise<{ user: UserInfo; to
 export const login = async (data: LoginData): Promise<{ user: UserInfo; tokens: AuthTokens }> => {
   const { email, password } = data;
 
-  // Find user by email
-  const user = await db('users').where({ email }).first();
+  // Find user by email or username
+  let user = await db('users').where({ email }).first();
+  
+  // If not found by email, try username
+  if (!user) {
+    user = await db('users').where({ username: email }).first();
+  }
+  
   if (!user) {
     throw new UnauthorizedError('Invalid credentials');
   }

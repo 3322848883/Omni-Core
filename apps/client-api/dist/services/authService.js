@@ -102,8 +102,12 @@ exports.register = register;
  */
 const login = async (data) => {
     const { email, password } = data;
-    // Find user by email
-    const user = await (0, database_1.default)('users').where({ email }).first();
+    // Find user by email or username
+    let user = await (0, database_1.default)('users').where({ email }).first();
+    // If not found by email, try username
+    if (!user) {
+        user = await (0, database_1.default)('users').where({ username: email }).first();
+    }
     if (!user) {
         throw new AppError_1.UnauthorizedError('Invalid credentials');
     }
