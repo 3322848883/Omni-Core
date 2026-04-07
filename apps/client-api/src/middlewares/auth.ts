@@ -20,20 +20,17 @@ declare global {
  */
 const formatUser = (dbUser: Record<string, unknown>): User => {
   return {
-    id: dbUser.id as number,
-    user_id: dbUser.user_id as string,
+    id: String(dbUser.user_id),
     email: dbUser.email as string,
     username: dbUser.username as string,
-    password_hash: dbUser.password_hash as string,
-    vpn_uuid: dbUser.vpn_uuid as string,
-    status: dbUser.status as string,
-    traffic_limit: dbUser.traffic_limit as number,
-    traffic_used: dbUser.traffic_used as number,
-    expire_date: dbUser.expire_date ? new Date(dbUser.expire_date as string) : null,
-    last_login_at: dbUser.last_login_at ? new Date(dbUser.last_login_at as number) : null,
-    last_login_ip: dbUser.last_login_ip as string | null,
-    created_at: new Date(dbUser.created_at as number),
-    updated_at: new Date(dbUser.updated_at as number),
+    role: 'user',
+    status: (dbUser.status === 1 || String(dbUser.status) === '1') ? 'active' : 'inactive',
+    emailVerified: true,
+    twoFactorEnabled: false,
+    lastLoginAt: dbUser.last_login_at ? new Date(dbUser.last_login_at as number) : undefined,
+    lastLoginIp: dbUser.last_login_ip as string | undefined,
+    createdAt: new Date(dbUser.created_at as number),
+    updatedAt: new Date(dbUser.updated_at as number)
   };
 };
 

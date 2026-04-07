@@ -91,7 +91,7 @@ router.post('/register', rateLimiter_1.authLimiter, (0, validation_1.validate)(v
         const data = req.body;
         // Check password match
         if (data.password !== data.confirmPassword) {
-            return (0, response_1.errorResponse)(res, 'Passwords do not match', constants_1.ERROR_CODES.VALIDATION_ERROR, constants_1.HTTP_STATUS.BAD_REQUEST, [{ field: 'confirmPassword', message: 'Passwords do not match' }]);
+            return (0, response_1.errorResponse)(res, 'Passwords do not match', constants_1.ErrorCode.VALIDATION_ERROR, constants_1.HttpStatus.BAD_REQUEST, [{ field: 'confirmPassword', message: 'Passwords do not match' }]);
         }
         const result = await authService.register(data);
         (0, response_1.createdResponse)(res, result, 'User registered successfully');
@@ -137,7 +137,7 @@ router.post('/refresh', (0, validation_1.validate)(validation_1.AuthValidation.r
 // Get current user
 router.get('/me', auth_1.authenticate, async (req, res, next) => {
     try {
-        const user = await authService.getCurrentUser(req.user.user_id);
+        const user = await authService.getCurrentUser(req.user.id);
         (0, response_1.successResponse)(res, user);
     }
     catch (error) {
@@ -170,7 +170,7 @@ router.post('/reset-password', rateLimiter_1.authLimiter, (0, validation_1.valid
 router.put('/password', auth_1.authenticate, (0, validation_1.validate)(validation_1.AuthValidation.updatePassword), async (req, res, next) => {
     try {
         const { oldPassword, newPassword } = req.body;
-        await authService.updatePassword(req.user.user_id, oldPassword, newPassword);
+        await authService.updatePassword(req.user.id, oldPassword, newPassword);
         (0, response_1.successResponse)(res, { success: true }, 'Password updated successfully');
     }
     catch (error) {

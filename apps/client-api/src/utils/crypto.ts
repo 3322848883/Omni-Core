@@ -120,3 +120,26 @@ export function generateVpnUuid(): string {
 export function generateUserId(): string {
   return 'usr_' + crypto.randomBytes(8).toString('hex');
 }
+
+/**
+ * Generate invite code
+ */
+export function generateInviteCode(): string {
+  return 'inv_' + crypto.randomBytes(6).toString('hex').toUpperCase();
+}
+
+/**
+ * Generate order ID
+ */
+export function generateOrderId(): string {
+  return 'ord_' + Date.now().toString(36) + crypto.randomBytes(6).toString('hex');
+}
+
+/**
+ * Generate order number
+ */
+export function generateOrderNo(): string {
+  const timestamp = Date.now().toString().slice(-8);
+  const random = crypto.randomBytes(4).toString('hex').toUpperCase();
+  return timestamp + random;
+}

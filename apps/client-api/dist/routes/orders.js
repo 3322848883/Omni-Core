@@ -48,11 +48,8 @@ router.get('/', auth_1.authenticate, (0, validation_1.validate)(validation_1.Ord
         const page = parseInt(req.query.page, 10) || 1;
         const limit = parseInt(req.query.limit, 10) || 20;
         const status = req.query.status;
-        const { orders, total } = await orderService.getOrders(req.user.user_id, page, limit, status);
-        (0, response_1.paginationResponse)(res, {
-            items: orders,
-            pagination: (0, response_1.createPaginationMeta)(total, page, limit),
-        }, 'Orders retrieved successfully');
+        const { orders, total } = await orderService.getOrders(req.user.id, page, limit, status);
+        (0, response_1.paginationResponse)(res, orders, (0, response_1.createPaginationMeta)(page, limit, total), 'Orders retrieved successfully');
     }
     catch (error) {
         next(error);
@@ -64,7 +61,7 @@ router.get('/', auth_1.authenticate, (0, validation_1.validate)(validation_1.Ord
 router.get('/:id', auth_1.authenticate, (0, validation_1.validate)(validation_1.OrderValidation.byId), async (req, res, next) => {
     try {
         const { id } = req.params;
-        const order = await orderService.getOrderById(id, req.user.user_id);
+        const order = await orderService.getOrderById(id, req.user.id);
         (0, response_1.successResponse)(res, order, 'Order retrieved successfully');
     }
     catch (error) {
@@ -77,7 +74,7 @@ router.get('/:id', auth_1.authenticate, (0, validation_1.validate)(validation_1.
 router.post('/', auth_1.authenticate, (0, validation_1.validate)(validation_1.OrderValidation.create), async (req, res, next) => {
     try {
         const data = req.body;
-        const order = await orderService.createOrder(req.user.user_id, data.planId, data.paymentMethod);
+        const order = await orderService.createOrder(req.user.id, data.planId, data.paymentMethod);
         (0, response_1.createdResponse)(res, order, 'Order created successfully');
     }
     catch (error) {
@@ -90,7 +87,7 @@ router.post('/', auth_1.authenticate, (0, validation_1.validate)(validation_1.Or
 router.post('/:id/cancel', auth_1.authenticate, async (req, res, next) => {
     try {
         const { id } = req.params;
-        const order = await orderService.cancelOrder(id, req.user.user_id);
+        const order = await orderService.cancelOrder(id, req.user.id);
         (0, response_1.successResponse)(res, order, 'Order cancelled successfully');
     }
     catch (error) {
@@ -103,7 +100,7 @@ router.post('/:id/cancel', auth_1.authenticate, async (req, res, next) => {
 router.get('/:id/payment', auth_1.authenticate, async (req, res, next) => {
     try {
         const { id } = req.params;
-        const paymentInfo = await orderService.getPaymentInfo(id, req.user.user_id);
+        const paymentInfo = await orderService.getPaymentInfo(id, req.user.id);
         (0, response_1.successResponse)(res, paymentInfo, 'Payment info retrieved successfully');
     }
     catch (error) {
@@ -116,7 +113,7 @@ router.get('/:id/payment', auth_1.authenticate, async (req, res, next) => {
 router.post('/:id/verify-payment', auth_1.authenticate, async (req, res, next) => {
     try {
         const { id } = req.params;
-        const result = await orderService.verifyPayment(id, req.user.user_id);
+        const result = await orderService.verifyPayment(id, req.user.id);
         (0, response_1.successResponse)(res, result, 'Payment verified successfully');
     }
     catch (error) {

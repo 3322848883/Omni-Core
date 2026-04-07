@@ -1,7 +1,7 @@
 "use strict";
 // Client API Constants
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SUBSCRIPTION_STATUS = exports.USER_STATUS = exports.DEFAULTS = exports.ErrorCode = exports.HttpStatus = void 0;
+exports.PAYMENT_STATUS = exports.ORDER_STATUS = exports.INVITE_CODE_STATUS = exports.SUBSCRIPTION_STATUS = exports.USER_STATUS = exports.DEFAULTS = exports.ErrorCode = exports.HttpStatus = void 0;
 // HTTP Status Codes
 exports.HttpStatus = {
     OK: 200,
@@ -29,6 +29,8 @@ exports.ErrorCode = {
     UNAUTHORIZED: 'UNAUTHORIZED',
     FORBIDDEN: 'FORBIDDEN',
     RATE_LIMITED: 'RATE_LIMITED',
+    CONFLICT: 'CONFLICT',
+    DATABASE_ERROR: 'DATABASE_ERROR',
     // Auth
     INVALID_CREDENTIALS: 'INVALID_CREDENTIALS',
     TOKEN_EXPIRED: 'TOKEN_EXPIRED',
@@ -39,13 +41,22 @@ exports.ErrorCode = {
     USER_ALREADY_EXISTS: 'USER_ALREADY_EXISTS',
     USER_INACTIVE: 'USER_INACTIVE',
     USER_BANNED: 'USER_BANNED',
+    DEVICE_LIMIT_EXCEEDED: 'DEVICE_LIMIT_EXCEEDED',
     // Subscription
     SUBSCRIPTION_EXPIRED: 'SUBSCRIPTION_EXPIRED',
     TRAFFIC_EXCEEDED: 'TRAFFIC_EXCEEDED',
+    PLAN_NOT_FOUND: 'PLAN_NOT_FOUND',
+    INSUFFICIENT_BALANCE: 'INSUFFICIENT_BALANCE',
     // Payment
     PAYMENT_FAILED: 'PAYMENT_FAILED',
     ORDER_NOT_FOUND: 'ORDER_NOT_FOUND',
     ORDER_ALREADY_PAID: 'ORDER_ALREADY_PAID',
+    // Nodes
+    NODE_NOT_FOUND: 'NODE_NOT_FOUND',
+    // Invites
+    INVALID_INVITE_CODE: 'INVALID_INVITE_CODE',
+    INVITE_CODE_USED: 'INVITE_CODE_USED',
+    INVITE_CODE_EXPIRED: 'INVITE_CODE_EXPIRED',
 };
 // Default Values
 exports.DEFAULTS = {
@@ -68,5 +79,26 @@ exports.SUBSCRIPTION_STATUS = {
     INACTIVE: 0,
     EXPIRED: 2,
     CANCELLED: 3,
+};
+// Invite Code Status
+exports.INVITE_CODE_STATUS = {
+    ACTIVE: 1,
+    USED: 2,
+    EXPIRED: 3,
+};
+// Order Status
+exports.ORDER_STATUS = {
+    PENDING: 1,
+    PAID: 2,
+    COMPLETED: 3,
+    CANCELLED: 4,
+    REFUNDED: 5,
+};
+// Payment Status
+exports.PAYMENT_STATUS = {
+    PENDING: 1,
+    SUCCESS: 2,
+    FAILED: 3,
+    REFUNDED: 4,
 };
 //# sourceMappingURL=index.js.map

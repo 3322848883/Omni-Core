@@ -20,7 +20,7 @@ const nodeFilterService = new nodeFilterService_1.NodeFilterService();
  */
 router.get('/accessible', auth_1.authenticate, async (req, res, next) => {
     try {
-        const userId = req.user?.user_id;
+        const userId = req.user.id;
         if (!userId) {
             throw new AppError_1.UnauthorizedError('Unauthorized');
         }
@@ -73,7 +73,7 @@ router.get('/accessible', auth_1.authenticate, async (req, res, next) => {
  */
 router.get('/', auth_1.authenticate, (0, validation_1.validate)(validation_1.NodeValidation.list), async (req, res, next) => {
     try {
-        const userId = req.user?.user_id;
+        const userId = req.user.id;
         const { region, ipType, lineType, ispName } = req.query;
         if (!userId) {
             throw new AppError_1.UnauthorizedError('Unauthorized');
@@ -135,7 +135,7 @@ router.get('/', auth_1.authenticate, (0, validation_1.validate)(validation_1.Nod
  */
 router.get('/:id', auth_1.authenticate, (0, validation_1.validate)(validation_1.NodeValidation.byId), async (req, res, next) => {
     try {
-        const userId = req.user?.user_id;
+        const userId = req.user.id;
         const { id } = req.params;
         if (!userId) {
             throw new AppError_1.UnauthorizedError('Unauthorized');
@@ -185,7 +185,7 @@ router.get('/:id', auth_1.authenticate, (0, validation_1.validate)(validation_1.
  */
 router.get('/:id/config', auth_1.authenticate, async (req, res, next) => {
     try {
-        const userId = req.user?.user_id;
+        const userId = req.user.id;
         const { id } = req.params;
         if (!userId) {
             throw new AppError_1.UnauthorizedError('Unauthorized');
@@ -202,7 +202,7 @@ router.get('/:id/config', auth_1.authenticate, async (req, res, next) => {
  */
 router.post('/:id/test', auth_1.authenticate, async (req, res, next) => {
     try {
-        const userId = req.user?.user_id;
+        const userId = req.user.id;
         const { id } = req.params;
         if (!userId) {
             throw new AppError_1.UnauthorizedError('Unauthorized');
@@ -219,7 +219,7 @@ router.post('/:id/test', auth_1.authenticate, async (req, res, next) => {
  */
 router.get('/filter/options', auth_1.authenticate, async (req, res, next) => {
     try {
-        const userId = req.user?.user_id;
+        const userId = req.user.id;
         if (!userId) {
             throw new AppError_1.UnauthorizedError('Unauthorized');
         }
@@ -252,7 +252,7 @@ router.get('/filter/options', auth_1.authenticate, async (req, res, next) => {
  */
 router.get('/stats/overview', auth_1.authenticate, async (req, res, next) => {
     try {
-        const userId = req.user?.user_id;
+        const userId = req.user.id;
         if (!userId) {
             throw new AppError_1.UnauthorizedError('Unauthorized');
         }

@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '@/middlewares/auth';
 import * as subscriptionService from '@/services/subscriptionService';
 import { successResponse, createdResponse, errorResponse } from '@/utils/response';
-import { HTTP_STATUS, ERROR_CODES } from '@/constants';
+import { HttpStatus, ErrorCode } from '@/constants';
 import { CreateOrderData } from '@/types/user';
 import { ServiceTypeMeta } from '@/constants/service-type';
 
@@ -44,7 +44,7 @@ router.get('/plans', async (req, res, next) => {
  */
 router.get('/info', authenticate, async (req, res, next) => {
   try {
-    const subscription = await subscriptionService.getUserSubscription(req.user!.user_id);
+    const subscription = await subscriptionService.getUserSubscription(req.user!.id);
 
     // 格式化响应，包含 serviceTypes、effectiveServiceTypes 和 accessibleNodes
     const formattedSubscription = {
@@ -85,7 +85,7 @@ router.get('/info', authenticate, async (req, res, next) => {
  */
 router.get('/url', authenticate, async (req, res, next) => {
   try {
-    const subscriptionUrl = await subscriptionService.generateSubscriptionUrl(req.user!.user_id);
+    const subscriptionUrl = await subscriptionService.generateSubscriptionUrl(req.user!.id);
     successResponse(res, subscriptionUrl, 'Subscription URL generated successfully');
   } catch (error) {
     next(error);
@@ -97,7 +97,7 @@ router.get('/url', authenticate, async (req, res, next) => {
  */
 router.post('/reset-uuid', authenticate, async (req, res, next) => {
   try {
-    const result = await subscriptionService.resetVpnUuid(req.user!.user_id);
+    const result = await subscriptionService.resetVpnUuid(req.user!.id);
     successResponse(res, result, 'VPN UUID reset successfully');
   } catch (error) {
     next(error);
@@ -116,13 +116,13 @@ router.post('/order', authenticate, async (req, res, next) => {
       return errorResponse(
         res,
         'Plan ID is required',
-        ERROR_CODES.VALIDATION_ERROR,
-        HTTP_STATUS.BAD_REQUEST,
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
         [{ field: 'planId', message: 'Plan ID is required' }]
       );
     }
 
-    const result = await subscriptionService.createSubscriptionOrder(req.user!.user_id, data);
+    const result = await subscriptionService.createSubscriptionOrder(req.user!.id, data);
     createdResponse(res, result, 'Subscription order created successfully');
   } catch (error) {
     next(error);

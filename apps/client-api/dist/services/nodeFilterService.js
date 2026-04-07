@@ -24,7 +24,7 @@ class NodeFilterService {
         }
         return nodes.filter((node) => {
             // 如果节点没有服务类型，默认为标准类型
-            const nodeServiceType = node.serviceType || service_type_1.ServiceType.STANDARD;
+            const nodeServiceType = node.serviceType || service_type_1.ServiceType.VPN_BASIC;
             return userServiceTypes.includes(nodeServiceType);
         });
     }
@@ -40,11 +40,11 @@ class NodeFilterService {
                 allowed: false,
                 reason: '用户没有有效的服务类型订阅',
                 currentTypes: [],
-                requiredType: nodeServiceType || service_type_1.ServiceType.STANDARD,
+                requiredType: nodeServiceType || service_type_1.ServiceType.VPN_BASIC,
             };
         }
         // 如果节点没有服务类型，默认为标准类型
-        const requiredType = nodeServiceType || service_type_1.ServiceType.STANDARD;
+        const requiredType = nodeServiceType || service_type_1.ServiceType.VPN_BASIC;
         if (!userServiceTypes.includes(requiredType)) {
             return {
                 allowed: false,
@@ -72,7 +72,7 @@ class NodeFilterService {
                 .first('effective_service_types');
             if (!user || !user.effective_service_types) {
                 // 如果没有设置，返回默认的标准类型
-                return [service_type_1.ServiceType.STANDARD];
+                return [service_type_1.ServiceType.VPN_BASIC];
             }
             // 解析服务类型（可能是 JSON 字符串或数组）
             let serviceTypes;
@@ -88,7 +88,7 @@ class NodeFilterService {
                 serviceTypes = user.effective_service_types;
             }
             else {
-                serviceTypes = [service_type_1.ServiceType.STANDARD];
+                serviceTypes = [service_type_1.ServiceType.VPN_BASIC];
             }
             // 验证服务类型是否有效
             const validTypes = Object.values(service_type_1.ServiceType);
@@ -96,7 +96,7 @@ class NodeFilterService {
         }
         catch (error) {
             logger_1.default.error(`Failed to get user effective service types for ${userId}:`, error);
-            return [service_type_1.ServiceType.STANDARD];
+            return [service_type_1.ServiceType.VPN_BASIC];
         }
     }
     /**
@@ -113,14 +113,23 @@ class NodeFilterService {
                 .select('service_type');
             // 统计各服务类型的节点数量
             const byType = {
-                [service_type_1.ServiceType.STANDARD]: 0,
+                [service_type_1.ServiceType.VPN_BASIC]: 0,
+                [service_type_1.ServiceType.VPN_PREMIUM]: 0,
+                [service_type_1.ServiceType.VPN_ENTERPRISE]: 0,
                 [service_type_1.ServiceType.DEDICATED_LINE]: 0,
-                [service_type_1.ServiceType.EXCLUSIVE]: 0,
-                [service_type_1.ServiceType.STATIC_RESIDENTIAL]: 0,
+                [service_type_1.ServiceType.CN2_LINE]: 0,
+                [service_type_1.ServiceType.IEPL_LINE]: 0,
+                [service_type_1.ServiceType.IPLC_LINE]: 0,
+                [service_type_1.ServiceType.STATIC_IP]: 0,
+                [service_type_1.ServiceType.RESIDENTIAL_STATIC]: 0,
+                [service_type_1.ServiceType.DYNAMIC_IP]: 0,
+                [service_type_1.ServiceType.RESIDENTIAL_DYNAMIC]: 0,
+                [service_type_1.ServiceType.CUSTOM]: 0,
+                [service_type_1.ServiceType.TRIAL]: 0,
             };
             let total = 0;
             for (const node of nodes) {
-                const nodeServiceType = node.service_type || service_type_1.ServiceType.STANDARD;
+                const nodeServiceType = node.service_type || service_type_1.ServiceType.VPN_BASIC;
                 // 只统计用户有权限访问的节点
                 if (userServiceTypes.includes(nodeServiceType)) {
                     byType[nodeServiceType] = (byType[nodeServiceType] || 0) + 1;
@@ -134,10 +143,19 @@ class NodeFilterService {
             return {
                 total: 0,
                 byType: {
-                    [service_type_1.ServiceType.STANDARD]: 0,
+                    [service_type_1.ServiceType.VPN_BASIC]: 0,
+                    [service_type_1.ServiceType.VPN_PREMIUM]: 0,
+                    [service_type_1.ServiceType.VPN_ENTERPRISE]: 0,
                     [service_type_1.ServiceType.DEDICATED_LINE]: 0,
-                    [service_type_1.ServiceType.EXCLUSIVE]: 0,
-                    [service_type_1.ServiceType.STATIC_RESIDENTIAL]: 0,
+                    [service_type_1.ServiceType.CN2_LINE]: 0,
+                    [service_type_1.ServiceType.IEPL_LINE]: 0,
+                    [service_type_1.ServiceType.IPLC_LINE]: 0,
+                    [service_type_1.ServiceType.STATIC_IP]: 0,
+                    [service_type_1.ServiceType.RESIDENTIAL_STATIC]: 0,
+                    [service_type_1.ServiceType.DYNAMIC_IP]: 0,
+                    [service_type_1.ServiceType.RESIDENTIAL_DYNAMIC]: 0,
+                    [service_type_1.ServiceType.CUSTOM]: 0,
+                    [service_type_1.ServiceType.TRIAL]: 0,
                 },
             };
         }

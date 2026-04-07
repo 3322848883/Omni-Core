@@ -120,16 +120,22 @@ export interface IPPoolIP {
     id: string;
     poolId: string;
     ip: string;
-    status: 'available' | 'assigned' | 'reserved' | 'blocked';
+    status: 'available' | 'assigned' | 'reserved' | 'blocked' | 'active';
     assignedTo?: string;
     assignedAt?: Date;
     expiresAt?: Date;
+    releasedAt?: Date;
     reputation: number;
+    score?: number;
+    usageCount?: number;
     createdAt: Date;
     updatedAt: Date;
 }
 export interface IPPoolConfig {
-    enabled: boolean;
+    enabled?: boolean;
+    name?: string;
+    nodeId?: string;
+    ipType?: IpType;
     ips: string[];
     rotationStrategy: RotationStrategy;
     rotationInterval: number;
@@ -144,6 +150,7 @@ export interface IPPoolStatus {
 }
 export interface IPRotationResult {
     success: boolean;
+    poolId?: string;
     previousIp: string | null;
     newIp: string | null;
     rotatedAt: Date;
@@ -160,5 +167,35 @@ export interface NodeIPAssetExtension {
     ipRotationEnabled: boolean;
     ipRotationInterval: number | null;
     lastIpRotationAt: Date | null;
+}
+export interface PlanValidationResult {
+    allowed: boolean;
+    code?: string;
+    reason?: string;
+    planGroup?: string;
+    allowedIpTypes?: IpType[];
+    allowedLineTypes?: LineType[];
+    minIpScore?: number;
+}
+export interface NodeAccessCheckParams {
+    userId: string;
+    nodeId: string;
+    nodeIpType: IpType;
+    nodeLineType: LineType;
+    nodeServiceType: string;
+    nodeIpScore?: number;
+}
+export interface UserSubscriptionEntitlement {
+    userId: string;
+    planGroup: string;
+    serviceTypes: string[];
+    allowedIpTypes?: IpType[];
+    allowedLineTypes?: LineType[];
+    minIpScore?: number | null;
+    ipRotationEnabled?: boolean;
+    ipRotationInterval?: number | null;
+    trafficLimit: number;
+    trafficUsed: number;
+    expireDate: Date | null;
 }
 //# sourceMappingURL=ip-assets.d.ts.map

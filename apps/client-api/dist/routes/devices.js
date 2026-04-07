@@ -11,7 +11,7 @@ const router = (0, express_1.Router)();
 router.use(auth_1.authenticate);
 router.get('/', async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
+        const userId = req.user.id;
         const devices = await (0, database_1.default)('user_devices')
             .where({ user_id: userId })
             .where('last_active_at', '>', database_1.default.raw('datetime("now", "-30 days")'))
@@ -37,7 +37,7 @@ router.get('/', async (req, res, next) => {
 });
 router.delete('/:deviceId', async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
+        const userId = req.user.id;
         const { deviceId } = req.params;
         const deleted = await (0, database_1.default)('user_devices')
             .where({ user_id: userId, device_id: deviceId })
@@ -55,7 +55,7 @@ router.delete('/:deviceId', async (req, res, next) => {
 });
 router.put('/:deviceId/active', async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
+        const userId = req.user.id;
         const { deviceId } = req.params;
         const { isActive } = req.body;
         await (0, database_1.default)('user_devices')

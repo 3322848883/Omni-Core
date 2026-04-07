@@ -21,7 +21,7 @@ router.get('/config', async (req, res) => {
 
     // 转换为用户配置格式
     const userConfigs = users.map((user) => ({
-      userId: user.user_id,
+      userId: user.id,
       email: user.email,
       uuid: user.vpn_uuid || xrayService.generateUUID(),
       trafficLimit: user.traffic_limit,
@@ -101,7 +101,7 @@ router.get('/traffic', async (req, res) => {
     let query = db('traffic_logs').select('*');
 
     if (userId) {
-      query = query.where('user_id', userId);
+      query = query.where('id', userId);
     }
 
     if (nodeId) {
@@ -237,7 +237,7 @@ router.get('/subscription/config', async (req, res) => {
     }
 
     // 使用新的 generateSubscriptionConfig 方法
-    const config = await subscriptionService.generateSubscriptionConfig(user.user_id);
+    const config = await subscriptionService.generateSubscriptionConfig(user.id);
 
     // 如果没有可访问的节点，返回 404
     if (!config || config.nodes.length === 0) {
@@ -291,7 +291,7 @@ router.get('/subscription/qr', async (req, res) => {
     }
 
     // 获取用户信息
-    const userInfo = await db('users').where({ user_id: user.user_id }).first();
+    const userInfo = await db('users').where({ id: user.id }).first();
 
     if (!userInfo) {
       return errorResponse(
@@ -340,7 +340,7 @@ router.get('/subscription/clash', async (req, res) => {
     }
 
     // 使用新的 generateSubscriptionConfig 方法
-    const config = await subscriptionService.generateSubscriptionConfig(user.user_id);
+    const config = await subscriptionService.generateSubscriptionConfig(user.id);
 
     // 如果没有可访问的节点，返回 404
     if (!config || config.nodes.length === 0) {
@@ -356,7 +356,7 @@ router.get('/subscription/clash', async (req, res) => {
     const clashConfig = subscriptionService.generateClashConfig(config);
 
     res.setHeader('Content-Type', 'text/yaml; charset=utf-8');
-    res.setHeader('Content-Disposition', `attachment; filename="${user.user_id}.yaml"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${user.id}.yaml"`);
     res.send(Buffer.from(clashConfig, 'base64').toString('utf-8'));
   } catch (error) {
     logger.error('Failed to get Clash config:', error);
@@ -389,7 +389,7 @@ router.get('/nodes/:id/config', async (req, res) => {
     }
 
     // 检查用户是否有权限访问该节点
-    const accessCheck = await nodeFilterService.checkUserNodeAccess(id, user.user_id);
+    const accessCheck = await nodeFilterService.checkUserNodeAccess(id, user.id);
     if (!accessCheck.allowed) {
       return errorResponse(
         res,
@@ -414,7 +414,7 @@ router.get('/nodes/:id/config', async (req, res) => {
     }
 
     // 获取用户信息
-    const userInfo = await db('users').where({ user_id: user.user_id }).first();
+    const userInfo = await db('users').where({ id: user.id }).first();
 
     if (!userInfo) {
       return errorResponse(
@@ -568,7 +568,7 @@ router.get('/traffic/usage', async (req, res) => {
     }
 
     // 获取用户信息
-    const userInfo = await db('users').where({ user_id: user.user_id }).first();
+    const userInfo = await db('users').where({ id: user.id }).first();
 
     if (!userInfo) {
       return errorResponse(
@@ -583,7 +583,7 @@ router.get('/traffic/usage', async (req, res) => {
     // 获取今日流量
     const today = new Date().toISOString().split('T')[0];
     const todayStats = await db('traffic_daily')
-      .where({ user_id: userInfo.id, date: today })
+      .where({ id: userInfo.id, date: today })
       .sum('total as total')
       .first();
 
@@ -591,7 +591,7 @@ router.get('/traffic/usage', async (req, res) => {
     const now = new Date();
     const monthStats = await db('traffic_monthly')
       .where({
-        user_id: userInfo.id,
+        id: userInfo.id,
         year: now.getFullYear(),
         month: now.getMonth() + 1,
       })

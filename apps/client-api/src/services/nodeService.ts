@@ -1,10 +1,12 @@
 import db from '@/config/database';
-import { Node, NodeConnectionConfig, ConnectionTestResult, IpType, LineType } from '@/types/user';
+import { Node, NodeConnectionConfig, ConnectionTestResult } from '@/types/user';
 import { NotFoundError, ForbiddenError } from '@/errors/AppError';
 import logger from '@/utils/logger';
 import { ServiceType, ServiceTypeMeta } from '@/constants/service-type';
 import { nodeFilterService } from './nodeFilterService';
 import {
+  IpType,
+  LineType,
   IpTypeMeta,
   LineTypeMeta
 } from '@/constants/ip-type';
@@ -205,7 +207,7 @@ export class NodeService {
         id: node.id,
         name: enhancedName,
         protocol: node.protocol,
-        host: node.host,
+        host: node.host || '',
         port: node.port,
         config,
         url,
@@ -241,6 +243,7 @@ export class NodeService {
         message: isReachable
           ? `Connection successful, latency: ${latency}ms`
           : 'Connection failed',
+        timestamp: new Date(),
       };
     } catch (error) {
       logger.error(`Failed to test connection for node ${nodeId}:`, error);
@@ -249,6 +252,7 @@ export class NodeService {
         success: false,
         latency: -1,
         message: error instanceof Error ? error.message : 'Unknown error',
+        timestamp: new Date(),
       };
     }
   }
@@ -289,7 +293,7 @@ export class NodeService {
    * @returns 服务类型标签
    */
   getServiceTypeLabel(serviceType?: string): string {
-    const type = (serviceType as ServiceType) || ServiceType.STANDARD;
+    const type = (serviceType as ServiceType) || ServiceType.VPN_BASIC;
     return ServiceTypeMeta[type]?.label || type;
   }
 
@@ -299,7 +303,7 @@ export class NodeService {
    * @returns 服务类型颜色
    */
   getServiceTypeColor(serviceType?: string): string {
-    const type = (serviceType as ServiceType) || ServiceType.STANDARD;
+    const type = (serviceType as ServiceType) || ServiceType.VPN_BASIC;
     return ServiceTypeMeta[type]?.color || '#666666';
   }
 
@@ -389,7 +393,7 @@ export class NodeService {
     const enhanced = { ...node };
 
     // 添加服务类型标签和颜色
-    enhanced.serviceType = node.serviceType || ServiceType.STANDARD;
+    enhanced.serviceType = node.serviceType || ServiceType.VPN_BASIC;
 
     // 添加IP类型标签
     if (node.ipType) {
@@ -446,7 +450,7 @@ export class NodeService {
       return false;
     }
 
-    if (node.healthScore < 30) {
+    if (node.healthScore !== undefined && node.healthScore < 30) {
       return false;
     }
 

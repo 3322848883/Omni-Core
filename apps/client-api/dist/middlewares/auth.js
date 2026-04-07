@@ -13,20 +13,17 @@ const database_1 = __importDefault(require("@/config/database"));
  */
 const formatUser = (dbUser) => {
     return {
-        id: dbUser.id,
-        user_id: dbUser.user_id,
+        id: String(dbUser.user_id),
         email: dbUser.email,
         username: dbUser.username,
-        password_hash: dbUser.password_hash,
-        vpn_uuid: dbUser.vpn_uuid,
-        status: dbUser.status,
-        traffic_limit: dbUser.traffic_limit,
-        traffic_used: dbUser.traffic_used,
-        expire_date: dbUser.expire_date ? new Date(dbUser.expire_date) : null,
-        last_login_at: dbUser.last_login_at ? new Date(dbUser.last_login_at) : null,
-        last_login_ip: dbUser.last_login_ip,
-        created_at: new Date(dbUser.created_at),
-        updated_at: new Date(dbUser.updated_at),
+        role: 'user',
+        status: (dbUser.status === 1 || String(dbUser.status) === '1') ? 'active' : 'inactive',
+        emailVerified: true,
+        twoFactorEnabled: false,
+        lastLoginAt: dbUser.last_login_at ? new Date(dbUser.last_login_at) : undefined,
+        lastLoginIp: dbUser.last_login_ip,
+        createdAt: new Date(dbUser.created_at),
+        updatedAt: new Date(dbUser.updated_at)
     };
 };
 /**

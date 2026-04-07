@@ -75,7 +75,7 @@ class ConflictError extends AppError {
 exports.ConflictError = ConflictError;
 class TooManyRequestsError extends AppError {
     constructor(message = 'Too many requests') {
-        super(constants_1.ErrorCode.RATE_LIMITED, message, constants_1.HttpStatus.RATE_LIMITED);
+        super(constants_1.ErrorCode.RATE_LIMITED, message, constants_1.HttpStatus.TOO_MANY_REQUESTS);
     }
 }
 exports.TooManyRequestsError = TooManyRequestsError;

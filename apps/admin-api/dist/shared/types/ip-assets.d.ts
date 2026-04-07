@@ -120,16 +120,22 @@ export interface IPPoolIP {
     id: string;
     poolId: string;
     ip: string;
-    status: 'available' | 'assigned' | 'reserved' | 'blocked';
+    status: 'available' | 'assigned' | 'reserved' | 'blocked' | 'active';
     assignedTo?: string;
     assignedAt?: Date;
     expiresAt?: Date;
+    releasedAt?: Date;
     reputation: number;
+    score?: number;
+    usageCount?: number;
     createdAt: Date;
     updatedAt: Date;
 }
 export interface IPPoolConfig {
     enabled: boolean;
+    name?: string;
+    nodeId?: string;
+    ipType?: IpType;
     ips: string[];
     rotationStrategy: RotationStrategy;
     rotationInterval: number;
@@ -144,6 +150,7 @@ export interface IPPoolStatus {
 }
 export interface IPRotationResult {
     success: boolean;
+    poolId?: string;
     previousIp: string | null;
     newIp: string | null;
     rotatedAt: Date;

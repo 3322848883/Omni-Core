@@ -2,7 +2,7 @@ import { Router, Request } from 'express';
 import { authenticate } from '@/middlewares/auth';
 import * as userService from '@/services/userService';
 import { successResponse, errorResponse } from '@/utils/response';
-import { HTTP_STATUS, ERROR_CODES } from '@/constants';
+import { HttpStatus, ErrorCode } from '@/constants';
 import { UpdateUserData, ChangePasswordData } from '@/types/user';
 import { validate, UserValidation } from '@/middlewares/validation';
 
@@ -24,7 +24,7 @@ router.use(authenticate);
  */
 router.get('/me', async (req, res, next) => {
   try {
-    const userId = req.user!.user_id;
+    const userId = req.user!.id;
     const user = await userService.getUserById(userId);
     successResponse(res, user);
   } catch (error) {
@@ -37,7 +37,7 @@ router.get('/me', async (req, res, next) => {
  */
 router.patch('/me', validate(UserValidation.update), async (req, res, next) => {
   try {
-    const userId = req.user!.user_id;
+    const userId = req.user!.id;
     const data: UpdateUserData = req.body;
 
     // Validate input
@@ -45,8 +45,8 @@ router.patch('/me', validate(UserValidation.update), async (req, res, next) => {
       return errorResponse(
         res,
         'No data provided for update',
-        ERROR_CODES.VALIDATION_ERROR,
-        HTTP_STATUS.BAD_REQUEST,
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
         [{ field: 'general', message: 'No data provided for update' }]
       );
     }
@@ -63,21 +63,21 @@ router.patch('/me', validate(UserValidation.update), async (req, res, next) => {
  */
 router.post('/me/change-password', validate(UserValidation.changePassword), async (req, res, next) => {
   try {
-    const userId = req.user!.user_id;
+    const userId = req.user!.id;
     const data: ChangePasswordData = req.body;
 
-    // Check if new password is different from old password
-    if (data.oldPassword === data.newPassword) {
+    // Check if new password is different from current password
+    if (data.currentPassword === data.newPassword) {
       return errorResponse(
         res,
-        'New password must be different from old password',
-        ERROR_CODES.VALIDATION_ERROR,
-        HTTP_STATUS.BAD_REQUEST,
-        [{ field: 'newPassword', message: 'New password must be different from old password' }]
+        'New password must be different from current password',
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
+        [{ field: 'newPassword', message: 'New password must be different from current password' }]
       );
     }
 
-    await userService.changePassword(userId, data.oldPassword, data.newPassword);
+    await userService.changePassword(userId, data.currentPassword, data.newPassword);
     successResponse(res, { success: true }, 'Password changed successfully');
   } catch (error) {
     next(error);
@@ -89,7 +89,7 @@ router.post('/me/change-password', validate(UserValidation.changePassword), asyn
  */
 router.post('/me/avatar', async (req: UploadRequest, res, next) => {
   try {
-    const userId = req.user!.user_id;
+    const userId = req.user!.id;
 
     // Check if file is provided
     // Note: In a real implementation, you would use a middleware like multer
@@ -98,8 +98,8 @@ router.post('/me/avatar', async (req: UploadRequest, res, next) => {
       return errorResponse(
         res,
         'Avatar file is required',
-        ERROR_CODES.VALIDATION_ERROR,
-        HTTP_STATUS.BAD_REQUEST,
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
         [{ field: 'file', message: 'Avatar file is required' }]
       );
     }
@@ -113,8 +113,8 @@ router.post('/me/avatar', async (req: UploadRequest, res, next) => {
       return errorResponse(
         res,
         'Invalid avatar file',
-        ERROR_CODES.VALIDATION_ERROR,
-        HTTP_STATUS.BAD_REQUEST,
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
         [{ field: 'file', message: 'Invalid avatar file' }]
       );
     }
@@ -125,8 +125,8 @@ router.post('/me/avatar', async (req: UploadRequest, res, next) => {
       return errorResponse(
         res,
         'Avatar file size must be less than 5MB',
-        ERROR_CODES.VALIDATION_ERROR,
-        HTTP_STATUS.BAD_REQUEST,
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
         [{ field: 'file', message: 'Avatar file size must be less than 5MB' }]
       );
     }

@@ -27,6 +27,6 @@ export declare const getPaymentInfo: (orderId: string, userId: string) => Promis
  */
 export declare const verifyPayment: (orderId: string, userId: string) => Promise<{
     order: Order;
-    paymentStatus: string;
+    paymentStatus: number;
 }>;
 //# sourceMappingURL=orderService.d.ts.map

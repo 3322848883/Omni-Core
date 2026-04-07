@@ -128,7 +128,7 @@ const formatUserInfo = (user) => {
         daysRemaining = Math.max(0, Math.ceil((expireDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
     }
     return {
-        id: user.id.toString(),
+        id: user.id?.toString() || user.user_id,
         userId: user.user_id,
         email: user.email,
         username: user.username,

@@ -15,7 +15,7 @@ const activeDevices = new Map<string, Map<string, { ip: string; lastActive: Date
 async function getUserDeviceCount(userId: string): Promise<number> {
   // 从数据库获取活跃设备数
   const devices = await db('user_devices')
-    .where({ user_id: userId, is_active: true })
+    .where({ id: userId, is_active: true })
     .where('last_active_at', '>', db.raw('datetime("now", "-7 days")'))
     .count('id as count')
     .first();
@@ -34,7 +34,7 @@ async function recordDevice(userId: string, deviceId: string, ip: string): Promi
 
   // 检查设备是否已存在
   const existingDevice = await db('user_devices')
-    .where({ user_id: userId, device_id: deviceId })
+    .where({ id: userId, device_id: deviceId })
     .first();
 
   if (existingDevice) {
@@ -49,7 +49,7 @@ async function recordDevice(userId: string, deviceId: string, ip: string): Promi
   } else {
     // 创建新设备记录
     await db('user_devices').insert({
-      user_id: userId,
+      id: userId,
       device_id: deviceId,
       ip_address: ip,
       user_agent: '', // 可以从请求头获取
@@ -75,7 +75,7 @@ export const deviceLimit = async (
       throw new UnauthorizedError('Authentication required');
     }
 
-    const userId = user.user_id;
+    const userId = user.id;
     const maxDevices = config.security.maxDevices;
 
     // 从请求头获取设备ID，如果没有则使用IP作为临时标识
@@ -87,7 +87,7 @@ export const deviceLimit = async (
 
     // 检查当前设备是否已经在活跃列表中
     const existingDevice = await db('user_devices')
-      .where({ user_id: userId, device_id: deviceId, is_active: true })
+      .where({ id: userId, device_id: deviceId, is_active: true })
       .first();
 
     if (!existingDevice && deviceCount >= maxDevices) {
@@ -132,7 +132,7 @@ export async function cleanupInactiveDevices(): Promise<void> {
  */
 export async function getUserDevices(userId: string) {
   return db('user_devices')
-    .where({ user_id: userId })
+    .where({ id: userId })
     .orderBy('last_active_at', 'desc')
     .select('id', 'device_id', 'ip_address', 'last_active_at', 'is_active');
 }
@@ -144,7 +144,7 @@ export async function getUserDevices(userId: string) {
  */
 export async function logoutDevice(userId: string, deviceId: string): Promise<void> {
   await db('user_devices')
-    .where({ user_id: userId, device_id: deviceId })
+    .where({ id: userId, device_id: deviceId })
     .update({ is_active: false });
 }
 
@@ -155,7 +155,7 @@ export async function logoutDevice(userId: string, deviceId: string): Promise<vo
  */
 export async function logoutOtherDevices(userId: string, currentDeviceId: string): Promise<void> {
   await db('user_devices')
-    .where({ user_id: userId })
+    .where({ id: userId })
     .whereNot('device_id', currentDeviceId)
     .update({ is_active: false });
 }

@@ -47,7 +47,7 @@ router.use(auth_1.authenticate);
  */
 router.get('/me', async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
+        const userId = req.user.id;
         const user = await userService.getUserById(userId);
         (0, response_1.successResponse)(res, user);
     }
@@ -60,11 +60,11 @@ router.get('/me', async (req, res, next) => {
  */
 router.patch('/me', (0, validation_1.validate)(validation_1.UserValidation.update), async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
+        const userId = req.user.id;
         const data = req.body;
         // Validate input
         if (!data || Object.keys(data).length === 0) {
-            return (0, response_1.errorResponse)(res, 'No data provided for update', constants_1.ERROR_CODES.VALIDATION_ERROR, constants_1.HTTP_STATUS.BAD_REQUEST, [{ field: 'general', message: 'No data provided for update' }]);
+            return (0, response_1.errorResponse)(res, 'No data provided for update', constants_1.ErrorCode.VALIDATION_ERROR, constants_1.HttpStatus.BAD_REQUEST, [{ field: 'general', message: 'No data provided for update' }]);
         }
         const updatedUser = await userService.updateUser(userId, data);
         (0, response_1.successResponse)(res, updatedUser, 'User updated successfully');
@@ -78,13 +78,13 @@ router.patch('/me', (0, validation_1.validate)(validation_1.UserValidation.updat
  */
 router.post('/me/change-password', (0, validation_1.validate)(validation_1.UserValidation.changePassword), async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
+        const userId = req.user.id;
         const data = req.body;
-        // Check if new password is different from old password
-        if (data.oldPassword === data.newPassword) {
-            return (0, response_1.errorResponse)(res, 'New password must be different from old password', constants_1.ERROR_CODES.VALIDATION_ERROR, constants_1.HTTP_STATUS.BAD_REQUEST, [{ field: 'newPassword', message: 'New password must be different from old password' }]);
+        // Check if new password is different from current password
+        if (data.currentPassword === data.newPassword) {
+            return (0, response_1.errorResponse)(res, 'New password must be different from current password', constants_1.ErrorCode.VALIDATION_ERROR, constants_1.HttpStatus.BAD_REQUEST, [{ field: 'newPassword', message: 'New password must be different from current password' }]);
         }
-        await userService.changePassword(userId, data.oldPassword, data.newPassword);
+        await userService.changePassword(userId, data.currentPassword, data.newPassword);
         (0, response_1.successResponse)(res, { success: true }, 'Password changed successfully');
     }
     catch (error) {
@@ -96,24 +96,24 @@ router.post('/me/change-password', (0, validation_1.validate)(validation_1.UserV
  */
 router.post('/me/avatar', async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
+        const userId = req.user.id;
         // Check if file is provided
         // Note: In a real implementation, you would use a middleware like multer
         // to handle file uploads. This is a simplified version.
         if (!req.body.file && !req.file) {
-            return (0, response_1.errorResponse)(res, 'Avatar file is required', constants_1.ERROR_CODES.VALIDATION_ERROR, constants_1.HTTP_STATUS.BAD_REQUEST, [{ field: 'file', message: 'Avatar file is required' }]);
+            return (0, response_1.errorResponse)(res, 'Avatar file is required', constants_1.ErrorCode.VALIDATION_ERROR, constants_1.HttpStatus.BAD_REQUEST, [{ field: 'file', message: 'Avatar file is required' }]);
         }
         // Get file buffer from request
         // If using multer, the file would be in req.file.buffer
         // If using raw body, the file would be in req.body.file
         const fileBuffer = req.file?.buffer || Buffer.from(req.body.file, 'base64');
         if (!fileBuffer || fileBuffer.length === 0) {
-            return (0, response_1.errorResponse)(res, 'Invalid avatar file', constants_1.ERROR_CODES.VALIDATION_ERROR, constants_1.HTTP_STATUS.BAD_REQUEST, [{ field: 'file', message: 'Invalid avatar file' }]);
+            return (0, response_1.errorResponse)(res, 'Invalid avatar file', constants_1.ErrorCode.VALIDATION_ERROR, constants_1.HttpStatus.BAD_REQUEST, [{ field: 'file', message: 'Invalid avatar file' }]);
         }
         // Validate file size (max 5MB)
         const maxSize = 5 * 1024 * 1024; // 5MB
         if (fileBuffer.length > maxSize) {
-            return (0, response_1.errorResponse)(res, 'Avatar file size must be less than 5MB', constants_1.ERROR_CODES.VALIDATION_ERROR, constants_1.HTTP_STATUS.BAD_REQUEST, [{ field: 'file', message: 'Avatar file size must be less than 5MB' }]);
+            return (0, response_1.errorResponse)(res, 'Avatar file size must be less than 5MB', constants_1.ErrorCode.VALIDATION_ERROR, constants_1.HttpStatus.BAD_REQUEST, [{ field: 'file', message: 'Avatar file size must be less than 5MB' }]);
         }
         const result = await userService.uploadAvatar(userId, fileBuffer);
         (0, response_1.successResponse)(res, result, 'Avatar uploaded successfully');

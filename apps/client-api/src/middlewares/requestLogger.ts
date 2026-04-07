@@ -96,7 +96,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction): 
       duration: `${duration}ms`,
       ip: req.ip,
       userAgent: req.get('user-agent'),
-      userId: req.user?.user_id,
+      userId: req.user?.id,
       // 只记录脱敏后的数据
       ...(Object.keys(sanitizedQuery).length > 0 && { query: sanitizedQuery }),
       ...(Object.keys(sanitizedBody).length > 0 && { body: sanitizedBody }),

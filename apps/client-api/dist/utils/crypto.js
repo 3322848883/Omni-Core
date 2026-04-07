@@ -15,6 +15,9 @@ exports.generateRandomNumber = generateRandomNumber;
 exports.constantTimeCompare = constantTimeCompare;
 exports.generateVpnUuid = generateVpnUuid;
 exports.generateUserId = generateUserId;
+exports.generateInviteCode = generateInviteCode;
+exports.generateOrderId = generateOrderId;
+exports.generateOrderNo = generateOrderNo;
 const crypto_1 = __importDefault(require("crypto"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const ALGORITHM = 'aes-256-gcm';
@@ -116,5 +119,25 @@ function generateVpnUuid() {
  */
 function generateUserId() {
     return 'usr_' + crypto_1.default.randomBytes(8).toString('hex');
+}
+/**
+ * Generate invite code
+ */
+function generateInviteCode() {
+    return 'inv_' + crypto_1.default.randomBytes(6).toString('hex').toUpperCase();
+}
+/**
+ * Generate order ID
+ */
+function generateOrderId() {
+    return 'ord_' + Date.now().toString(36) + crypto_1.default.randomBytes(6).toString('hex');
+}
+/**
+ * Generate order number
+ */
+function generateOrderNo() {
+    const timestamp = Date.now().toString().slice(-8);
+    const random = crypto_1.default.randomBytes(4).toString('hex').toUpperCase();
+    return timestamp + random;
 }
 //# sourceMappingURL=crypto.js.map

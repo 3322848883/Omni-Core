@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authenticate } from '@/middlewares/auth';
 import * as trafficService from '@/services/trafficService';
 import { successResponse, errorResponse } from '@/utils/response';
-import { HTTP_STATUS, ERROR_CODES } from '@/constants';
+import { HttpStatus, ErrorCode } from '@/constants';
 
 const router = Router();
 
@@ -14,7 +14,7 @@ router.use(authenticate);
  */
 router.get('/overview', async (req, res, next) => {
   try {
-    const userId = req.user!.user_id;
+    const userId = req.user!.id;
     const overview = await trafficService.getTrafficOverview(userId);
     successResponse(res, overview);
   } catch (error) {
@@ -27,7 +27,7 @@ router.get('/overview', async (req, res, next) => {
  */
 router.get('/trend', async (req, res, next) => {
   try {
-    const userId = req.user!.user_id;
+    const userId = req.user!.id;
     const daysParam = req.query.days as string;
     const days = daysParam ? parseInt(daysParam, 10) : 30;
 
@@ -36,8 +36,8 @@ router.get('/trend', async (req, res, next) => {
       return errorResponse(
         res,
         'Days parameter must be between 1 and 365',
-        ERROR_CODES.VALIDATION_ERROR,
-        HTTP_STATUS.BAD_REQUEST,
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
         [{ field: 'days', message: 'Days parameter must be between 1 and 365' }]
       );
     }
@@ -54,7 +54,7 @@ router.get('/trend', async (req, res, next) => {
  */
 router.get('/me', async (req, res, next) => {
   try {
-    const userId = req.user!.user_id;
+    const userId = req.user!.id;
     const daysParam = req.query.days as string;
     const days = daysParam ? parseInt(daysParam, 10) : 30;
 
@@ -63,8 +63,8 @@ router.get('/me', async (req, res, next) => {
       return errorResponse(
         res,
         'Days parameter must be between 1 and 365',
-        ERROR_CODES.VALIDATION_ERROR,
-        HTTP_STATUS.BAD_REQUEST,
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
         [{ field: 'days', message: 'Days parameter must be between 1 and 365' }]
       );
     }

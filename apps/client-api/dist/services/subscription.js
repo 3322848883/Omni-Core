@@ -171,18 +171,27 @@ class SubscriptionService {
     generateClashConfig(config) {
         // 按服务类型分组节点
         const nodesByType = {
-            [service_type_1.ServiceType.STANDARD]: [],
+            [service_type_1.ServiceType.VPN_BASIC]: [],
+            [service_type_1.ServiceType.VPN_PREMIUM]: [],
+            [service_type_1.ServiceType.VPN_ENTERPRISE]: [],
             [service_type_1.ServiceType.DEDICATED_LINE]: [],
-            [service_type_1.ServiceType.EXCLUSIVE]: [],
-            [service_type_1.ServiceType.STATIC_RESIDENTIAL]: [],
+            [service_type_1.ServiceType.CN2_LINE]: [],
+            [service_type_1.ServiceType.IEPL_LINE]: [],
+            [service_type_1.ServiceType.IPLC_LINE]: [],
+            [service_type_1.ServiceType.STATIC_IP]: [],
+            [service_type_1.ServiceType.RESIDENTIAL_STATIC]: [],
+            [service_type_1.ServiceType.DYNAMIC_IP]: [],
+            [service_type_1.ServiceType.RESIDENTIAL_DYNAMIC]: [],
+            [service_type_1.ServiceType.CUSTOM]: [],
+            [service_type_1.ServiceType.TRIAL]: [],
         };
         config.nodes.forEach((node) => {
-            const serviceType = node.serviceType || service_type_1.ServiceType.STANDARD;
+            const serviceType = node.serviceType || service_type_1.ServiceType.VPN_BASIC;
             if (nodesByType[serviceType]) {
                 nodesByType[serviceType].push(node);
             }
             else {
-                nodesByType[service_type_1.ServiceType.STANDARD].push(node);
+                nodesByType[service_type_1.ServiceType.VPN_BASIC].push(node);
             }
         });
         // 生成代理配置

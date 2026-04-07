@@ -46,4 +46,16 @@ export declare function generateVpnUuid(): string;
  * Generate unique user ID
  */
 export declare function generateUserId(): string;
+/**
+ * Generate invite code
+ */
+export declare function generateInviteCode(): string;
+/**
+ * Generate order ID
+ */
+export declare function generateOrderId(): string;
+/**
+ * Generate order number
+ */
+export declare function generateOrderNo(): string;
 //# sourceMappingURL=crypto.d.ts.map

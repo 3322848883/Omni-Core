@@ -20,7 +20,7 @@ const getPlans = async () => {
         .select('*');
     return plans.map((plan) => {
         // 解析服务类型
-        let serviceTypes = [service_type_1.ServiceType.STANDARD];
+        let serviceTypes = [service_type_1.ServiceType.VPN_BASIC];
         if (plan.service_types) {
             if (typeof plan.service_types === 'string') {
                 try {
@@ -79,7 +79,7 @@ const getUserSubscription = async (userId) => {
         .first();
     // Get plan name if subscription exists
     let planName = null;
-    let planServiceTypes = [service_type_1.ServiceType.STANDARD];
+    let planServiceTypes = [service_type_1.ServiceType.VPN_BASIC];
     if (subscription) {
         const plan = await (0, database_1.default)('subscription_plans').where({ id: subscription.plan_id }).first();
         planName = plan?.name || null;
@@ -99,7 +99,7 @@ const getUserSubscription = async (userId) => {
         }
     }
     // 获取用户有效的服务类型
-    let effectiveServiceTypes = [service_type_1.ServiceType.STANDARD];
+    let effectiveServiceTypes = [service_type_1.ServiceType.VPN_BASIC];
     if (user.effective_service_types) {
         if (typeof user.effective_service_types === 'string') {
             try {
@@ -214,7 +214,7 @@ const createSubscriptionOrder = async (userId, data) => {
     const orderId = (0, crypto_1.generateOrderId)();
     const orderNo = (0, crypto_1.generateOrderNo)();
     // 解析套餐的服务类型
-    let serviceTypes = [service_type_1.ServiceType.STANDARD];
+    let serviceTypes = [service_type_1.ServiceType.VPN_BASIC];
     if (plan.service_types) {
         if (typeof plan.service_types === 'string') {
             try {

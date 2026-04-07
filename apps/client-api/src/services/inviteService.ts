@@ -124,7 +124,7 @@ export const validateInviteCode = async (code: string): Promise<ValidateInviteRe
   }
 
   // Check if code is disabled
-  if (inviteCode.status === INVITE_CODE_STATUS.DISABLED) {
+  if (inviteCode.status === INVITE_CODE_STATUS.EXPIRED) {
     return {
       valid: false,
       trafficReward: 0,
@@ -189,10 +189,17 @@ export const getInviteStats = async (userId: string): Promise<InviteStats> => {
   }
 
   return {
+    total: Number(totalInvitesResult?.count || 0),
+    used: Number(successfulInvitesResult?.count || 0),
+    remaining: Number(totalInvitesResult?.count || 0) - Number(successfulInvitesResult?.count || 0),
     totalInvites: Number(totalInvitesResult?.count || 0),
     successfulInvites: Number(successfulInvitesResult?.count || 0),
     earnedTraffic,
     earnedDays,
+    rewards: {
+      traffic: earnedTraffic,
+      days: earnedDays
+    },
   };
 };
 

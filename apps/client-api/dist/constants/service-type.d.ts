@@ -26,78 +26,104 @@ export declare const ServiceTypeMeta: {
         readonly description: "标准VPN服务，适合日常使用";
         readonly features: readonly ["多节点", "标准速度", "基础支持"];
         readonly category: "vpn";
+        readonly color: "#666666";
+        readonly icon: "circle";
     };
     readonly vpn_premium: {
         readonly label: "高级VPN";
         readonly description: "高级VPN服务，优先线路";
         readonly features: readonly ["多节点", "优先线路", "高速通道", "优先支持"];
         readonly category: "vpn";
+        readonly color: "#4CAF50";
+        readonly icon: "star";
     };
     readonly vpn_enterprise: {
         readonly label: "企业VPN";
         readonly description: "企业级VPN服务，专线品质";
         readonly features: readonly ["专属节点", "专线品质", "最高速度", "24/7支持"];
         readonly category: "vpn";
+        readonly color: "#2196F3";
+        readonly icon: "building";
     };
     readonly dedicated_line: {
         readonly label: "专线服务";
         readonly description: "独享专线，稳定低延迟";
         readonly features: readonly ["独享带宽", "低延迟", "高稳定性"];
         readonly category: "dedicated";
+        readonly color: "#FF9800";
+        readonly icon: "cable";
     };
     readonly cn2_line: {
         readonly label: "CN2专线";
         readonly description: "中国电信CN2专线";
         readonly features: readonly ["CN2 GIA", "优质路由", "低丢包"];
         readonly category: "dedicated";
+        readonly color: "#F44336";
+        readonly icon: "signal";
     };
     readonly iepl_line: {
         readonly label: "IEPL专线";
         readonly description: "国际以太网专线";
         readonly features: readonly ["IEPL专线", "企业级品质", "全球覆盖"];
         readonly category: "dedicated";
+        readonly color: "#9C27B0";
+        readonly icon: "globe";
     };
     readonly iplc_line: {
         readonly label: "IPLC专线";
         readonly description: "国际私人租用线路";
         readonly features: readonly ["IPLC专线", "物理隔离", "最高安全"];
         readonly category: "dedicated";
+        readonly color: "#607D8B";
+        readonly icon: "lock";
     };
     readonly static_ip: {
         readonly label: "静态IP";
         readonly description: "固定IP地址服务";
         readonly features: readonly ["固定IP", "长期稳定", "适合业务"];
         readonly category: "ip";
+        readonly color: "#795548";
+        readonly icon: "map-marker";
     };
     readonly residential_static: {
         readonly label: "住宅静态IP";
         readonly description: "住宅网络静态IP";
         readonly features: readonly ["住宅IP", "静态地址", "高匿名性"];
         readonly category: "ip";
+        readonly color: "#4CAF50";
+        readonly icon: "home";
     };
     readonly dynamic_ip: {
         readonly label: "动态IP";
         readonly description: "动态IP地址服务";
         readonly features: readonly ["动态IP", "自动更换", "性价比高"];
         readonly category: "ip";
+        readonly color: "#FFC107";
+        readonly icon: "refresh";
     };
     readonly residential_dynamic: {
         readonly label: "住宅动态IP";
         readonly description: "住宅网络动态IP";
         readonly features: readonly ["住宅IP", "动态更换", "高匿名性"];
         readonly category: "ip";
+        readonly color: "#00BCD4";
+        readonly icon: "random";
     };
     readonly custom: {
         readonly label: "定制服务";
         readonly description: "根据需求定制";
         readonly features: readonly ["灵活配置", "专属方案", "一对一服务"];
         readonly category: "custom";
+        readonly color: "#E91E63";
+        readonly icon: "sliders";
     };
     readonly trial: {
         readonly label: "试用服务";
         readonly description: "限时试用体验";
         readonly features: readonly ["限时体验", "功能完整", "免费试用"];
         readonly category: "trial";
+        readonly color: "#9E9E9E";
+        readonly icon: "clock";
     };
 };
 /**
@@ -111,7 +137,7 @@ export declare function getServiceTypeDescription(type: ServiceType): string;
 /**
  * 获取服务类型特性列表
  */
-export declare function getServiceTypeFeatures(type: ServiceType): string[];
+export declare function getServiceTypeFeatures(type: ServiceType): readonly string[];
 /**
  * 获取服务类型分类
  */
@@ -128,5 +154,29 @@ export declare function getAllServiceTypes(): ServiceType[];
  * 按分类获取服务类型
  */
 export declare function getServiceTypesByCategory(category: string): ServiceType[];
+/**
+ * 套餐组定义
+ */
+export declare const PLAN_GROUPS: readonly [{
+    readonly id: "standard";
+    readonly name: "标准套餐";
+    readonly serviceTypes: readonly [ServiceType.VPN_BASIC];
+}, {
+    readonly id: "premium";
+    readonly name: "高级套餐";
+    readonly serviceTypes: readonly [ServiceType.VPN_PREMIUM];
+}, {
+    readonly id: "enterprise";
+    readonly name: "企业套餐";
+    readonly serviceTypes: readonly [ServiceType.VPN_ENTERPRISE];
+}, {
+    readonly id: "dedicated";
+    readonly name: "专线套餐";
+    readonly serviceTypes: readonly [ServiceType.DEDICATED_LINE, ServiceType.CN2_LINE, ServiceType.IEPL_LINE, ServiceType.IPLC_LINE];
+}, {
+    readonly id: "ip";
+    readonly name: "IP服务";
+    readonly serviceTypes: readonly [ServiceType.STATIC_IP, ServiceType.RESIDENTIAL_STATIC, ServiceType.DYNAMIC_IP, ServiceType.RESIDENTIAL_DYNAMIC];
+}];
 export default ServiceType;
 //# sourceMappingURL=service-type.d.ts.map

@@ -5,6 +5,8 @@ exports.createRequestId = createRequestId;
 exports.sendSuccess = sendSuccess;
 exports.createdResponse = createdResponse;
 exports.sendError = sendError;
+exports.createPaginationMeta = createPaginationMeta;
+exports.paginationResponse = paginationResponse;
 const uuid_1 = require("uuid");
 /**
  * Generate a unique request ID
@@ -59,9 +61,41 @@ function sendError(res, message, code = 'INTERNAL_ERROR', statusCode = 500, erro
  * Alias for sendError - for backward compatibility
  */
 exports.errorResponse = sendError;
+/**
+ * Create pagination metadata
+ */
+function createPaginationMeta(page, pageSize, total) {
+    const totalPages = Math.ceil(total / pageSize);
+    return {
+        page,
+        pageSize,
+        total,
+        totalPages,
+        hasNext: page < totalPages,
+        hasPrev: page > 1,
+    };
+}
+/**
+ * Send pagination response
+ */
+function paginationResponse(res, data, meta, message) {
+    const response = {
+        success: true,
+        data: {
+            data,
+            meta,
+        },
+        message,
+        requestId: res.req.requestId || createRequestId(),
+        timestamp: Date.now(),
+    };
+    res.status(200).json(response);
+}
 exports.default = {
     createRequestId,
     sendSuccess,
     sendError,
+    createPaginationMeta,
+    paginationResponse,
 };
 //# sourceMappingURL=response.js.map

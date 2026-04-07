@@ -3,7 +3,7 @@ import { authLimiter } from '@/middlewares/rateLimiter';
 import { authenticate } from '@/middlewares/auth';
 import * as authService from '@/services/authService';
 import { successResponse, createdResponse, errorResponse } from '@/utils/response';
-import { HTTP_STATUS, ERROR_CODES } from '@/constants';
+import { HttpStatus, ErrorCode } from '@/constants';
 import { RegisterData, LoginData } from '@/types/user';
 import { validate, AuthValidation } from '@/middlewares/validation';
 
@@ -66,8 +66,8 @@ router.post('/register', authLimiter, validate(AuthValidation.register), async (
       return errorResponse(
         res,
         'Passwords do not match',
-        ERROR_CODES.VALIDATION_ERROR,
-        HTTP_STATUS.BAD_REQUEST,
+        ErrorCode.VALIDATION_ERROR,
+        HttpStatus.BAD_REQUEST,
         [{ field: 'confirmPassword', message: 'Passwords do not match' }]
       );
     }
@@ -119,7 +119,7 @@ router.post('/refresh', validate(AuthValidation.refresh), async (req, res, next)
 // Get current user
 router.get('/me', authenticate, async (req, res, next) => {
   try {
-    const user = await authService.getCurrentUser(req.user!.user_id);
+    const user = await authService.getCurrentUser(req.user!.id);
     successResponse(res, user);
   } catch (error) {
     next(error);
@@ -155,7 +155,7 @@ router.put('/password', authenticate, validate(AuthValidation.updatePassword), a
   try {
     const { oldPassword, newPassword } = req.body;
 
-    await authService.updatePassword(req.user!.user_id, oldPassword, newPassword);
+    await authService.updatePassword(req.user!.id, oldPassword, newPassword);
     successResponse(res, { success: true }, 'Password updated successfully');
   } catch (error) {
     next(error);

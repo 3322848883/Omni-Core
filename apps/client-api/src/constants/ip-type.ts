@@ -33,43 +33,71 @@ export const IpTypeMeta = {
     label: '数据中心',
     description: '标准数据中心IP',
     priceMultiplier: 1.0,
-    features: ['稳定', '高速']
+    features: ['稳定', '高速'],
+    costLevel: 'low',
+    typicalBandwidth: '1Gbps+',
+    typicalTraffic: 'Unlimited',
+    useCases: ['General', 'Streaming', 'Gaming']
   },
   [IpType.RESIDENTIAL_DYNAMIC]: {
     label: '住宅动态IP',
     description: '家庭宽带动态IP',
     priceMultiplier: 1.5,
-    features: ['高匿名', '动态更换']
+    features: ['高匿名', '动态更换'],
+    costLevel: 'medium',
+    typicalBandwidth: '100Mbps+',
+    typicalTraffic: '1TB+',
+    useCases: ['Web Scraping', 'Social Media', 'Streaming']
   },
   [IpType.RESIDENTIAL_STATIC]: {
     label: '住宅静态IP',
     description: '家庭宽带静态IP',
     priceMultiplier: 2.0,
-    features: ['高匿名', '固定IP']
+    features: ['高匿名', '固定IP'],
+    costLevel: 'high',
+    typicalBandwidth: '50Mbps+',
+    typicalTraffic: '500GB+',
+    useCases: ['Business', 'Remote Access', 'Security']
   },
   [IpType.MOBILE]: {
     label: '移动IP',
     description: '移动网络IP',
     priceMultiplier: 1.8,
-    features: ['移动网络', '高匿名']
+    features: ['移动网络', '高匿名'],
+    costLevel: 'medium',
+    typicalBandwidth: '50Mbps+',
+    typicalTraffic: '500GB+',
+    useCases: ['Mobile Testing', 'Location-based Services']
   },
   [IpType.BUSINESS]: {
     label: '商业IP',
     description: '商业宽带IP',
     priceMultiplier: 1.3,
-    features: ['商业级', '稳定']
+    features: ['商业级', '稳定'],
+    costLevel: 'medium',
+    typicalBandwidth: '500Mbps+',
+    typicalTraffic: 'Unlimited',
+    useCases: ['Business', 'E-commerce', 'Cloud Services']
   },
   [IpType.EDUCATION]: {
     label: '教育IP',
     description: '教育网IP',
     priceMultiplier: 1.2,
-    features: ['教育网', '学术']
+    features: ['教育网', '学术'],
+    costLevel: 'low',
+    typicalBandwidth: '100Mbps+',
+    typicalTraffic: 'Unlimited',
+    useCases: ['Education', 'Research', 'Academic']
   },
   [IpType.HOSTING]: {
     label: '托管IP',
     description: '托管服务商IP',
     priceMultiplier: 1.1,
-    features: ['托管级', '专业']
+    features: ['托管级', '专业'],
+    costLevel: 'low',
+    typicalBandwidth: '500Mbps+',
+    typicalTraffic: 'Unlimited',
+    useCases: ['Hosting', 'Servers', 'Infrastructure']
   }
 } as const;
 
@@ -81,37 +109,55 @@ export const LineTypeMeta = {
     label: '标准线路',
     description: '标准网络线路',
     priority: 1,
-    features: ['标准速度']
+    features: ['标准速度'],
+    costMultiplier: 1.0,
+    sla: '99.9%',
+    typicalLatency: '100-200ms'
   },
   [LineType.CN2]: {
     label: 'CN2线路',
     description: '中国电信CN2优质线路',
     priority: 2,
-    features: ['低延迟', '低丢包']
+    features: ['低延迟', '低丢包'],
+    costMultiplier: 1.5,
+    sla: '99.95%',
+    typicalLatency: '50-100ms'
   },
   [LineType.IEPL]: {
     label: 'IEPL线路',
     description: '国际以太网专线',
     priority: 3,
-    features: ['企业级', '高稳定']
+    features: ['企业级', '高稳定'],
+    costMultiplier: 2.0,
+    sla: '99.99%',
+    typicalLatency: '30-80ms'
   },
   [LineType.IPLC]: {
     label: 'IPLC线路',
     description: '国际私人租用线路',
     priority: 4,
-    features: ['物理专线', '最高品质']
+    features: ['物理专线', '最高品质'],
+    costMultiplier: 3.0,
+    sla: '99.99%',
+    typicalLatency: '20-60ms'
   },
   [LineType.BGP]: {
     label: 'BGP线路',
     description: 'BGP多线接入',
     priority: 3,
-    features: ['多线接入', '智能路由']
+    features: ['多线接入', '智能路由'],
+    costMultiplier: 1.8,
+    sla: '99.95%',
+    typicalLatency: '60-120ms'
   },
   [LineType.PREMIUM]: {
     label: '优质线路',
     description: '优质网络线路',
     priority: 2,
-    features: ['优质带宽']
+    features: ['优质带宽'],
+    costMultiplier: 1.3,
+    sla: '99.9%',
+    typicalLatency: '80-150ms'
   }
 } as const;
 

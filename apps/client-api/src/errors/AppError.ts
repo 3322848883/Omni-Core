@@ -3,19 +3,19 @@
  * 使用统一的错误码体系 from @shared/constants
  */
 
-import { ErrorCode, HttpStatus, ErrorCodeType, HttpStatusCode } from '@/constants';
+import { ErrorCode, HttpStatus } from '@/constants';
 
 export class AppError extends Error {
-  public readonly code: ErrorCodeType;
-  public readonly statusCode: HttpStatusCode;
+  public readonly code: string;
+  public readonly statusCode: number;
   public readonly isOperational: boolean;
   public readonly errors?: Array<{ field: string; message: string }>;
   public readonly details?: Record<string, unknown>;
 
   constructor(
-    code: ErrorCodeType,
+    code: string,
     message: string,
-    statusCode?: HttpStatusCode,
+    statusCode?: number,
     isOperational: boolean = true,
     errors?: Array<{ field: string; message: string }>,
     details?: Record<string, unknown>
@@ -82,7 +82,7 @@ export class ConflictError extends AppError {
 
 export class TooManyRequestsError extends AppError {
   constructor(message: string = 'Too many requests') {
-    super(ErrorCode.RATE_LIMITED, message, HttpStatus.RATE_LIMITED);
+    super(ErrorCode.RATE_LIMITED, message, HttpStatus.TOO_MANY_REQUESTS);
   }
 }
 

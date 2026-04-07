@@ -17,7 +17,7 @@ const nodeFilterService = new NodeFilterService();
  */
 router.get('/accessible', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user?.user_id;
+    const userId = req.user!.id;
 
     if (!userId) {
       throw new UnauthorizedError('Unauthorized');
@@ -75,7 +75,7 @@ router.get('/accessible', authenticate, async (req: Request, res: Response, next
  */
 router.get('/', authenticate, validate(NodeValidation.list), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user?.user_id;
+    const userId = req.user!.id;
     const { region, ipType, lineType, ispName } = req.query;
 
     if (!userId) {
@@ -143,7 +143,7 @@ router.get('/', authenticate, validate(NodeValidation.list), async (req: Request
  */
 router.get('/:id', authenticate, validate(NodeValidation.byId), async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user?.user_id;
+    const userId = req.user!.id;
     const { id } = req.params;
 
     if (!userId) {
@@ -197,7 +197,7 @@ router.get('/:id', authenticate, validate(NodeValidation.byId), async (req: Requ
  */
 router.get('/:id/config', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user?.user_id;
+    const userId = req.user!.id;
     const { id } = req.params;
 
     if (!userId) {
@@ -217,7 +217,7 @@ router.get('/:id/config', authenticate, async (req: Request, res: Response, next
  */
 router.post('/:id/test', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user?.user_id;
+    const userId = req.user!.id;
     const { id } = req.params;
 
     if (!userId) {
@@ -237,7 +237,7 @@ router.post('/:id/test', authenticate, async (req: Request, res: Response, next:
  */
 router.get('/filter/options', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user?.user_id;
+    const userId = req.user!.id;
 
     if (!userId) {
       throw new UnauthorizedError('Unauthorized');
@@ -274,7 +274,7 @@ router.get('/filter/options', authenticate, async (req: Request, res: Response, 
  */
 router.get('/stats/overview', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = req.user?.user_id;
+    const userId = req.user!.id;
 
     if (!userId) {
       throw new UnauthorizedError('Unauthorized');

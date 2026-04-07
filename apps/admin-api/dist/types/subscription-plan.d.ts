@@ -62,26 +62,48 @@ export interface UpdatePlanRequest {
     sortOrder?: number;
 }
 export interface CreatePlanData extends CreatePlanRequest {
+    serviceTypes?: ServiceType[];
+    priorityBoost?: number;
+    guaranteedBandwidth?: number;
+    maxConnections?: number;
+    isActive?: boolean;
+    sortOrder?: number;
+    group?: string;
 }
 export interface UpdatePlanData extends UpdatePlanRequest {
+    serviceTypes?: ServiceType[];
+    priorityBoost?: number;
+    guaranteedBandwidth?: number;
+    maxConnections?: number;
+    group?: string;
 }
 export interface PlanStats {
     totalPlans: number;
     activePlans: number;
     totalSubscriptions: number;
     revenue: number;
+    planId?: string;
 }
 export interface PlanListQuery {
     page?: number;
     limit?: number;
     isActive?: boolean;
     serviceType?: ServiceType;
+    group?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
 }
 export interface PlanListResponse {
     items: SubscriptionPlan[];
     total: number;
     page: number;
     pageSize: number;
+    pagination?: {
+        total: number;
+        page: number;
+        pageSize: number;
+        totalPages: number;
+    };
 }
 export interface PlanGroup {
     id: string;

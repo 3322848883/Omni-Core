@@ -112,7 +112,7 @@ const createOrder = async (userId, planId, paymentMethod) => {
     const endDate = new Date();
     endDate.setDate(endDate.getDate() + plan.duration_days);
     // 解析套餐的服务类型
-    let serviceTypes = [service_type_1.ServiceType.STANDARD];
+    let serviceTypes = [service_type_1.ServiceType.VPN_BASIC];
     if (plan.service_types) {
         if (typeof plan.service_types === 'string') {
             try {
@@ -288,7 +288,7 @@ const updateUserSubscription = async (userId, order) => {
     const endDate = new Date(now);
     endDate.setDate(endDate.getDate() + order.duration_days);
     // 解析订单中的服务类型
-    let serviceTypes = [service_type_1.ServiceType.STANDARD];
+    let serviceTypes = [service_type_1.ServiceType.VPN_BASIC];
     if (order.service_types) {
         if (typeof order.service_types === 'string') {
             try {
@@ -308,7 +308,7 @@ const updateUserSubscription = async (userId, order) => {
         .first();
     if (existingSubscription) {
         // 获取现有订阅的服务类型
-        let existingServiceTypes = [service_type_1.ServiceType.STANDARD];
+        let existingServiceTypes = [service_type_1.ServiceType.VPN_BASIC];
         if (existingSubscription.service_types) {
             if (typeof existingSubscription.service_types === 'string') {
                 try {
@@ -359,7 +359,7 @@ const updateUserSubscription = async (userId, order) => {
         ? new Date(currentExpireDate.getTime() + order.duration_days * 24 * 60 * 60 * 1000)
         : endDate;
     // 更新用户有效的服务类型（取现有和新的并集）
-    let currentEffectiveTypes = [service_type_1.ServiceType.STANDARD];
+    let currentEffectiveTypes = [service_type_1.ServiceType.VPN_BASIC];
     if (user?.effective_service_types) {
         if (typeof user.effective_service_types === 'string') {
             try {

@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.nodeService = exports.NodeService = void 0;
 const database_1 = __importDefault(require("@/config/database"));
-const user_1 = require("@/types/user");
 const AppError_1 = require("@/errors/AppError");
 const logger_1 = __importDefault(require("@/utils/logger"));
 const service_type_1 = require("@/constants/service-type");
@@ -137,7 +136,7 @@ class NodeService {
                 id: node.id,
                 name: enhancedName,
                 protocol: node.protocol,
-                host: node.host,
+                host: node.host || '',
                 port: node.port,
                 config,
                 url,
@@ -169,6 +168,7 @@ class NodeService {
                 message: isReachable
                     ? `Connection successful, latency: ${latency}ms`
                     : 'Connection failed',
+                timestamp: new Date(),
             };
         }
         catch (error) {
@@ -178,6 +178,7 @@ class NodeService {
                 success: false,
                 latency: -1,
                 message: error instanceof Error ? error.message : 'Unknown error',
+                timestamp: new Date(),
             };
         }
     }
@@ -204,7 +205,7 @@ class NodeService {
      * @returns 服务类型标签
      */
     getServiceTypeLabel(serviceType) {
-        const type = serviceType || service_type_1.ServiceType.STANDARD;
+        const type = serviceType || service_type_1.ServiceType.VPN_BASIC;
         return service_type_1.ServiceTypeMeta[type]?.label || type;
     }
     /**
@@ -213,7 +214,7 @@ class NodeService {
      * @returns 服务类型颜色
      */
     getServiceTypeColor(serviceType) {
-        const type = serviceType || service_type_1.ServiceType.STANDARD;
+        const type = serviceType || service_type_1.ServiceType.VPN_BASIC;
         return service_type_1.ServiceTypeMeta[type]?.color || '#666666';
     }
     /**
@@ -280,7 +281,7 @@ class NodeService {
     enhanceNodeInfo(node) {
         const enhanced = { ...node };
         // 添加服务类型标签和颜色
-        enhanced.serviceType = node.serviceType || service_type_1.ServiceType.STANDARD;
+        enhanced.serviceType = node.serviceType || service_type_1.ServiceType.VPN_BASIC;
         // 添加IP类型标签
         if (node.ipType) {
             enhanced.ipTypeLabel = ip_type_1.IpTypeMeta[node.ipType]?.label || node.ipType;
@@ -305,12 +306,12 @@ class NodeService {
             parts.push(`[${node.ispName}]`);
         }
         // 添加IP类型
-        if (node.ipType && node.ipType !== user_1.IpType.DATACENTER) {
+        if (node.ipType && node.ipType !== ip_type_1.IpType.DATACENTER) {
             const ipTypeLabel = ip_type_1.IpTypeMeta[node.ipType]?.label || node.ipType;
             parts.push(`[${ipTypeLabel}]`);
         }
         // 添加线路类型
-        if (node.lineType && node.lineType !== user_1.LineType.STANDARD) {
+        if (node.lineType && node.lineType !== ip_type_1.LineType.STANDARD) {
             const lineTypeLabel = ip_type_1.LineTypeMeta[node.lineType]?.label || node.lineType;
             parts.push(`[${lineTypeLabel}]`);
         }
@@ -327,7 +328,7 @@ class NodeService {
         if (node.status !== 'active') {
             return false;
         }
-        if (node.healthScore < 30) {
+        if (node.healthScore !== undefined && node.healthScore < 30) {
             return false;
         }
         // 模拟网络延迟测试

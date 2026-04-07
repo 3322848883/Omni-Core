@@ -70,14 +70,30 @@ export interface UpdatePlanRequest {
 }
 
 // Additional types for service layer
-export interface CreatePlanData extends CreatePlanRequest {}
-export interface UpdatePlanData extends UpdatePlanRequest {}
+export interface CreatePlanData extends CreatePlanRequest {
+  serviceTypes?: ServiceType[];
+  priorityBoost?: number;
+  guaranteedBandwidth?: number;
+  maxConnections?: number;
+  isActive?: boolean;
+  sortOrder?: number;
+  group?: string;
+}
+
+export interface UpdatePlanData extends UpdatePlanRequest {
+  serviceTypes?: ServiceType[];
+  priorityBoost?: number;
+  guaranteedBandwidth?: number;
+  maxConnections?: number;
+  group?: string;
+}
 
 export interface PlanStats {
   totalPlans: number;
   activePlans: number;
   totalSubscriptions: number;
   revenue: number;
+  planId?: string;
 }
 
 export interface PlanListQuery {
@@ -85,6 +101,9 @@ export interface PlanListQuery {
   limit?: number;
   isActive?: boolean;
   serviceType?: ServiceType;
+  group?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface PlanListResponse {
@@ -92,6 +111,12 @@ export interface PlanListResponse {
   total: number;
   page: number;
   pageSize: number;
+  pagination?: {
+    total: number;
+    page: number;
+    pageSize: number;
+    totalPages: number;
+  };
 }
 
 export interface PlanGroup {

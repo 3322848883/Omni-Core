@@ -143,7 +143,7 @@ export const uploadAvatar = async (
 /**
  * Format user to UserInfo
  */
-const formatUserInfo = (user: User): UserInfo => {
+const formatUserInfo = (user: any): UserInfo => {
   const trafficLimit = user.traffic_limit || 0;
   const trafficUsed = user.traffic_used || 0;
   const trafficRemaining = Math.max(0, trafficLimit - trafficUsed);
@@ -157,7 +157,7 @@ const formatUserInfo = (user: User): UserInfo => {
   }
 
   return {
-    id: user.id.toString(),
+    id: user.id?.toString() || user.user_id,
     userId: user.user_id,
     email: user.email,
     username: user.username,

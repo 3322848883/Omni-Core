@@ -2,7 +2,7 @@ import db from '@/config/database';
 import { hashPassword, verifyPassword, generateVpnUuid, generateUserId } from '@/utils/crypto';
 import { generateTokens, refreshAccessToken as refreshTokenUtil } from '@/utils/jwt';
 import { ConflictError, UnauthorizedError, NotFoundError, ValidationError } from '@/errors/AppError';
-import { ERROR_CODES, USER_STATUS } from '@/constants';
+import { ErrorCode, USER_STATUS } from '@/constants';
 import { RegisterData, LoginData, User, UserInfo, AuthTokens } from '@/types/user';
 import { emailService } from './emailService';
 import { blacklistToken, isBlacklisted, blacklistUserTokens } from './tokenBlacklist';
@@ -371,7 +371,7 @@ export const updatePassword = async (
 /**
  * Format user to UserInfo
  */
-const formatUserInfo = (user: User): UserInfo => {
+const formatUserInfo = (user: any): UserInfo => {
   const trafficLimit = user.traffic_limit || 0;
   const trafficUsed = user.traffic_used || 0;
   const trafficRemaining = Math.max(0, trafficLimit - trafficUsed);

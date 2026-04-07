@@ -22,7 +22,7 @@ const activeDevices = new Map();
 async function getUserDeviceCount(userId) {
     // 从数据库获取活跃设备数
     const devices = await (0, database_1.default)('user_devices')
-        .where({ user_id: userId, is_active: true })
+        .where({ id: userId, is_active: true })
         .where('last_active_at', '>', database_1.default.raw('datetime("now", "-7 days")'))
         .count('id as count')
         .first();
@@ -38,7 +38,7 @@ async function recordDevice(userId, deviceId, ip) {
     const now = new Date();
     // 检查设备是否已存在
     const existingDevice = await (0, database_1.default)('user_devices')
-        .where({ user_id: userId, device_id: deviceId })
+        .where({ id: userId, device_id: deviceId })
         .first();
     if (existingDevice) {
         // 更新最后活跃时间
@@ -53,7 +53,7 @@ async function recordDevice(userId, deviceId, ip) {
     else {
         // 创建新设备记录
         await (0, database_1.default)('user_devices').insert({
-            user_id: userId,
+            id: userId,
             device_id: deviceId,
             ip_address: ip,
             user_agent: '', // 可以从请求头获取
@@ -72,7 +72,7 @@ const deviceLimit = async (req, res, next) => {
         if (!user) {
             throw new AppError_1.UnauthorizedError('Authentication required');
         }
-        const userId = user.user_id;
+        const userId = user.id;
         const maxDevices = config_1.default.security.maxDevices;
         // 从请求头获取设备ID，如果没有则使用IP作为临时标识
         const deviceId = req.headers['x-device-id'] || req.ip || 'unknown';
@@ -81,7 +81,7 @@ const deviceLimit = async (req, res, next) => {
         const deviceCount = await getUserDeviceCount(userId);
         // 检查当前设备是否已经在活跃列表中
         const existingDevice = await (0, database_1.default)('user_devices')
-            .where({ user_id: userId, device_id: deviceId, is_active: true })
+            .where({ id: userId, device_id: deviceId, is_active: true })
             .first();
         if (!existingDevice && deviceCount >= maxDevices) {
             throw new AppError_1.ForbiddenError(`Device limit exceeded. Maximum ${maxDevices} devices allowed. Please log out from another device.`);
@@ -120,7 +120,7 @@ async function cleanupInactiveDevices() {
  */
 async function getUserDevices(userId) {
     return (0, database_1.default)('user_devices')
-        .where({ user_id: userId })
+        .where({ id: userId })
         .orderBy('last_active_at', 'desc')
         .select('id', 'device_id', 'ip_address', 'last_active_at', 'is_active');
 }
@@ -131,7 +131,7 @@ async function getUserDevices(userId) {
  */
 async function logoutDevice(userId, deviceId) {
     await (0, database_1.default)('user_devices')
-        .where({ user_id: userId, device_id: deviceId })
+        .where({ id: userId, device_id: deviceId })
         .update({ is_active: false });
 }
 /**
@@ -141,7 +141,7 @@ async function logoutDevice(userId, deviceId) {
  */
 async function logoutOtherDevices(userId, currentDeviceId) {
     await (0, database_1.default)('user_devices')
-        .where({ user_id: userId })
+        .where({ id: userId })
         .whereNot('device_id', currentDeviceId)
         .update({ is_active: false });
 }

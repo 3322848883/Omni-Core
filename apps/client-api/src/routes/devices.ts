@@ -9,7 +9,7 @@ router.use(authenticate);
 
 router.get('/', async (req, res, next) => {
   try {
-    const userId = req.user!.user_id;
+    const userId = req.user!.id;
     const devices = await db('user_devices')
       .where({ user_id: userId })
       .where('last_active_at', '>', db.raw('datetime("now", "-30 days")'))
@@ -37,7 +37,7 @@ router.get('/', async (req, res, next) => {
 
 router.delete('/:deviceId', async (req, res, next) => {
   try {
-    const userId = req.user!.user_id;
+    const userId = req.user!.id;
     const { deviceId } = req.params;
 
     const deleted = await db('user_devices')
@@ -56,7 +56,7 @@ router.delete('/:deviceId', async (req, res, next) => {
 
 router.put('/:deviceId/active', async (req, res, next) => {
   try {
-    const userId = req.user!.user_id;
+    const userId = req.user!.id;
     const { deviceId } = req.params;
     const { isActive } = req.body;
 

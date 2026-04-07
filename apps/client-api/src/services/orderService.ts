@@ -132,7 +132,7 @@ export const createOrder = async (
   endDate.setDate(endDate.getDate() + plan.duration_days);
 
   // 解析套餐的服务类型
-  let serviceTypes: ServiceType[] = [ServiceType.STANDARD];
+  let serviceTypes: ServiceType[] = [ServiceType.VPN_BASIC];
   if (plan.service_types) {
     if (typeof plan.service_types === 'string') {
       try {
@@ -271,7 +271,7 @@ export const getPaymentInfo = async (
 export const verifyPayment = async (
   orderId: string,
   userId: string
-): Promise<{ order: Order; paymentStatus: string }> => {
+): Promise<{ order: Order; paymentStatus: number }> => {
   const order = await db('orders')
     .where({ order_id: orderId, user_id: userId })
     .first();
@@ -283,7 +283,7 @@ export const verifyPayment = async (
   // In production, this would check with the actual payment gateway
   // For now, we simulate the verification
 
-  let paymentStatus: string;
+  let paymentStatus: number;
 
   if (order.status === ORDER_STATUS.COMPLETED) {
     paymentStatus = PAYMENT_STATUS.SUCCESS;
@@ -297,7 +297,7 @@ export const verifyPayment = async (
       .first();
 
     if (payment) {
-      paymentStatus = payment.status;
+      paymentStatus = payment.status as number;
 
       // If payment is successful but order is still pending, update order
       if (paymentStatus === PAYMENT_STATUS.SUCCESS && order.status === ORDER_STATUS.PENDING) {
@@ -336,7 +336,7 @@ const updateUserSubscription = async (
   endDate.setDate(endDate.getDate() + (order.duration_days as number));
 
   // 解析订单中的服务类型
-  let serviceTypes: ServiceType[] = [ServiceType.STANDARD];
+  let serviceTypes: ServiceType[] = [ServiceType.VPN_BASIC];
   if (order.service_types) {
     if (typeof order.service_types === 'string') {
       try {
@@ -356,7 +356,7 @@ const updateUserSubscription = async (
 
   if (existingSubscription) {
     // 获取现有订阅的服务类型
-    let existingServiceTypes: ServiceType[] = [ServiceType.STANDARD];
+    let existingServiceTypes: ServiceType[] = [ServiceType.VPN_BASIC];
     if (existingSubscription.service_types) {
       if (typeof existingSubscription.service_types === 'string') {
         try {
@@ -412,7 +412,7 @@ const updateUserSubscription = async (
       : endDate;
 
   // 更新用户有效的服务类型（取现有和新的并集）
-  let currentEffectiveTypes: ServiceType[] = [ServiceType.STANDARD];
+  let currentEffectiveTypes: ServiceType[] = [ServiceType.VPN_BASIC];
   if (user?.effective_service_types) {
     if (typeof user.effective_service_types === 'string') {
       try {

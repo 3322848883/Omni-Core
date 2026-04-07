@@ -74,7 +74,7 @@ router.get('/plans', async (req, res, next) => {
  */
 router.get('/info', auth_1.authenticate, async (req, res, next) => {
     try {
-        const subscription = await subscriptionService.getUserSubscription(req.user.user_id);
+        const subscription = await subscriptionService.getUserSubscription(req.user.id);
         // 格式化响应，包含 serviceTypes、effectiveServiceTypes 和 accessibleNodes
         const formattedSubscription = {
             userId: subscription.userId,
@@ -113,7 +113,7 @@ router.get('/info', auth_1.authenticate, async (req, res, next) => {
  */
 router.get('/url', auth_1.authenticate, async (req, res, next) => {
     try {
-        const subscriptionUrl = await subscriptionService.generateSubscriptionUrl(req.user.user_id);
+        const subscriptionUrl = await subscriptionService.generateSubscriptionUrl(req.user.id);
         (0, response_1.successResponse)(res, subscriptionUrl, 'Subscription URL generated successfully');
     }
     catch (error) {
@@ -125,7 +125,7 @@ router.get('/url', auth_1.authenticate, async (req, res, next) => {
  */
 router.post('/reset-uuid', auth_1.authenticate, async (req, res, next) => {
     try {
-        const result = await subscriptionService.resetVpnUuid(req.user.user_id);
+        const result = await subscriptionService.resetVpnUuid(req.user.id);
         (0, response_1.successResponse)(res, result, 'VPN UUID reset successfully');
     }
     catch (error) {
@@ -140,9 +140,9 @@ router.post('/order', auth_1.authenticate, async (req, res, next) => {
         const data = req.body;
         // Validate required fields
         if (!data.planId) {
-            return (0, response_1.errorResponse)(res, 'Plan ID is required', constants_1.ERROR_CODES.VALIDATION_ERROR, constants_1.HTTP_STATUS.BAD_REQUEST, [{ field: 'planId', message: 'Plan ID is required' }]);
+            return (0, response_1.errorResponse)(res, 'Plan ID is required', constants_1.ErrorCode.VALIDATION_ERROR, constants_1.HttpStatus.BAD_REQUEST, [{ field: 'planId', message: 'Plan ID is required' }]);
         }
-        const result = await subscriptionService.createSubscriptionOrder(req.user.user_id, data);
+        const result = await subscriptionService.createSubscriptionOrder(req.user.id, data);
         (0, response_1.createdResponse)(res, result, 'Subscription order created successfully');
     }
     catch (error) {

@@ -25,7 +25,7 @@ router.get('/config', async (req, res) => {
         const users = await (0, database_1.default)('users').where({ status: 1 }).select('*');
         // 转换为用户配置格式
         const userConfigs = users.map((user) => ({
-            userId: user.user_id,
+            userId: user.id,
             email: user.email,
             uuid: user.vpn_uuid || xray_1.xrayService.generateUUID(),
             trafficLimit: user.traffic_limit,
@@ -80,7 +80,7 @@ router.get('/traffic', async (req, res) => {
         const { userId, nodeId, startDate, endDate } = req.query;
         let query = (0, database_1.default)('traffic_logs').select('*');
         if (userId) {
-            query = query.where('user_id', userId);
+            query = query.where('id', userId);
         }
         if (nodeId) {
             query = query.where('node_id', nodeId);
@@ -164,7 +164,7 @@ router.get('/subscription/config', async (req, res) => {
             return (0, response_1.errorResponse)(res, '未授权', constants_1.ErrorCode.UNAUTHORIZED, constants_1.HttpStatus.UNAUTHORIZED, [{ field: 'authorization', message: '未授权' }]);
         }
         // 使用新的 generateSubscriptionConfig 方法
-        const config = await subscription_1.subscriptionService.generateSubscriptionConfig(user.user_id);
+        const config = await subscription_1.subscriptionService.generateSubscriptionConfig(user.id);
         // 如果没有可访问的节点，返回 404
         if (!config || config.nodes.length === 0) {
             return (0, response_1.errorResponse)(res, '没有可访问的节点', constants_1.ErrorCode.NOT_FOUND, constants_1.HttpStatus.NOT_FOUND, [{ field: 'nodes', message: '没有可访问的节点' }]);
@@ -194,7 +194,7 @@ router.get('/subscription/qr', async (req, res) => {
             return (0, response_1.errorResponse)(res, '未授权', constants_1.ErrorCode.UNAUTHORIZED, constants_1.HttpStatus.UNAUTHORIZED, [{ field: 'authorization', message: '未授权' }]);
         }
         // 获取用户信息
-        const userInfo = await (0, database_1.default)('users').where({ user_id: user.user_id }).first();
+        const userInfo = await (0, database_1.default)('users').where({ id: user.id }).first();
         if (!userInfo) {
             return (0, response_1.errorResponse)(res, '用户不存在', constants_1.ErrorCode.NOT_FOUND, constants_1.HttpStatus.NOT_FOUND, [{ field: 'user', message: '用户不存在' }]);
         }
@@ -219,14 +219,14 @@ router.get('/subscription/clash', async (req, res) => {
             return (0, response_1.errorResponse)(res, '未授权', constants_1.ErrorCode.UNAUTHORIZED, constants_1.HttpStatus.UNAUTHORIZED, [{ field: 'authorization', message: '未授权' }]);
         }
         // 使用新的 generateSubscriptionConfig 方法
-        const config = await subscription_1.subscriptionService.generateSubscriptionConfig(user.user_id);
+        const config = await subscription_1.subscriptionService.generateSubscriptionConfig(user.id);
         // 如果没有可访问的节点，返回 404
         if (!config || config.nodes.length === 0) {
             return (0, response_1.errorResponse)(res, '没有可访问的节点', constants_1.ErrorCode.NOT_FOUND, constants_1.HttpStatus.NOT_FOUND, [{ field: 'nodes', message: '没有可访问的节点' }]);
         }
         const clashConfig = subscription_1.subscriptionService.generateClashConfig(config);
         res.setHeader('Content-Type', 'text/yaml; charset=utf-8');
-        res.setHeader('Content-Disposition', `attachment; filename="${user.user_id}.yaml"`);
+        res.setHeader('Content-Disposition', `attachment; filename="${user.id}.yaml"`);
         res.send(Buffer.from(clashConfig, 'base64').toString('utf-8'));
     }
     catch (error) {
@@ -245,7 +245,7 @@ router.get('/nodes/:id/config', async (req, res) => {
             return (0, response_1.errorResponse)(res, '未授权', constants_1.ErrorCode.UNAUTHORIZED, constants_1.HttpStatus.UNAUTHORIZED, [{ field: 'authorization', message: '未授权' }]);
         }
         // 检查用户是否有权限访问该节点
-        const accessCheck = await nodeFilterService_1.nodeFilterService.checkUserNodeAccess(id, user.user_id);
+        const accessCheck = await nodeFilterService_1.nodeFilterService.checkUserNodeAccess(id, user.id);
         if (!accessCheck.allowed) {
             return (0, response_1.errorResponse)(res, accessCheck.reason || '无权访问该节点', constants_1.ErrorCode.FORBIDDEN, constants_1.HttpStatus.FORBIDDEN, [{ field: 'id', message: accessCheck.reason || '无权访问该节点' }]);
         }
@@ -255,7 +255,7 @@ router.get('/nodes/:id/config', async (req, res) => {
             return (0, response_1.errorResponse)(res, '节点不存在', constants_1.ErrorCode.NOT_FOUND, constants_1.HttpStatus.NOT_FOUND, [{ field: 'id', message: '节点不存在' }]);
         }
         // 获取用户信息
-        const userInfo = await (0, database_1.default)('users').where({ user_id: user.user_id }).first();
+        const userInfo = await (0, database_1.default)('users').where({ id: user.id }).first();
         if (!userInfo) {
             return (0, response_1.errorResponse)(res, '用户不存在', constants_1.ErrorCode.NOT_FOUND, constants_1.HttpStatus.NOT_FOUND, [{ field: 'user', message: '用户不存在' }]);
         }
@@ -352,21 +352,21 @@ router.get('/traffic/usage', async (req, res) => {
             return (0, response_1.errorResponse)(res, '未授权', constants_1.ErrorCode.UNAUTHORIZED, constants_1.HttpStatus.UNAUTHORIZED, [{ field: 'authorization', message: '未授权' }]);
         }
         // 获取用户信息
-        const userInfo = await (0, database_1.default)('users').where({ user_id: user.user_id }).first();
+        const userInfo = await (0, database_1.default)('users').where({ id: user.id }).first();
         if (!userInfo) {
             return (0, response_1.errorResponse)(res, '用户不存在', constants_1.ErrorCode.NOT_FOUND, constants_1.HttpStatus.NOT_FOUND, [{ field: 'user', message: '用户不存在' }]);
         }
         // 获取今日流量
         const today = new Date().toISOString().split('T')[0];
         const todayStats = await (0, database_1.default)('traffic_daily')
-            .where({ user_id: userInfo.id, date: today })
+            .where({ id: userInfo.id, date: today })
             .sum('total as total')
             .first();
         // 获取本月流量
         const now = new Date();
         const monthStats = await (0, database_1.default)('traffic_monthly')
             .where({
-            user_id: userInfo.id,
+            id: userInfo.id,
             year: now.getFullYear(),
             month: now.getMonth() + 1,
         })

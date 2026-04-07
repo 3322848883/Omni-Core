@@ -46,7 +46,7 @@ router.use(auth_1.authenticate);
  */
 router.get('/overview', async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
+        const userId = req.user.id;
         const overview = await trafficService.getTrafficOverview(userId);
         (0, response_1.successResponse)(res, overview);
     }
@@ -59,12 +59,12 @@ router.get('/overview', async (req, res, next) => {
  */
 router.get('/trend', async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
+        const userId = req.user.id;
         const daysParam = req.query.days;
         const days = daysParam ? parseInt(daysParam, 10) : 30;
         // Validate days parameter
         if (isNaN(days) || days < 1 || days > 365) {
-            return (0, response_1.errorResponse)(res, 'Days parameter must be between 1 and 365', constants_1.ERROR_CODES.VALIDATION_ERROR, constants_1.HTTP_STATUS.BAD_REQUEST, [{ field: 'days', message: 'Days parameter must be between 1 and 365' }]);
+            return (0, response_1.errorResponse)(res, 'Days parameter must be between 1 and 365', constants_1.ErrorCode.VALIDATION_ERROR, constants_1.HttpStatus.BAD_REQUEST, [{ field: 'days', message: 'Days parameter must be between 1 and 365' }]);
         }
         const trend = await trafficService.getTrafficTrend(userId, days);
         (0, response_1.successResponse)(res, trend);
@@ -78,12 +78,12 @@ router.get('/trend', async (req, res, next) => {
  */
 router.get('/me', async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
+        const userId = req.user.id;
         const daysParam = req.query.days;
         const days = daysParam ? parseInt(daysParam, 10) : 30;
         // Validate days parameter
         if (isNaN(days) || days < 1 || days > 365) {
-            return (0, response_1.errorResponse)(res, 'Days parameter must be between 1 and 365', constants_1.ERROR_CODES.VALIDATION_ERROR, constants_1.HTTP_STATUS.BAD_REQUEST, [{ field: 'days', message: 'Days parameter must be between 1 and 365' }]);
+            return (0, response_1.errorResponse)(res, 'Days parameter must be between 1 and 365', constants_1.ErrorCode.VALIDATION_ERROR, constants_1.HttpStatus.BAD_REQUEST, [{ field: 'days', message: 'Days parameter must be between 1 and 365' }]);
         }
         const trafficInfo = await trafficService.getUserTraffic(userId, days);
         (0, response_1.successResponse)(res, trafficInfo);

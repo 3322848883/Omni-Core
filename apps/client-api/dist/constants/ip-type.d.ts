@@ -30,42 +30,70 @@ export declare const IpTypeMeta: {
         readonly description: "标准数据中心IP";
         readonly priceMultiplier: 1;
         readonly features: readonly ["稳定", "高速"];
+        readonly costLevel: "low";
+        readonly typicalBandwidth: "1Gbps+";
+        readonly typicalTraffic: "Unlimited";
+        readonly useCases: readonly ["General", "Streaming", "Gaming"];
     };
     readonly residential_dynamic: {
         readonly label: "住宅动态IP";
         readonly description: "家庭宽带动态IP";
         readonly priceMultiplier: 1.5;
         readonly features: readonly ["高匿名", "动态更换"];
+        readonly costLevel: "medium";
+        readonly typicalBandwidth: "100Mbps+";
+        readonly typicalTraffic: "1TB+";
+        readonly useCases: readonly ["Web Scraping", "Social Media", "Streaming"];
     };
     readonly residential_static: {
         readonly label: "住宅静态IP";
         readonly description: "家庭宽带静态IP";
         readonly priceMultiplier: 2;
         readonly features: readonly ["高匿名", "固定IP"];
+        readonly costLevel: "high";
+        readonly typicalBandwidth: "50Mbps+";
+        readonly typicalTraffic: "500GB+";
+        readonly useCases: readonly ["Business", "Remote Access", "Security"];
     };
     readonly mobile: {
         readonly label: "移动IP";
         readonly description: "移动网络IP";
         readonly priceMultiplier: 1.8;
         readonly features: readonly ["移动网络", "高匿名"];
+        readonly costLevel: "medium";
+        readonly typicalBandwidth: "50Mbps+";
+        readonly typicalTraffic: "500GB+";
+        readonly useCases: readonly ["Mobile Testing", "Location-based Services"];
     };
     readonly business: {
         readonly label: "商业IP";
         readonly description: "商业宽带IP";
         readonly priceMultiplier: 1.3;
         readonly features: readonly ["商业级", "稳定"];
+        readonly costLevel: "medium";
+        readonly typicalBandwidth: "500Mbps+";
+        readonly typicalTraffic: "Unlimited";
+        readonly useCases: readonly ["Business", "E-commerce", "Cloud Services"];
     };
     readonly education: {
         readonly label: "教育IP";
         readonly description: "教育网IP";
         readonly priceMultiplier: 1.2;
         readonly features: readonly ["教育网", "学术"];
+        readonly costLevel: "low";
+        readonly typicalBandwidth: "100Mbps+";
+        readonly typicalTraffic: "Unlimited";
+        readonly useCases: readonly ["Education", "Research", "Academic"];
     };
     readonly hosting: {
         readonly label: "托管IP";
         readonly description: "托管服务商IP";
         readonly priceMultiplier: 1.1;
         readonly features: readonly ["托管级", "专业"];
+        readonly costLevel: "low";
+        readonly typicalBandwidth: "500Mbps+";
+        readonly typicalTraffic: "Unlimited";
+        readonly useCases: readonly ["Hosting", "Servers", "Infrastructure"];
     };
 };
 /**
@@ -77,36 +105,54 @@ export declare const LineTypeMeta: {
         readonly description: "标准网络线路";
         readonly priority: 1;
         readonly features: readonly ["标准速度"];
+        readonly costMultiplier: 1;
+        readonly sla: "99.9%";
+        readonly typicalLatency: "100-200ms";
     };
     readonly cn2: {
         readonly label: "CN2线路";
         readonly description: "中国电信CN2优质线路";
         readonly priority: 2;
         readonly features: readonly ["低延迟", "低丢包"];
+        readonly costMultiplier: 1.5;
+        readonly sla: "99.95%";
+        readonly typicalLatency: "50-100ms";
     };
     readonly iepl: {
         readonly label: "IEPL线路";
         readonly description: "国际以太网专线";
         readonly priority: 3;
         readonly features: readonly ["企业级", "高稳定"];
+        readonly costMultiplier: 2;
+        readonly sla: "99.99%";
+        readonly typicalLatency: "30-80ms";
     };
     readonly iplc: {
         readonly label: "IPLC线路";
         readonly description: "国际私人租用线路";
         readonly priority: 4;
         readonly features: readonly ["物理专线", "最高品质"];
+        readonly costMultiplier: 3;
+        readonly sla: "99.99%";
+        readonly typicalLatency: "20-60ms";
     };
     readonly bgp: {
         readonly label: "BGP线路";
         readonly description: "BGP多线接入";
         readonly priority: 3;
         readonly features: readonly ["多线接入", "智能路由"];
+        readonly costMultiplier: 1.8;
+        readonly sla: "99.95%";
+        readonly typicalLatency: "60-120ms";
     };
     readonly premium: {
         readonly label: "优质线路";
         readonly description: "优质网络线路";
         readonly priority: 2;
         readonly features: readonly ["优质带宽"];
+        readonly costMultiplier: 1.3;
+        readonly sla: "99.9%";
+        readonly typicalLatency: "80-150ms";
     };
 };
 /**

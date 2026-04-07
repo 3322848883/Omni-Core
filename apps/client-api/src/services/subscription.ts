@@ -214,18 +214,27 @@ export class SubscriptionService {
   generateClashConfig(config: SubscriptionConfig): string {
     // 按服务类型分组节点
     const nodesByType: Record<ServiceType, NodeConfig[]> = {
-      [ServiceType.STANDARD]: [],
+      [ServiceType.VPN_BASIC]: [],
+      [ServiceType.VPN_PREMIUM]: [],
+      [ServiceType.VPN_ENTERPRISE]: [],
       [ServiceType.DEDICATED_LINE]: [],
-      [ServiceType.EXCLUSIVE]: [],
-      [ServiceType.STATIC_RESIDENTIAL]: [],
+      [ServiceType.CN2_LINE]: [],
+      [ServiceType.IEPL_LINE]: [],
+      [ServiceType.IPLC_LINE]: [],
+      [ServiceType.STATIC_IP]: [],
+      [ServiceType.RESIDENTIAL_STATIC]: [],
+      [ServiceType.DYNAMIC_IP]: [],
+      [ServiceType.RESIDENTIAL_DYNAMIC]: [],
+      [ServiceType.CUSTOM]: [],
+      [ServiceType.TRIAL]: [],
     };
 
     config.nodes.forEach((node) => {
-      const serviceType = (node as NodeConfig & { serviceType?: string }).serviceType as ServiceType || ServiceType.STANDARD;
+      const serviceType = (node as NodeConfig & { serviceType?: string }).serviceType as ServiceType || ServiceType.VPN_BASIC;
       if (nodesByType[serviceType]) {
         nodesByType[serviceType].push(node);
       } else {
-        nodesByType[ServiceType.STANDARD].push(node);
+        nodesByType[ServiceType.VPN_BASIC].push(node);
       }
     });
 

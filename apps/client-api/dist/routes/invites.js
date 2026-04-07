@@ -45,7 +45,7 @@ const router = (0, express_1.Router)();
  */
 router.get('/my', auth_1.authenticate, async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
+        const userId = req.user.id;
         const inviteCodes = await inviteService.getMyInviteCodes(userId);
         (0, response_1.successResponse)(res, inviteCodes, 'Invite codes retrieved successfully');
     }
@@ -58,7 +58,7 @@ router.get('/my', auth_1.authenticate, async (req, res, next) => {
  */
 router.post('/', auth_1.authenticate, rateLimiter_1.authLimiter, async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
+        const userId = req.user.id;
         const inviteCode = await inviteService.createInviteCode(userId);
         (0, response_1.createdResponse)(res, inviteCode, 'Invite code created successfully');
     }
@@ -73,14 +73,14 @@ router.post('/validate', async (req, res, next) => {
     try {
         const { code } = req.body;
         if (!code || typeof code !== 'string') {
-            return (0, response_1.errorResponse)(res, 'Invite code is required', constants_1.ERROR_CODES.VALIDATION_ERROR, constants_1.HTTP_STATUS.BAD_REQUEST, [{ field: 'code', message: 'Invite code is required' }]);
+            return (0, response_1.errorResponse)(res, 'Invite code is required', constants_1.ErrorCode.VALIDATION_ERROR, constants_1.HttpStatus.BAD_REQUEST, [{ field: 'code', message: 'Invite code is required' }]);
         }
         const result = await inviteService.validateInviteCode(code);
         if (result.valid) {
             (0, response_1.successResponse)(res, result, 'Invite code is valid');
         }
         else {
-            (0, response_1.errorResponse)(res, result.message || 'Invalid invite code', constants_1.ERROR_CODES.INVALID_INVITE_CODE, constants_1.HTTP_STATUS.BAD_REQUEST, [{ field: 'code', message: result.message || 'Invalid invite code' }]);
+            (0, response_1.errorResponse)(res, result.message || 'Invalid invite code', constants_1.ErrorCode.INVALID_INVITE_CODE, constants_1.HttpStatus.BAD_REQUEST, [{ field: 'code', message: result.message || 'Invalid invite code' }]);
         }
     }
     catch (error) {
@@ -92,7 +92,7 @@ router.post('/validate', async (req, res, next) => {
  */
 router.get('/stats', auth_1.authenticate, async (req, res, next) => {
     try {
-        const userId = req.user.user_id;
+        const userId = req.user.id;
         const stats = await inviteService.getInviteStats(userId);
         (0, response_1.successResponse)(res, stats, 'Invite statistics retrieved successfully');
     }

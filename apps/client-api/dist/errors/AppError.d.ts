@@ -2,23 +2,22 @@
  * Application Error Classes
  * 使用统一的错误码体系 from @shared/constants
  */
-import { ErrorCodeType, HttpStatusCode } from '@/constants';
 export declare class AppError extends Error {
-    readonly code: ErrorCodeType;
-    readonly statusCode: HttpStatusCode;
+    readonly code: string;
+    readonly statusCode: number;
     readonly isOperational: boolean;
     readonly errors?: Array<{
         field: string;
         message: string;
     }>;
     readonly details?: Record<string, unknown>;
-    constructor(code: ErrorCodeType, message: string, statusCode?: HttpStatusCode, isOperational?: boolean, errors?: Array<{
+    constructor(code: string, message: string, statusCode?: number, isOperational?: boolean, errors?: Array<{
         field: string;
         message: string;
     }>, details?: Record<string, unknown>);
     toResponse(requestId?: string): {
         success: boolean;
-        code: HttpStatusCode;
+        code: number;
         message: string;
         errors: {
             field: string;
