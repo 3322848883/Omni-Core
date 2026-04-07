@@ -66,7 +66,6 @@ app.use((0, helmet_1.default)({
     },
     hidePoweredBy: true,
     ieNoOpen: true,
-    noCache: true,
 }));
 // CORS middleware with multi-environment support
 app.use((0, cors_1.default)({
