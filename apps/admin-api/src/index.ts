@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
 import { config } from './config';
+import { setupSwagger } from './config/swagger';
 import { logger } from './utils/logger';
 import { errorHandler } from './middlewares/errorHandler';
 import { createRequestId } from './utils/response';
@@ -170,6 +171,9 @@ app.get('/health', (req, res) => {
     requestId: createRequestId(),
   });
 });
+
+// Swagger documentation
+setupSwagger(app);
 
 // API routes
 const apiPrefix = config.apiPrefix;

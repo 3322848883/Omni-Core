@@ -1,4 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
+
+const vi = jest;
 import { Request, Response, NextFunction } from 'express';
 import { authenticate, optionalAuth } from '../auth';
 import * as jwtUtils from '../../utils/jwt';
@@ -34,13 +36,12 @@ describe('Auth Middleware', () => {
     it('should authenticate user with valid token', async () => {
       // Arrange
       const mockUser = {
-        id: 1,
         user_id: 'user-123',
         email: 'test@example.com',
         username: 'testuser',
         password_hash: 'hash123',
         vpn_uuid: 'vpn-uuid-123',
-        status: 'active',
+        status: '1',
         traffic_limit: 1000000,
         traffic_used: 0,
         expire_date: null,
@@ -70,7 +71,7 @@ describe('Auth Middleware', () => {
       expect(jwtUtils.verifyAccessToken).toHaveBeenCalledWith(validToken);
       expect(next).toHaveBeenCalledWith();
       expect(req.user).toBeDefined();
-      expect(req.user?.user_id).toBe('user-123');
+      expect(req.user?.id).toBe('user-123');
     });
 
     it('should return 401 when token is missing', async () => {
@@ -163,13 +164,12 @@ describe('Auth Middleware', () => {
     it('should return 401 when user account is not active', async () => {
       // Arrange
       const mockUser = {
-        id: 1,
         user_id: 'user-123',
         email: 'test@example.com',
         username: 'testuser',
         password_hash: 'hash123',
         vpn_uuid: 'vpn-uuid-123',
-        status: 'inactive',
+        status: '0',
         traffic_limit: 1000000,
         traffic_used: 0,
         expire_date: null,
@@ -225,13 +225,12 @@ describe('Auth Middleware', () => {
     it('should attach user when valid token is provided', async () => {
       // Arrange
       const mockUser = {
-        id: 1,
         user_id: 'user-123',
         email: 'test@example.com',
         username: 'testuser',
         password_hash: 'hash123',
         vpn_uuid: 'vpn-uuid-123',
-        status: 'active',
+        status: '1',
         traffic_limit: 1000000,
         traffic_used: 0,
         expire_date: null,
@@ -258,7 +257,7 @@ describe('Auth Middleware', () => {
 
       // Assert
       expect(req.user).toBeDefined();
-      expect(req.user?.user_id).toBe('user-123');
+      expect(req.user?.id).toBe('user-123');
       expect(next).toHaveBeenCalledWith();
     });
 
@@ -318,13 +317,12 @@ describe('Auth Middleware', () => {
     it('should continue without user when account is inactive', async () => {
       // Arrange
       const mockUser = {
-        id: 1,
         user_id: 'user-123',
         email: 'test@example.com',
         username: 'testuser',
         password_hash: 'hash123',
         vpn_uuid: 'vpn-uuid-123',
-        status: 'inactive',
+        status: '0',
         traffic_limit: 1000000,
         traffic_used: 0,
         expire_date: null,

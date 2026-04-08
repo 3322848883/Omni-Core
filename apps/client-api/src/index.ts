@@ -11,6 +11,7 @@ import { createRequestId } from '@/utils/response';
 import { generalLimiter } from '@/middlewares/rateLimiter';
 import { requestId, requestLogger } from '@/middlewares/requestLogger';
 import routes from '@/routes';
+import { setupSwagger } from '@/config/swagger';
 import logger from '@/utils/logger';
 
 const app = express();
@@ -49,8 +50,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(requestId);
 app.use(requestLogger);
 
-// Rate limiting - temporarily disabled for debugging
-// app.use(generalLimiter);
+// Rate limiting
+app.use(generalLimiter);
 
 // Health check endpoint (no rate limit)
 app.get('/health', (_req, res) => {
@@ -68,6 +69,9 @@ app.get('/health', (_req, res) => {
     timestamp: Date.now(),
   });
 });
+
+// Swagger documentation
+setupSwagger(app);
 
 // API routes - Client API uses /api/v1/client prefix
 app.use('/api/v1/client', routes);
