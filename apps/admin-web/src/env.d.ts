@@ -7,6 +7,12 @@ declare module '*.vue' {
   export default component;
 }
 
+declare module '@/locales/index' {
+  import { I18n } from 'vue-i18n';
+  const i18n: I18n;
+  export default i18n;
+}
+
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL: string;
   readonly VITE_APP_TITLE: string;

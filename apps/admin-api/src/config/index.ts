@@ -181,4 +181,19 @@ export const config = {
     },
     defaultCurrency: process.env.PAYMENT_DEFAULT_CURRENCY || 'USD',
   },
+
+  // RabbitMQ
+  rabbitmq: {
+    host: process.env.RABBITMQ_HOST || 'localhost',
+    port: parseInt(process.env.RABBITMQ_PORT || '5672', 10),
+    user: process.env.RABBITMQ_USER || 'omnicore',
+    password: process.env.RABBITMQ_PASSWORD || 'omnicore123',
+    vhost: process.env.RABBITMQ_VHOST || '/',
+  },
+
+  // Queues
+  queues: {
+    email: process.env.QUEUE_EMAIL || 'omnicore.email',
+    trafficStats: process.env.QUEUE_TRAFFIC_STATS || 'omnicore.traffic.stats',
+  },
 };

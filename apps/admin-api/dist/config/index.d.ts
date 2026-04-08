@@ -104,5 +104,16 @@ export declare const config: {
         };
         defaultCurrency: string;
     };
+    rabbitmq: {
+        host: string;
+        port: number;
+        user: string;
+        password: string;
+        vhost: string;
+    };
+    queues: {
+        email: string;
+        trafficStats: string;
+    };
 };
 //# sourceMappingURL=index.d.ts.map

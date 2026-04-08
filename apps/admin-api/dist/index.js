@@ -9,6 +9,7 @@ const helmet_1 = __importDefault(require("helmet"));
 const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const config_1 = require("./config");
+const swagger_1 = require("./config/swagger");
 const logger_1 = require("./utils/logger");
 const errorHandler_1 = require("./middlewares/errorHandler");
 const response_1 = require("./utils/response");
@@ -16,6 +17,7 @@ const requestLogger_1 = require("./middlewares/requestLogger");
 const performance_1 = require("./middlewares/performance");
 const xray_1 = require("./services/xray");
 const payment_1 = require("./services/payment");
+const scheduler_1 = require("./services/queue/scheduler");
 const constants_1 = require("@shared/constants");
 // Routes
 const auth_1 = require("./routes/auth");
@@ -154,6 +156,8 @@ app.get('/health', (req, res) => {
         requestId: (0, response_1.createRequestId)(),
     });
 });
+// Swagger documentation
+(0, swagger_1.setupSwagger)(app);
 // API routes
 const apiPrefix = config_1.config.apiPrefix;
 app.use(`${apiPrefix}/auth`, auth_1.authRoutes);
@@ -193,15 +197,24 @@ const HOST = config_1.config.host;
 // Initialize services
 (0, xray_1.initializeXrayService)();
 (0, payment_1.initializePaymentProviders)();
+scheduler_1.queueScheduler.initialize().catch((error) => {
+    logger_1.logger.error('Failed to initialize queue scheduler:', error);
+});
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
     logger_1.logger.info('SIGTERM received, shutting down gracefully');
     (0, xray_1.shutdownXrayService)();
+    scheduler_1.queueScheduler.shutdown().catch((error) => {
+        logger_1.logger.error('Error during queue scheduler shutdown:', error);
+    });
     process.exit(0);
 });
 process.on('SIGINT', () => {
     logger_1.logger.info('SIGINT received, shutting down gracefully');
     (0, xray_1.shutdownXrayService)();
+    scheduler_1.queueScheduler.shutdown().catch((error) => {
+        logger_1.logger.error('Error during queue scheduler shutdown:', error);
+    });
     process.exit(0);
 });
 app.listen(PORT, HOST, () => {

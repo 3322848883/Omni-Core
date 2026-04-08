@@ -3,7 +3,9 @@
  * 测试套餐管理服务的所有功能
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+
+const vi = jest;
 import * as subscriptionPlanService from '../subscriptionPlanService';
 import { ServiceType } from '@shared/constants';
 import { CreatePlanData, UpdatePlanData } from '../../types/subscription-plan';

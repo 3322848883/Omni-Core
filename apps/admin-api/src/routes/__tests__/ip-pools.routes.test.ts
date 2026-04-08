@@ -3,7 +3,9 @@
  * 测试IP池路由的所有端点
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+
+const vi = jest;
 import request from 'supertest';
 import express from 'express';
 import { ipPoolRoutes } from '../ip-pools';

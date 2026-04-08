@@ -7,6 +7,12 @@ declare module '*.vue' {
   export default component;
 }
 
+declare module '@/locales/index' {
+  import { I18n } from 'vue-i18n';
+  const i18n: I18n;
+  export default i18n;
+}
+
 // Static asset imports
 declare module '*.svg' {
   const src: string;

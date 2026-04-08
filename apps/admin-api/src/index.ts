@@ -14,6 +14,7 @@ import { requestLogger } from './middlewares/requestLogger';
 import { requestTimer, smartCompression, cacheControl, queryOptimizer, connectionPoolMonitor, responseOptimizer } from './middlewares/performance';
 import { initializeXrayService, shutdownXrayService } from './services/xray';
 import { initializePaymentProviders } from './services/payment';
+import { queueScheduler } from './services/queue/scheduler';
 import { ErrorCode } from '@shared/constants';
 
 // Routes
@@ -219,17 +220,26 @@ const HOST = config.host;
 // Initialize services
 initializeXrayService();
 initializePaymentProviders();
+queueScheduler.initialize().catch((error: unknown) => {
+  logger.error('Failed to initialize queue scheduler:', error);
+});
 
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received, shutting down gracefully');
   shutdownXrayService();
+  queueScheduler.shutdown().catch((error: unknown) => {
+    logger.error('Error during queue scheduler shutdown:', error);
+  });
   process.exit(0);
 });
 
 process.on('SIGINT', () => {
   logger.info('SIGINT received, shutting down gracefully');
   shutdownXrayService();
+  queueScheduler.shutdown().catch((error: unknown) => {
+    logger.error('Error during queue scheduler shutdown:', error);
+  });
   process.exit(0);
 });
 

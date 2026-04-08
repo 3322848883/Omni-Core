@@ -39,3 +39,18 @@ services:
       MYSQL_ROOT_PASSWORD: root_password
     depends_on:
       - mysql
+
+  # RabbitMQ 消息队列
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: omnicore-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: omnicore
+      RABBITMQ_DEFAULT_PASS: omnicore_password
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - E:/DockerData/rabbitmq:/var/lib/rabbitmq

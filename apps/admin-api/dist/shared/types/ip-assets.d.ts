@@ -132,7 +132,7 @@ export interface IPPoolIP {
     updatedAt: Date;
 }
 export interface IPPoolConfig {
-    enabled: boolean;
+    enabled?: boolean;
     name?: string;
     nodeId?: string;
     ipType?: IpType;
@@ -167,5 +167,35 @@ export interface NodeIPAssetExtension {
     ipRotationEnabled: boolean;
     ipRotationInterval: number | null;
     lastIpRotationAt: Date | null;
+}
+export interface PlanValidationResult {
+    allowed: boolean;
+    code?: string;
+    reason?: string;
+    planGroup?: string;
+    allowedIpTypes?: IpType[];
+    allowedLineTypes?: LineType[];
+    minIpScore?: number;
+}
+export interface NodeAccessCheckParams {
+    userId: string;
+    nodeId: string;
+    nodeIpType: IpType;
+    nodeLineType: LineType;
+    nodeServiceType: string;
+    nodeIpScore?: number;
+}
+export interface UserSubscriptionEntitlement {
+    userId: string;
+    planGroup: string;
+    serviceTypes: string[];
+    allowedIpTypes?: IpType[];
+    allowedLineTypes?: LineType[];
+    minIpScore?: number | null;
+    ipRotationEnabled?: boolean;
+    ipRotationInterval?: number | null;
+    trafficLimit: number;
+    trafficUsed: number;
+    expireDate: Date | null;
 }
 //# sourceMappingURL=ip-assets.d.ts.map

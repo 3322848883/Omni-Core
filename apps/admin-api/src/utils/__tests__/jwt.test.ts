@@ -1,4 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
+
+const vi = jest;
 import * as jwtUtils from '../jwt';
 import { config } from '../../config';
 import * as jwt from 'jsonwebtoken';

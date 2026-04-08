@@ -3,7 +3,9 @@
  * 测试IPPoolService的所有功能
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+
+const vi = jest;
 import { IPPoolService, getIPPoolService } from '../index';
 import { IPPool, IPPoolConfig, IPPoolStatus } from '../../../shared/types/ip-assets';
 import { IpType, RotationStrategy, IPScoreThresholds } from '../../../shared/constants/ip-assets';

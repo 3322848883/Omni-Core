@@ -1,4 +1,6 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
+
+const vi = jest;
 import { Request, Response, NextFunction } from 'express';
 import {
   authMiddleware,

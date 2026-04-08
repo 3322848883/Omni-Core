@@ -35,6 +35,7 @@
           <breadcrumb />
         </div>
         <div class="header-right">
+          <LanguageSwitcher />
           <el-dropdown @command="handleCommand">
             <span class="user-info">
               {{ authStore.userInfo?.username }}
@@ -68,6 +69,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@stores/auth';
 import Breadcrumb from '@components/Breadcrumb.vue';
 import OmniCoreLogo from '@components/OmniCoreLogo.vue';
+import LanguageSwitcher from '@components/LanguageSwitcher.vue';
 
 const route = useRoute();
 const router = useRouter();

@@ -82,6 +82,13 @@ services:
       JWT_SECRET: ${JWT_SECRET:-your_jwt_secret}
       XRAY_API_HOST: xray
       XRAY_API_PORT: 10085
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: 5672
+      RABBITMQ_USER: ${RABBITMQ_USER:-omnicore}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD:-omnicore123}
+      RABBITMQ_VHOST: /
+      QUEUE_EMAIL: omnicore.email
+      QUEUE_TRAFFIC_STATS: omnicore.traffic.stats
     ports:
       - "3001:3001"
     networks:
@@ -90,6 +97,8 @@ services:
       mysql:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
       xray:
         condition: service_started
@@ -174,11 +183,34 @@ services:
     depends_on:
       - prometheus
 
+  # RabbitMQ (Message Queue)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: omnicore-rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-omnicore}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-omnicore123}
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - omnicore-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   mysql-data:
   redis-data:
   prometheus-data:
   grafana-data:
+  rabbitmq-data:
 
 networks:
   omnicore-network:
