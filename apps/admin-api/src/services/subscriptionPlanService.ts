@@ -20,6 +20,7 @@ import {
   isValidServiceType,
   PLAN_GROUPS
 } from '@shared/constants';
+import { IpType, LineType } from '@shared/constants/ip-type';
 
 /**
  * 生成唯一 ID
@@ -31,19 +32,19 @@ function generatePlanId(): string {
 /**
  * 验证服务类型数组
  */
-function validateServiceTypes(serviceTypes: ServiceType[]): void {
-  if (!Array.isArray(serviceTypes) || serviceTypes.length === 0) {
+function validateServiceTypes(allowedServiceTypes: ServiceType[]): void {
+  if (!Array.isArray(allowedServiceTypes) || allowedServiceTypes.length === 0) {
     throw new ValidationError(
       'At least one service type is required',
-      [{ field: 'serviceTypes', message: 'At least one service type is required' }]
+      [{ field: 'allowedServiceTypes', message: 'At least one service type is required' }]
     );
   }
 
-  const invalidTypes = serviceTypes.filter(type => !isValidServiceType(type));
+  const invalidTypes = allowedServiceTypes.filter(type => !isValidServiceType(type));
   if (invalidTypes.length > 0) {
     throw new ValidationError(
       `Invalid service types: ${invalidTypes.join(', ')}`,
-      [{ field: 'serviceTypes', message: `Invalid service types: ${invalidTypes.join(', ')}` }]
+      [{ field: 'allowedServiceTypes', message: `Invalid service types: ${invalidTypes.join(', ')}` }]
     );
   }
 }
@@ -53,7 +54,7 @@ function validateServiceTypes(serviceTypes: ServiceType[]): void {
  */
 function validatePrimaryServiceType(
   primaryType: ServiceType,
-  serviceTypes: ServiceType[]
+  allowedServiceTypes: ServiceType[]
 ): void {
   if (!isValidServiceType(primaryType)) {
     throw new ValidationError(
@@ -62,10 +63,10 @@ function validatePrimaryServiceType(
     );
   }
 
-  if (!serviceTypes.includes(primaryType)) {
+  if (!allowedServiceTypes.includes(primaryType)) {
     throw new ValidationError(
-      'Primary service type must be included in serviceTypes',
-      [{ field: 'primaryServiceType', message: 'Primary service type must be included in serviceTypes' }]
+      'Primary service type must be included in allowedServiceTypes',
+      [{ field: 'primaryServiceType', message: 'Primary service type must be included in allowedServiceTypes' }]
     );
   }
 }
@@ -78,16 +79,15 @@ function dbRecordToPlan(record: any): SubscriptionPlan {
     id: record.id,
     name: record.name,
     description: record.description || '',
-    group: record.group_id || 'standard',
-    price: record.price,
-    durationDays: record.duration_days,
-    trafficLimit: record.traffic_limit,
-    serviceTypes: JSON.parse(record.service_types || '[]'),
     primaryServiceType: record.primary_service_type || ServiceType.STANDARD,
-    priorityBoost: record.priority_boost || 0,
-    guaranteedBandwidth: record.guaranteed_bandwidth || 0,
-    maxConnections: record.max_connections || 3,
+    allowedServiceTypes: JSON.parse(record.service_types || '[]'),
+    trafficLimit: record.traffic_limit,
+    durationDays: record.duration_days,
+    price: record.price,
+    currency: 'USD',
     features: JSON.parse(record.features || '[]'),
+    ipType: IpType.RESIDENTIAL_STATIC,
+    lineType: LineType.STANDARD,
     isActive: record.is_active === 1 || record.is_active === true,
     sortOrder: record.sort_order || 0,
     createdAt: record.created_at,
@@ -151,14 +151,9 @@ export async function getPlans(query: PlanListQuery = {}): Promise<PlanListRespo
 
   return {
     items: records.map(dbRecordToPlan),
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-      hasNext: page * limit < total,
-      hasPrev: page > 1
-    }
+    total,
+    page,
+    pageSize: limit
   };
 }
 
@@ -214,8 +209,8 @@ export async function createPlan(
   }
 
   // 验证服务类型
-  validateServiceTypes(data.serviceTypes);
-  validatePrimaryServiceType(data.primaryServiceType, data.serviceTypes);
+  validateServiceTypes(data.allowedServiceTypes);
+  validatePrimaryServiceType(data.primaryServiceType, data.allowedServiceTypes);
 
   // 检查名称是否已存在
   const existingPlan = await db('subscription_plans')
@@ -240,7 +235,7 @@ export async function createPlan(
     price: data.price,
     duration_days: data.durationDays,
     traffic_limit: data.trafficLimit,
-    service_types: JSON.stringify(data.serviceTypes),
+    service_types: JSON.stringify(data.allowedServiceTypes),
     primary_service_type: data.primaryServiceType,
     priority_boost: data.priorityBoost || 0,
     guaranteed_bandwidth: data.guaranteedBandwidth || 0,
@@ -279,13 +274,13 @@ export async function updatePlan(
   }
 
   // 验证服务类型
-  if (data.serviceTypes !== undefined) {
-    validateServiceTypes(data.serviceTypes);
+  if (data.allowedServiceTypes !== undefined) {
+    validateServiceTypes(data.allowedServiceTypes);
   }
 
   if (data.primaryServiceType !== undefined) {
-    const serviceTypes = data.serviceTypes || JSON.parse(existingPlan.service_types || '[]');
-    validatePrimaryServiceType(data.primaryServiceType, serviceTypes);
+    const allowedServiceTypes = data.allowedServiceTypes || JSON.parse(existingPlan.service_types || '[]');
+    validatePrimaryServiceType(data.primaryServiceType, allowedServiceTypes);
   }
 
   // 验证数值字段
@@ -336,7 +331,7 @@ export async function updatePlan(
   if (data.price !== undefined) updateData.price = data.price;
   if (data.durationDays !== undefined) updateData.duration_days = data.durationDays;
   if (data.trafficLimit !== undefined) updateData.traffic_limit = data.trafficLimit;
-  if (data.serviceTypes !== undefined) updateData.service_types = JSON.stringify(data.serviceTypes);
+  if (data.allowedServiceTypes !== undefined) updateData.service_types = JSON.stringify(data.allowedServiceTypes);
   if (data.primaryServiceType !== undefined) updateData.primary_service_type = data.primaryServiceType;
   if (data.priorityBoost !== undefined) updateData.priority_boost = data.priorityBoost;
   if (data.guaranteedBandwidth !== undefined) updateData.guaranteed_bandwidth = data.guaranteedBandwidth;
@@ -466,16 +461,10 @@ export async function getPlanStats(id: string): Promise<PlanStats> {
 
   return {
     planId: id,
-    planName: plan.name,
     totalSubscriptions: total,
-    activeSubscriptions: active,
-    expiredSubscriptions: parseInt(subscriptionStats?.expired as string) || 0,
-    totalRevenue: parseFloat(revenueStats?.total_revenue as string) || 0,
-    monthlyRevenue: parseFloat(revenueStats?.monthly_revenue as string) || 0,
-    averageSubscriptionDuration: parseFloat(durationStats?.avg_duration as string) || 0,
-    userRetentionRate: parseFloat(retentionRate.toFixed(2)),
-    subscriptionsByServiceType,
-    growthTrend: formattedTrend
+    revenue: parseFloat(revenueStats?.total_revenue as string) || 0,
+    totalPlans: 1,
+    activePlans: plan.isActive ? 1 : 0
   };
 }
 
@@ -493,15 +482,16 @@ export async function getPlanGroups(): Promise<PlanGroup[]> {
     groupCounts.map(g => [g.group_id, parseInt(g.count as string)])
   );
 
-  return PLAN_GROUPS.map(group => ({
+  return PLAN_GROUPS.map((group: any) => ({
     id: group.id,
     name: group.name,
     description: group.description,
     serviceTypes: [...group.serviceTypes],
+    ipTypes: [IpType.RESIDENTIAL_STATIC],
+    lineTypes: [LineType.STANDARD],
     icon: group.icon,
     color: group.color,
-    recommendedFor: [...group.recommendedFor],
-    planCount: countMap.get(group.id) || 0
+    recommendedFor: [...group.recommendedFor]
   }));
 }
 

@@ -17,7 +17,7 @@ jest.mock('../../utils/jwt');
 // Mock database
 const mockDb = {
   where: jest.fn().mockReturnThis(),
-  first: jest.fn() as jest.Mock<any, []>
+  first: jest.fn()
 };
 
 // Mock the database module
@@ -262,7 +262,7 @@ describe('Admin Auth Middleware', () => {
       // Database query with is_active: true filter returns null for inactive admin
       (db as any).mockReturnValue({
         where: jest.fn().mockReturnThis(),
-        first: jest.fn() as jest.Mock<any, []>,
+        first: jest.fn(),
       } as any);
 
       // Act
@@ -439,7 +439,7 @@ describe('Admin Auth Middleware', () => {
       // Database query with is_active: true filter returns null for inactive admin
       (db as any).mockReturnValue({
         where: jest.fn().mockReturnThis(),
-        first: jest.fn() as jest.Mock<any, []>,
+        first: jest.fn(),
       } as any);
 
       // Act

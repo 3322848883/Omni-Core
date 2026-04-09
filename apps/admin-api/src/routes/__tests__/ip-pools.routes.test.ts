@@ -38,7 +38,7 @@ jest.mock('../../services/ip-pool', () => ({
 // Mock数据库
 const mockDb: any = {
   where: jest.fn().mockReturnThis(),
-  first: jest.fn() as jest.Mock<any, []>,
+  first: jest.fn(),
   select: jest.fn().mockReturnThis(),
   raw: jest.fn((str) => str)
 };

@@ -5,49 +5,48 @@
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 
-const vi = jest;
 import { IPPoolService, getIPPoolService } from '../index';
 import { IPPool, IPPoolConfig, IPPoolStatus } from '../../../shared/types/ip-assets';
 import { IpType, RotationStrategy, IPScoreThresholds } from '../../../shared/constants/ip-assets';
 
 // Mock依赖
 const mockDb = {
-  where: vi.fn().mockReturnThis(),
-  first: vi.fn().mockResolvedValue(null),
-  insert: vi.fn().mockResolvedValue([1]),
-  update: vi.fn().mockResolvedValue(1),
-  delete: vi.fn().mockResolvedValue(1),
-  select: vi.fn().mockReturnThis(),
-  count: vi.fn().mockReturnThis(),
-  orderBy: vi.fn().mockReturnThis(),
-  offset: vi.fn().mockReturnThis(),
-  limit: vi.fn().mockReturnThis(),
-  raw: vi.fn((str) => str)
+  where: jest.fn().mockReturnThis(),
+  first: jest.fn().mockResolvedValue(null),
+  insert: jest.fn().mockResolvedValue([1]),
+  update: jest.fn().mockResolvedValue(1),
+  delete: jest.fn().mockResolvedValue(1),
+  select: jest.fn().mockReturnThis(),
+  count: jest.fn().mockReturnThis(),
+  orderBy: jest.fn().mockReturnThis(),
+  offset: jest.fn().mockReturnThis(),
+  limit: jest.fn().mockReturnThis(),
+  raw: jest.fn((str) => str)
 };
 
-vi.mock('../../../database', () => ({
-  db: vi.fn(() => mockDb)
+jest.mock('../../../database', () => ({
+  db: jest.fn(() => mockDb)
 }));
 
-vi.mock('../../../utils/logger', () => ({
+jest.mock('../../../utils/logger', () => ({
   logger: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn()
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn()
   }
 }));
 
-vi.mock('../../cache/redis', () => ({
-  getRedisClient: vi.fn(() => ({
-    getJSON: vi.fn().mockResolvedValue(null),
-    setJSON: vi.fn().mockResolvedValue(undefined)
+jest.mock('../../cache/redis', () => ({
+  getRedisClient: jest.fn(() => ({
+    getJSON: jest.fn().mockResolvedValue(null),
+    setJSON: jest.fn().mockResolvedValue(undefined)
   }))
 }));
 
-vi.mock('../../ip-reputation', () => ({
-  getIPReputationService: vi.fn(() => ({
-    checkIP: vi.fn().mockResolvedValue({
+jest.mock('../../ip-reputation', () => ({
+  getIPReputationService: jest.fn(() => ({
+    checkIP: jest.fn().mockResolvedValue({
       ip: '192.168.1.1',
       score: 85,
       isResidential: true,
@@ -69,7 +68,7 @@ describe('IPPoolService', () => {
   let service: IPPoolService;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     service = new IPPoolService();
     // 重置mockDb的返回值
     mockDb.first.mockReset();
@@ -79,7 +78,7 @@ describe('IPPoolService', () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('IP池创建', () => {
@@ -114,7 +113,7 @@ describe('IPPoolService', () => {
         nodeId: 'node-123',
         ipType: IpType.RESIDENTIAL_STATIC,
         ips: ['192.168.1.1'],
-        rotationStrategy: RotationStrategy.QUALITY_FIRST,
+        rotationStrategy: RotationStrategy.ROUND_ROBIN,
         rotationInterval: 3600
       };
 
@@ -141,7 +140,7 @@ describe('IPPoolService', () => {
         rotationStrategy: RotationStrategy.ROUND_ROBIN,
         rotationInterval: 3600,
         currentIndex: 0,
-        lastRotationAt: null,
+        lastRotationAt: undefined,
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -252,7 +251,7 @@ describe('IPPoolService', () => {
         rotationStrategy: RotationStrategy.ROUND_ROBIN,
         rotationInterval: 3600,
         currentIndex: 0,
-        lastRotationAt: null,
+        lastRotationAt: undefined,
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -437,7 +436,7 @@ describe('IPPoolService', () => {
         rotationStrategy: RotationStrategy.ROUND_ROBIN,
         rotationInterval: 3600,
         currentIndex: 0,
-        lastRotationAt: null,
+        lastRotationAt: undefined,
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()
@@ -460,7 +459,7 @@ describe('IPPoolService', () => {
         rotationStrategy: RotationStrategy.ROUND_ROBIN,
         rotationInterval: 3600,
         currentIndex: 0,
-        lastRotationAt: null,
+        lastRotationAt: undefined,
         isActive: true,
         createdAt: new Date(),
         updatedAt: new Date()

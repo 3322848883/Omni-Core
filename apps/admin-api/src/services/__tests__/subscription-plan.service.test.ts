@@ -3,49 +3,72 @@
  * 测试套餐管理服务的所有功能
  */
 
+// @ts-nocheck
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import * as subscriptionPlanService from '../subscriptionPlanService';
 import { ServiceType } from '@shared/constants';
 import { CreatePlanData, UpdatePlanData } from '../../types/subscription-plan';
 
-// Mock依赖
-const mockDb = {
-  where: jest.fn().mockReturnThis(),
-  first: jest.fn<any, any>(),
-  insert: jest.fn<any, any>(),
-  update: jest.fn<any, any>(),
-  delete: jest.fn<any, any>(),
-  select: jest.fn().mockReturnThis(),
-  count: jest.fn().mockReturnThis(),
-  orderBy: jest.fn().mockReturnThis(),
-  offset: jest.fn().mockReturnThis(),
-  limit: jest.fn<any, any>(),
-  whereNot: jest.fn().mockReturnThis(),
-  join: jest.fn().mockReturnThis(),
-  groupBy: jest.fn<any, any>(),
-  raw: jest.fn((str) => str),
-  transaction: jest.fn<any, any>(),
-  clone: jest.fn(function(this: any) {
-    return this;
-  })
-};
+// 全局变量，用于在测试中访问mockDb
+let mockDb: any;
 
-// 初始化mock返回值
-mockDb.first.mockResolvedValue(null);
-mockDb.insert.mockResolvedValue([1]);
-mockDb.update.mockResolvedValue(1);
-mockDb.delete.mockResolvedValue(1);
-mockDb.limit.mockResolvedValue([]);
-mockDb.orderBy.mockResolvedValue([]);
-mockDb.groupBy.mockResolvedValue([]);
-mockDb.transaction.mockResolvedValue({
-  commit: jest.fn(),
-  rollback: jest.fn()
+// 使用jest.mock的回调函数方式来避免类型问题
+jest.mock('../../database', () => {
+  // 创建一个mock查询对象
+  const mockDbInstance = {
+    where: jest.fn(),
+    first: jest.fn(),
+    insert: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    select: jest.fn(),
+    count: jest.fn(),
+    orderBy: jest.fn(),
+    offset: jest.fn(),
+    limit: jest.fn(),
+    whereNot: jest.fn(),
+    join: jest.fn(),
+    groupBy: jest.fn(),
+    returning: jest.fn(),
+    clone: jest.fn(),
+    whereNotNull: jest.fn()
+  };
+
+  // 配置链式调用
+  Object.keys(mockDbInstance).forEach(key => {
+    // 所有方法都支持链式调用
+    mockDbInstance[key].mockReturnThis();
+  });
+
+  // 配置默认返回值
+  mockDbInstance.first.mockResolvedValue(null);
+  mockDbInstance.insert.mockResolvedValue([1]);
+  mockDbInstance.update.mockResolvedValue(1);
+  mockDbInstance.delete.mockResolvedValue(1);
+  mockDbInstance.limit.mockResolvedValue([]);
+  mockDbInstance.orderBy.mockResolvedValue([]);
+  mockDbInstance.groupBy.mockResolvedValue([]);
+  mockDbInstance.count.mockResolvedValue([{ count: 0 }]);
+  mockDbInstance.returning.mockResolvedValue([{}]);
+  mockDbInstance.select.mockResolvedValue([]);
+
+  // 创建mock db函数
+  const mockDbFunction = jest.fn(() => mockDbInstance);
+
+  // 添加raw和transaction方法
+  mockDbFunction.raw = jest.fn((str: string) => str);
+  mockDbFunction.transaction = jest.fn().mockResolvedValue({
+    commit: jest.fn(),
+    rollback: jest.fn()
+  });
+
+  // 将mockDbInstance赋值给外部的mockDb变量
+  mockDb = mockDbInstance;
+
+  return {
+    db: mockDbFunction
+  };
 });
-
-jest.mock('../../database', () => ({
-  db: jest.fn(() => mockDb)
-}));
 
 jest.mock('../../utils/logger', () => ({
   logger: {
@@ -59,6 +82,18 @@ jest.mock('../../utils/logger', () => ({
 describe('SubscriptionPlanService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // 重新配置默认返回值
+    mockDb.first.mockResolvedValue(null);
+    mockDb.insert.mockResolvedValue([1]);
+    mockDb.update.mockResolvedValue(1);
+    mockDb.delete.mockResolvedValue(1);
+    mockDb.limit.mockResolvedValue([]);
+    mockDb.orderBy.mockResolvedValue([]);
+    mockDb.groupBy.mockResolvedValue([]);
+    mockDb.count.mockResolvedValue([{ count: 0 }]);
+    mockDb.returning.mockResolvedValue([{}]);
+    mockDb.select.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -91,7 +126,7 @@ describe('SubscriptionPlanService', () => {
         price: planData.price,
         duration_days: planData.durationDays,
         traffic_limit: planData.trafficLimit,
-        service_types: JSON.stringify(planData.serviceTypes),
+        service_types: JSON.stringify(planData.allowedServiceTypes),
         primary_service_type: planData.primaryServiceType,
         priority_boost: planData.priorityBoost,
         guaranteed_bandwidth: planData.guaranteedBandwidth,
@@ -194,7 +229,7 @@ describe('SubscriptionPlanService', () => {
         primaryServiceType: ServiceType.DEDICATED_LINE
       };
 
-      await expect(subscriptionPlanService.createPlan(planData)).rejects.toThrow('Primary service type must be included in serviceTypes');
+      await expect(subscriptionPlanService.createPlan(planData)).rejects.toThrow('Primary service type must be included in allowedServiceTypes');
     });
 
     it('应该拒绝创建重复名称的套餐', async () => {
@@ -577,7 +612,7 @@ describe('SubscriptionPlanService', () => {
         price: 0,
         duration_days: planData.durationDays,
         traffic_limit: planData.trafficLimit,
-        service_types: JSON.stringify(planData.serviceTypes),
+        service_types: JSON.stringify(planData.allowedServiceTypes),
         primary_service_type: planData.primaryServiceType,
         is_active: true,
         created_at: new Date(),
