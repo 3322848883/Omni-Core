@@ -61,7 +61,7 @@ describe('JWT Utils', () => {
       // Arrange
       const expectedToken = 'mock_access_token';
       const originalExpiresIn = config.jwt.expiresIn;
-      config.jwt.expiresIn = undefined;
+      (config.jwt as any).expiresIn = undefined;
       (jwt.sign as any).mockReturnValue(expectedToken);
 
       // Act
@@ -103,7 +103,7 @@ describe('JWT Utils', () => {
       // Arrange
       const expectedToken = 'mock_refresh_token';
       const originalRefreshExpiresIn = config.jwt.refreshExpiresIn;
-      config.jwt.refreshExpiresIn = undefined;
+      (config.jwt as any).refreshExpiresIn = undefined;
       (jwt.sign as any).mockReturnValue(expectedToken);
 
       // Act

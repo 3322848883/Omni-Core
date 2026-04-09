@@ -1,24 +1,26 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-
-const vi = jest;
 import { Request, Response, NextFunction } from 'express';
 import { errorHandler } from '../errorHandler';
 import { AppError } from '@/errors/AppError';
 import { HttpStatus } from '@/constants';
 
 // Mock logger
-vi.mock('@/utils/logger', () => ({
-  default: {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+jest.mock('@/utils/logger', () => {
+  const logger = {
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
+  };
+  return {
+    __esModule: true,
+    default: logger,
+  };
+});
 
 // Mock response util
-vi.mock('@/utils/response', () => ({
-  createRequestId: vi.fn().mockReturnValue('test-request-id-123'),
+jest.mock('@/utils/response', () => ({
+  createRequestId: jest.fn().mockReturnValue('test-request-id-123'),
 }));
 
 describe('Client API Error Handler Middleware', () => {
@@ -34,23 +36,23 @@ describe('Client API Error Handler Middleware', () => {
       body: {},
       headers: {},
       ip: '127.0.0.1',
-      get: vi.fn().mockReturnValue('Test User Agent'),
+      get: jest.fn().mockReturnValue('Test User Agent') as any,
     };
     res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn().mockReturnThis(),
+      status: jest.fn().mockReturnThis() as any,
+      json: jest.fn().mockReturnThis() as any,
     };
-    next = vi.fn();
-    vi.clearAllMocks();
+    next = jest.fn();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('errorHandler', () => {
     it('should handle AppError correctly', () => {
-      const appError = new AppError('Test AppError', HttpStatus.BAD_REQUEST);
+      const appError = new AppError('BAD_REQUEST', 'Test AppError', HttpStatus.BAD_REQUEST);
       
       errorHandler(appError, req as Request, res as Response, next);
 
@@ -115,7 +117,7 @@ describe('Client API Error Handler Middleware', () => {
 
     it('should use requestId from request if available', () => {
       req.requestId = 'custom-request-id-456';
-      const appError = new AppError('Test error', HttpStatus.BAD_REQUEST);
+      const appError = new AppError('BAD_REQUEST', 'Test error', HttpStatus.BAD_REQUEST);
       
       errorHandler(appError, req as Request, res as Response, next);
 

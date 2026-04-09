@@ -1,6 +1,4 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-
-const vi = jest;
 import { Request, Response, NextFunction } from 'express';
 import {
   requestTimer,
@@ -10,12 +8,12 @@ import {
 } from '../performance';
 
 // Mock logger
-vi.mock('../../utils/logger', () => ({
+jest.mock('../../utils/logger', () => ({
   logger: {
-    warn: vi.fn(),
-    debug: vi.fn(),
-    info: vi.fn(),
-    error: vi.fn(),
+    warn: jest.fn(),
+    debug: jest.fn(),
+    info: jest.fn(),
+    error: jest.fn(),
   },
 }));
 
@@ -31,23 +29,23 @@ describe('Performance Middleware', () => {
       query: {},
       headers: {},
       ip: '127.0.0.1',
-      get: vi.fn().mockReturnValue('Test User Agent'),
+      get: jest.fn().mockReturnValue('Test User Agent') as any,
     };
     res = {
       statusCode: 200,
-      on: vi.fn((event: string, callback: () => void) => {
+      on: jest.fn((event: string, callback: () => void) => {
         if (event === 'finish') {
           callback();
         }
-      }),
-      setHeader: vi.fn(),
+      }) as any,
+      setHeader: jest.fn() as any,
     };
-    next = vi.fn();
-    vi.clearAllMocks();
+    next = jest.fn();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('requestTimer', () => {
@@ -66,7 +64,7 @@ describe('Performance Middleware', () => {
     });
 
     it('should use provided request ID from headers if available', () => {
-      req.headers['x-request-id'] = 'custom-request-id-123';
+      (req as any).headers['x-request-id'] = 'custom-request-id-123';
       
       const timer = requestTimer();
       timer(req as Request, res as Response, next);
@@ -188,7 +186,7 @@ describe('Performance Middleware', () => {
 
     it('should execute batch insert successfully', async () => {
       const records = [1, 2, 3, 4, 5];
-      const insertFn = vi.fn().mockResolvedValue(true);
+      const insertFn = jest.fn().mockImplementation(() => Promise.resolve(true)) as any;
       const optimizer = batchOptimizer(2);
       
       const result = await optimizer.batchInsert('test_table', records, insertFn);

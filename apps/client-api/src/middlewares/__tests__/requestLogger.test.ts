@@ -1,18 +1,20 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-
-const vi = jest;
 import { Request, Response, NextFunction } from 'express';
 import { requestId, requestLogger } from '../requestLogger';
 
 // Mock logger
-vi.mock('@/utils/logger', () => ({
-  default: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-  },
-}));
+jest.mock('@/utils/logger', () => {
+  const logger = {
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn(),
+  };
+  return {
+    __esModule: true,
+    default: logger,
+  };
+});
 
 describe('Client API Request Logger Middleware', () => {
   let req: Partial<Request>;
@@ -27,23 +29,23 @@ describe('Client API Request Logger Middleware', () => {
       body: {},
       headers: {},
       ip: '127.0.0.1',
-      get: vi.fn().mockReturnValue('Test User Agent'),
+      get: jest.fn().mockReturnValue('Test User Agent') as any,
     };
     res = {
       statusCode: 200,
-      on: vi.fn((event: string, callback: () => void) => {
+      on: jest.fn((event: string, callback: () => void) => {
         if (event === 'finish') {
           callback();
         }
-      }),
-      setHeader: vi.fn(),
+      }) as any,
+      setHeader: jest.fn() as any,
     };
-    next = vi.fn();
-    vi.clearAllMocks();
+    next = jest.fn();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('requestId', () => {
@@ -113,7 +115,7 @@ describe('Client API Request Logger Middleware', () => {
     });
 
     it('should include userId in log if available', () => {
-      req.user = { id: 'user-123' };
+      (req as any).user = { id: 'user-123' };
       
       requestLogger(req as Request, res as Response, next);
 

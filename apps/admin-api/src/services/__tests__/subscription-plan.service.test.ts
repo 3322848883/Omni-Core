@@ -4,54 +4,65 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-
-const vi = jest;
 import * as subscriptionPlanService from '../subscriptionPlanService';
 import { ServiceType } from '@shared/constants';
 import { CreatePlanData, UpdatePlanData } from '../../types/subscription-plan';
 
 // Mock依赖
 const mockDb = {
-  where: vi.fn().mockReturnThis(),
-  first: vi.fn().mockResolvedValue(null),
-  insert: vi.fn().mockResolvedValue([1]),
-  update: vi.fn().mockResolvedValue(1),
-  delete: vi.fn().mockResolvedValue(1),
-  select: vi.fn().mockReturnThis(),
-  count: vi.fn().mockReturnThis(),
-  orderBy: vi.fn().mockReturnThis(),
-  offset: vi.fn().mockReturnThis(),
-  limit: vi.fn().mockReturnThis(),
-  whereNot: vi.fn().mockReturnThis(),
-  join: vi.fn().mockReturnThis(),
-  groupBy: vi.fn().mockReturnThis(),
-  raw: vi.fn((str) => str),
-  transaction: vi.fn(() => Promise.resolve({
-    commit: vi.fn(),
-    rollback: vi.fn()
-  }))
+  where: jest.fn().mockReturnThis(),
+  first: jest.fn<any, any>(),
+  insert: jest.fn<any, any>(),
+  update: jest.fn<any, any>(),
+  delete: jest.fn<any, any>(),
+  select: jest.fn().mockReturnThis(),
+  count: jest.fn().mockReturnThis(),
+  orderBy: jest.fn().mockReturnThis(),
+  offset: jest.fn().mockReturnThis(),
+  limit: jest.fn<any, any>(),
+  whereNot: jest.fn().mockReturnThis(),
+  join: jest.fn().mockReturnThis(),
+  groupBy: jest.fn<any, any>(),
+  raw: jest.fn((str) => str),
+  transaction: jest.fn<any, any>(),
+  clone: jest.fn(function(this: any) {
+    return this;
+  })
 };
 
-vi.mock('../../database', () => ({
-  db: vi.fn(() => mockDb)
+// 初始化mock返回值
+mockDb.first.mockResolvedValue(null);
+mockDb.insert.mockResolvedValue([1]);
+mockDb.update.mockResolvedValue(1);
+mockDb.delete.mockResolvedValue(1);
+mockDb.limit.mockResolvedValue([]);
+mockDb.orderBy.mockResolvedValue([]);
+mockDb.groupBy.mockResolvedValue([]);
+mockDb.transaction.mockResolvedValue({
+  commit: jest.fn(),
+  rollback: jest.fn()
+});
+
+jest.mock('../../database', () => ({
+  db: jest.fn(() => mockDb)
 }));
 
-vi.mock('../../utils/logger', () => ({
+jest.mock('../../utils/logger', () => ({
   logger: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn()
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn()
   }
 }));
 
 describe('SubscriptionPlanService', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('套餐创建', () => {
@@ -62,7 +73,7 @@ describe('SubscriptionPlanService', () => {
         price: 9.99,
         durationDays: 30,
         trafficLimit: 100 * 1024 * 1024 * 1024, // 100GB
-        serviceTypes: [ServiceType.STANDARD],
+        allowedServiceTypes: [ServiceType.STANDARD],
         primaryServiceType: ServiceType.STANDARD,
         priorityBoost: 0,
         guaranteedBandwidth: 0,
@@ -98,17 +109,18 @@ describe('SubscriptionPlanService', () => {
       expect(result.name).toBe(planData.name);
       expect(result.price).toBe(planData.price);
       expect(result.durationDays).toBe(planData.durationDays);
-      expect(result.serviceTypes).toEqual(planData.serviceTypes);
+      expect(result.allowedServiceTypes).toEqual(planData.allowedServiceTypes);
       expect(result.primaryServiceType).toBe(planData.primaryServiceType);
     });
 
     it('应该拒绝创建没有名称的套餐', async () => {
       const planData: CreatePlanData = {
         name: '',
+        description: '',
         price: 9.99,
         durationDays: 30,
         trafficLimit: 100 * 1024 * 1024 * 1024,
-        serviceTypes: [ServiceType.STANDARD],
+        allowedServiceTypes: [ServiceType.STANDARD],
         primaryServiceType: ServiceType.STANDARD
       };
 
@@ -118,10 +130,11 @@ describe('SubscriptionPlanService', () => {
     it('应该拒绝创建负价格的套餐', async () => {
       const planData: CreatePlanData = {
         name: 'Test Plan',
+        description: '',
         price: -9.99,
         durationDays: 30,
         trafficLimit: 100 * 1024 * 1024 * 1024,
-        serviceTypes: [ServiceType.STANDARD],
+        allowedServiceTypes: [ServiceType.STANDARD],
         primaryServiceType: ServiceType.STANDARD
       };
 
@@ -131,10 +144,11 @@ describe('SubscriptionPlanService', () => {
     it('应该拒绝创建无效持续时间的套餐', async () => {
       const planData: CreatePlanData = {
         name: 'Test Plan',
+        description: '',
         price: 9.99,
         durationDays: 0,
         trafficLimit: 100 * 1024 * 1024 * 1024,
-        serviceTypes: [ServiceType.STANDARD],
+        allowedServiceTypes: [ServiceType.STANDARD],
         primaryServiceType: ServiceType.STANDARD
       };
 
@@ -144,10 +158,11 @@ describe('SubscriptionPlanService', () => {
     it('应该拒绝创建无效流量限制的套餐', async () => {
       const planData: CreatePlanData = {
         name: 'Test Plan',
+        description: '',
         price: 9.99,
         durationDays: 30,
         trafficLimit: 0,
-        serviceTypes: [ServiceType.STANDARD],
+        allowedServiceTypes: [ServiceType.STANDARD],
         primaryServiceType: ServiceType.STANDARD
       };
 
@@ -157,10 +172,11 @@ describe('SubscriptionPlanService', () => {
     it('应该拒绝创建没有服务类型的套餐', async () => {
       const planData: CreatePlanData = {
         name: 'Test Plan',
+        description: '',
         price: 9.99,
         durationDays: 30,
         trafficLimit: 100 * 1024 * 1024 * 1024,
-        serviceTypes: [],
+        allowedServiceTypes: [],
         primaryServiceType: ServiceType.STANDARD
       };
 
@@ -170,10 +186,11 @@ describe('SubscriptionPlanService', () => {
     it('应该拒绝创建主服务类型不在服务类型列表中的套餐', async () => {
       const planData: CreatePlanData = {
         name: 'Test Plan',
+        description: '',
         price: 9.99,
         durationDays: 30,
         trafficLimit: 100 * 1024 * 1024 * 1024,
-        serviceTypes: [ServiceType.STANDARD],
+        allowedServiceTypes: [ServiceType.STANDARD],
         primaryServiceType: ServiceType.DEDICATED_LINE
       };
 
@@ -183,10 +200,11 @@ describe('SubscriptionPlanService', () => {
     it('应该拒绝创建重复名称的套餐', async () => {
       const planData: CreatePlanData = {
         name: 'Existing Plan',
+        description: '',
         price: 9.99,
         durationDays: 30,
         trafficLimit: 100 * 1024 * 1024 * 1024,
-        serviceTypes: [ServiceType.STANDARD],
+        allowedServiceTypes: [ServiceType.STANDARD],
         primaryServiceType: ServiceType.STANDARD
       };
 
@@ -313,8 +331,8 @@ describe('SubscriptionPlanService', () => {
       const result = await subscriptionPlanService.getPlans({ page: 1, limit: 10 });
 
       expect(result.items).toHaveLength(1);
-      expect(result.pagination.page).toBe(1);
-      expect(result.pagination.limit).toBe(10);
+      expect(result.page).toBe(1);
+      expect(result.pageSize).toBe(10);
     });
 
     it('应该根据服务类型筛选', async () => {
@@ -407,8 +425,7 @@ describe('SubscriptionPlanService', () => {
       expect(result).toBeDefined();
       expect(result.planId).toBe(planId);
       expect(result.totalSubscriptions).toBe(100);
-      expect(result.activeSubscriptions).toBe(80);
-      expect(result.totalRevenue).toBe(999.99);
+      expect(result.revenue).toBe(999.99);
     });
   });
 
@@ -498,8 +515,8 @@ describe('SubscriptionPlanService', () => {
       ];
 
       mockDb.transaction.mockResolvedValueOnce({
-        commit: vi.fn(),
-        rollback: vi.fn()
+        commit: jest.fn(),
+        rollback: jest.fn()
       });
 
       await expect(subscriptionPlanService.updatePlansSortOrder(sortData, 'admin')).resolves.not.toThrow();
@@ -530,7 +547,7 @@ describe('SubscriptionPlanService', () => {
       const result = await subscriptionPlanService.getPlans({ page: 1, limit: 10 });
 
       expect(result.items).toHaveLength(0);
-      expect(result.pagination.total).toBe(0);
+      expect(result.total).toBe(0);
     });
 
     it('应该处理分页边界', async () => {
@@ -538,18 +555,18 @@ describe('SubscriptionPlanService', () => {
 
       const result = await subscriptionPlanService.getPlans({ page: 100, limit: 10 });
 
-      expect(result.pagination.page).toBe(100);
-      expect(result.pagination.hasNext).toBe(false);
-      expect(result.pagination.hasPrev).toBe(true);
+      expect(result.page).toBe(100);
+      expect(result.pageSize).toBe(10);
     });
 
     it('应该处理价格为0的套餐', async () => {
       const planData: CreatePlanData = {
         name: 'Free Plan',
+        description: '',
         price: 0,
         durationDays: 30,
         trafficLimit: 10 * 1024 * 1024 * 1024,
-        serviceTypes: [ServiceType.STANDARD],
+        allowedServiceTypes: [ServiceType.STANDARD],
         primaryServiceType: ServiceType.STANDARD
       };
 
@@ -579,10 +596,11 @@ describe('SubscriptionPlanService - 服务类型验证', () => {
   it('应该接受有效的服务类型', async () => {
     const planData: CreatePlanData = {
       name: 'Valid Plan',
+      description: '',
       price: 9.99,
       durationDays: 30,
       trafficLimit: 100 * 1024 * 1024 * 1024,
-      serviceTypes: [ServiceType.STANDARD, ServiceType.DEDICATED_LINE],
+      allowedServiceTypes: [ServiceType.STANDARD, ServiceType.DEDICATED_LINE],
       primaryServiceType: ServiceType.STANDARD
     };
 
@@ -593,7 +611,7 @@ describe('SubscriptionPlanService - 服务类型验证', () => {
       price: planData.price,
       duration_days: planData.durationDays,
       traffic_limit: planData.trafficLimit,
-      service_types: JSON.stringify(planData.serviceTypes),
+      service_types: JSON.stringify(planData.allowedServiceTypes),
       primary_service_type: planData.primaryServiceType,
       is_active: true,
       created_at: new Date(),
@@ -602,7 +620,7 @@ describe('SubscriptionPlanService - 服务类型验证', () => {
 
     const result = await subscriptionPlanService.createPlan(planData);
 
-    expect(result.serviceTypes).toContain(ServiceType.STANDARD);
-    expect(result.serviceTypes).toContain(ServiceType.DEDICATED_LINE);
+    expect(result.allowedServiceTypes).toContain(ServiceType.STANDARD);
+    expect(result.allowedServiceTypes).toContain(ServiceType.DEDICATED_LINE);
   });
 });

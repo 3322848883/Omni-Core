@@ -1,8 +1,35 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 import { createRequestId } from '../utils/response';
-import { ErrorCode, HttpStatus } from '@shared/constants';
 import { AppError, ValidationError } from '../utils/errors';
+
+// HTTP Status Codes
+const HttpStatus = {
+  OK: 200,
+  CREATED: 201,
+  NO_CONTENT: 204,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  RATE_LIMITED: 429,
+  INTERNAL_ERROR: 500,
+} as const;
+
+// Error Codes
+const ErrorCode = {
+  BAD_REQUEST: 'BAD_REQUEST',
+  VALIDATION_ERROR: 'VALIDATION_ERROR',
+  UNAUTHORIZED: 'UNAUTHORIZED',
+  FORBIDDEN: 'FORBIDDEN',
+  NOT_FOUND: 'NOT_FOUND',
+  CONFLICT: 'CONFLICT',
+  RATE_LIMITED: 'RATE_LIMITED',
+  INTERNAL_ERROR: 'INTERNAL_ERROR',
+  TOKEN_EXPIRED: 'TOKEN_EXPIRED',
+  TOKEN_INVALID: 'TOKEN_INVALID',
+} as const;
 
 export interface ApiError extends Error {
   statusCode?: number;

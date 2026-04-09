@@ -4,14 +4,12 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-
-const vi = jest;
 import request from 'supertest';
 import express from 'express';
 import { ipPoolRoutes } from '../ip-pools';
 
 // Mock认证中间件
-vi.mock('../../middlewares/auth', () => ({
+jest.mock('../../middlewares/auth', () => ({
   authMiddleware: (req: any, res: any, next: any) => {
     req.user = { id: 'admin-123', username: 'admin', role: 'admin' };
     next();
@@ -19,42 +17,48 @@ vi.mock('../../middlewares/auth', () => ({
 }));
 
 // MockIP池服务
-const mockIPPoolService = {
-  listIPPools: vi.fn(),
-  getIPPool: vi.fn(),
-  getIPPoolStatus: vi.fn(),
-  createIPPool: vi.fn(),
-  updateIPPool: vi.fn(),
-  deleteIPPool: vi.fn(),
-  manualRotate: vi.fn(),
-  addIPToPool: vi.fn(),
-  removeIPFromPool: vi.fn(),
-  refreshIPScores: vi.fn(),
-  setPoolActive: vi.fn()
+const mockIPPoolService: any = {
+  listIPPools: jest.fn(),
+  getIPPool: jest.fn(),
+  getIPPoolStatus: jest.fn(),
+  createIPPool: jest.fn(),
+  updateIPPool: jest.fn(),
+  deleteIPPool: jest.fn(),
+  manualRotate: jest.fn(),
+  addIPToPool: jest.fn(),
+  removeIPFromPool: jest.fn(),
+  refreshIPScores: jest.fn(),
+  setPoolActive: jest.fn()
 };
 
-vi.mock('../../services/ip-pool', () => ({
-  getIPPoolService: vi.fn(() => mockIPPoolService)
+jest.mock('../../services/ip-pool', () => ({
+  getIPPoolService: jest.fn(() => mockIPPoolService)
 }));
 
 // Mock数据库
-const mockDb = {
-  where: vi.fn().mockReturnThis(),
-  first: vi.fn().mockResolvedValue(null),
-  select: vi.fn().mockReturnThis(),
-  raw: vi.fn((str) => str)
+const mockDb: any = {
+  where: jest.fn().mockReturnThis(),
+  first: jest.fn() as jest.Mock<any, []>,
+  select: jest.fn().mockReturnThis(),
+  raw: jest.fn((str) => str)
 };
 
-vi.mock('../../database', () => ({
-  db: vi.fn(() => mockDb)
+// Reset mock before each test
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockDb.first.mockResolvedValue(null);
+});
+
+jest.mock('../../database', () => ({
+  db: jest.fn(() => mockDb)
 }));
 
-vi.mock('../../utils/logger', () => ({
+jest.mock('../../utils/logger', () => ({
   logger: {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn()
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn(),
+    debug: jest.fn()
   }
 }));
 
@@ -62,7 +66,7 @@ describe('IP Pool Routes', () => {
   let app: express.Application;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     app = express();
     app.use(express.json());
     app.use('/api/v1/ip-pools', ipPoolRoutes);
@@ -78,7 +82,7 @@ describe('IP Pool Routes', () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('GET /api/v1/ip-pools', () => {
@@ -597,7 +601,7 @@ describe('IP Pool Routes - 边界条件', () => {
   let app: express.Application;
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     app = express();
     app.use(express.json());
     app.use('/api/v1/ip-pools', ipPoolRoutes);

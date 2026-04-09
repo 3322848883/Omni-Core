@@ -3,47 +3,45 @@ import * as authService from '../authService';
 import db from '@/config/database';
 import { AppError } from '@/errors/AppError';
 
-const vi = jest;
-
 // Mock database
-vi.mock('@/config/database', () => ({
+jest.mock('@/config/database', () => ({
   default: {
-    select: vi.fn().mockReturnThis(),
-    from: vi.fn().mockReturnThis(),
-    where: vi.fn().mockReturnThis(),
-    first: vi.fn(),
-    insert: vi.fn().mockReturnThis(),
-    returning: vi.fn(),
-    update: vi.fn().mockReturnThis(),
-    increment: vi.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    from: jest.fn().mockReturnThis(),
+    where: jest.fn().mockReturnThis(),
+    first: jest.fn(),
+    insert: jest.fn().mockReturnThis(),
+    returning: jest.fn(),
+    update: jest.fn().mockReturnThis(),
+    increment: jest.fn().mockReturnThis(),
   },
 }));
 
 // Mock bcrypt
-vi.mock('bcryptjs', () => ({
-  genSalt: vi.fn().mockResolvedValue('salt'),
-  hash: vi.fn().mockResolvedValue('hashed_password'),
-  compare: vi.fn(),
+jest.mock('bcryptjs', () => ({
+  genSalt: jest.fn().mockResolvedValue('salt'),
+  hash: jest.fn().mockResolvedValue('hashed_password'),
+  compare: jest.fn(),
 }));
 
 // Mock jsonwebtoken
-vi.mock('jsonwebtoken', () => ({
-  sign: vi.fn().mockReturnValue('token'),
-  verify: vi.fn(),
+jest.mock('jsonwebtoken', () => ({
+  sign: jest.fn().mockReturnValue('token'),
+  verify: jest.fn(),
 }));
 
 // Mock redis
-vi.mock('@/services/tokenBlacklist', () => ({
-  addToBlacklist: vi.fn().mockResolvedValue(true),
+jest.mock('@/services/tokenBlacklist', () => ({
+  addToBlacklist: jest.fn().mockResolvedValue(true),
 }));
 
 describe('AuthService', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.resetAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('register', () => {
@@ -52,6 +50,7 @@ describe('AuthService', () => {
         username: 'testuser',
         email: 'test@example.com',
         password: 'password123',
+        confirmPassword: 'password123',
       };
 
       // Mock database calls
@@ -77,6 +76,7 @@ describe('AuthService', () => {
         username: 'testuser',
         email: 'test@example.com',
         password: 'password123',
+        confirmPassword: 'password123',
       };
 
       // Mock database calls

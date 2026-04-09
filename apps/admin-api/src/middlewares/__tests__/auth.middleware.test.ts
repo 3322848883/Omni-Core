@@ -1,6 +1,4 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-
-const vi = jest;
 import { Request, Response, NextFunction } from 'express';
 import {
   authMiddleware,
@@ -14,8 +12,24 @@ import { db } from '../../database';
 import { UnauthorizedError, ForbiddenError, TokenExpiredError } from '../../utils/errors';
 
 // Mock dependencies
-vi.mock('../../utils/jwt');
-vi.mock('../../database');
+jest.mock('../../utils/jwt');
+
+// Mock database
+const mockDb = {
+  where: jest.fn().mockReturnThis(),
+  first: jest.fn() as jest.Mock<any, []>
+};
+
+// Mock the database module
+jest.mock('../../database', () => ({
+  db: jest.fn(() => mockDb)
+}));
+
+// Reset mock before each test
+beforeEach(() => {
+  jest.clearAllMocks();
+  mockDb.first.mockResolvedValue(null);
+});
 
 describe('Admin Auth Middleware', () => {
   let req: Partial<Request>;
@@ -27,15 +41,15 @@ describe('Admin Auth Middleware', () => {
       headers: {},
     };
     res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn().mockReturnThis(),
+      status: jest.fn().mockReturnThis() as any,
+      json: jest.fn().mockReturnThis() as any,
     };
-    next = vi.fn();
-    vi.clearAllMocks();
+    next = jest.fn();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('authMiddleware', () => {
@@ -61,13 +75,10 @@ describe('Admin Auth Middleware', () => {
       const validToken = 'aat_validtoken123';
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.isValidAccessTokenFormat).mockReturnValue(true);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
-      vi.mocked(db).mockReturnValue({
-        where: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(mockAdmin),
-      } as any);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.isValidAccessTokenFormat as jest.Mock).mockReturnValue(true);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
+      mockDb.first.mockResolvedValue(mockAdmin);
 
       // Act
       await authMiddleware(req as Request, res as Response, next);
@@ -85,7 +96,7 @@ describe('Admin Auth Middleware', () => {
     it('should return 401 when authorization header is missing', async () => {
       // Arrange
       req.headers = {};
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(null);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(null);
 
       // Act
       await authMiddleware(req as Request, res as Response, next);
@@ -100,7 +111,7 @@ describe('Admin Auth Middleware', () => {
     it('should return 401 when token is missing', async () => {
       // Arrange
       req.headers = { authorization: 'Bearer ' };
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(null);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(null);
 
       // Act
       await authMiddleware(req as Request, res as Response, next);
@@ -116,8 +127,8 @@ describe('Admin Auth Middleware', () => {
       const invalidToken = 'invalid_token_format';
       req.headers = { authorization: `Bearer ${invalidToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(invalidToken);
-      vi.mocked(jwtUtils.isValidAccessTokenFormat).mockReturnValue(false);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(invalidToken);
+      (jwtUtils.isValidAccessTokenFormat as jest.Mock).mockReturnValue(false);
 
       // Act
       await authMiddleware(req as Request, res as Response, next);
@@ -133,12 +144,12 @@ describe('Admin Auth Middleware', () => {
       const expiredToken = 'aat_expiredtoken';
       req.headers = { authorization: `Bearer ${expiredToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(expiredToken);
-      vi.mocked(jwtUtils.isValidAccessTokenFormat).mockReturnValue(true);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(expiredToken);
+      (jwtUtils.isValidAccessTokenFormat as jest.Mock).mockReturnValue(true);
 
       const expiredError = new Error('Token has expired');
       expiredError.name = 'TokenExpiredError';
-      vi.mocked(jwtUtils.verifyAccessToken).mockImplementation(() => {
+      (jwtUtils.verifyAccessToken as jest.Mock).mockImplementation(() => {
         throw expiredError;
       });
 
@@ -156,12 +167,12 @@ describe('Admin Auth Middleware', () => {
       const invalidToken = 'aat_invalidtoken';
       req.headers = { authorization: `Bearer ${invalidToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(invalidToken);
-      vi.mocked(jwtUtils.isValidAccessTokenFormat).mockReturnValue(true);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(invalidToken);
+      (jwtUtils.isValidAccessTokenFormat as jest.Mock).mockReturnValue(true);
 
       const jwtError = new Error('Invalid token');
       jwtError.name = 'JsonWebTokenError';
-      vi.mocked(jwtUtils.verifyAccessToken).mockImplementation(() => {
+      (jwtUtils.verifyAccessToken as jest.Mock).mockImplementation(() => {
         throw jwtError;
       });
 
@@ -188,9 +199,9 @@ describe('Admin Auth Middleware', () => {
 
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.isValidAccessTokenFormat).mockReturnValue(true);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.isValidAccessTokenFormat as jest.Mock).mockReturnValue(true);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
 
       // Act
       await authMiddleware(req as Request, res as Response, next);
@@ -215,13 +226,10 @@ describe('Admin Auth Middleware', () => {
 
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.isValidAccessTokenFormat).mockReturnValue(true);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
-      vi.mocked(db).mockReturnValue({
-        where: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(null),
-      } as any);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.isValidAccessTokenFormat as jest.Mock).mockReturnValue(true);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
+      mockDb.first.mockResolvedValue(null);
 
       // Act
       await authMiddleware(req as Request, res as Response, next);
@@ -248,13 +256,13 @@ describe('Admin Auth Middleware', () => {
       const validToken = 'aat_validtoken123';
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.isValidAccessTokenFormat).mockReturnValue(true);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.isValidAccessTokenFormat as jest.Mock).mockReturnValue(true);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
       // Database query with is_active: true filter returns null for inactive admin
-      vi.mocked(db).mockReturnValue({
-        where: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(null),
+      (db as any).mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        first: jest.fn() as jest.Mock<any, []>,
       } as any);
 
       // Act
@@ -280,10 +288,10 @@ describe('Admin Auth Middleware', () => {
 
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.isValidAccessTokenFormat).mockReturnValue(true);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
-      vi.mocked(db).mockImplementation(() => {
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.isValidAccessTokenFormat as jest.Mock).mockReturnValue(true);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
+      mockDb.first.mockImplementation(() => {
         throw new Error('Database connection failed');
       });
 
@@ -318,13 +326,10 @@ describe('Admin Auth Middleware', () => {
       const validToken = 'aat_validtoken123';
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.isValidAccessTokenFormat).mockReturnValue(true);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
-      vi.mocked(db).mockReturnValue({
-        where: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(mockAdmin),
-      } as any);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.isValidAccessTokenFormat as jest.Mock).mockReturnValue(true);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
+      mockDb.first.mockResolvedValue(mockAdmin);
 
       // Act
       await optionalAuthMiddleware(req as Request, res as Response, next);
@@ -339,7 +344,7 @@ describe('Admin Auth Middleware', () => {
     it('should continue without admin when no token is provided', async () => {
       // Arrange
       req.headers = {};
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(null);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(null);
 
       // Act
       await optionalAuthMiddleware(req as Request, res as Response, next);
@@ -355,8 +360,8 @@ describe('Admin Auth Middleware', () => {
       const invalidToken = 'invalid_format';
       req.headers = { authorization: `Bearer ${invalidToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(invalidToken);
-      vi.mocked(jwtUtils.isValidAccessTokenFormat).mockReturnValue(false);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(invalidToken);
+      (jwtUtils.isValidAccessTokenFormat as jest.Mock).mockReturnValue(false);
 
       // Act
       await optionalAuthMiddleware(req as Request, res as Response, next);
@@ -371,9 +376,9 @@ describe('Admin Auth Middleware', () => {
       const invalidToken = 'aat_invalidtoken';
       req.headers = { authorization: `Bearer ${invalidToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(invalidToken);
-      vi.mocked(jwtUtils.isValidAccessTokenFormat).mockReturnValue(true);
-      vi.mocked(jwtUtils.verifyAccessToken).mockImplementation(() => {
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(invalidToken);
+      (jwtUtils.isValidAccessTokenFormat as jest.Mock).mockReturnValue(true);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
@@ -399,13 +404,10 @@ describe('Admin Auth Middleware', () => {
 
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.isValidAccessTokenFormat).mockReturnValue(true);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
-      vi.mocked(db).mockReturnValue({
-        where: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(null),
-      } as any);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.isValidAccessTokenFormat as jest.Mock).mockReturnValue(true);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
+      mockDb.first.mockResolvedValue(null);
 
       // Act
       await optionalAuthMiddleware(req as Request, res as Response, next);
@@ -431,13 +433,13 @@ describe('Admin Auth Middleware', () => {
       const validToken = 'aat_validtoken123';
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.isValidAccessTokenFormat).mockReturnValue(true);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.isValidAccessTokenFormat as jest.Mock).mockReturnValue(true);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
       // Database query with is_active: true filter returns null for inactive admin
-      vi.mocked(db).mockReturnValue({
-        where: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(null),
+      (db as any).mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        first: jest.fn() as jest.Mock<any, []>,
       } as any);
 
       // Act

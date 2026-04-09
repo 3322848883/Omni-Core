@@ -1,18 +1,29 @@
-import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-
-const vi = jest;
+import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { Request, Response, NextFunction } from 'express';
 import { errorHandler, createError } from '../errorHandler';
 import { AppError, ValidationError } from '../../utils/errors';
-import { HttpStatus } from '@shared/constants';
+
+// HTTP Status Codes
+const HttpStatus = {
+  OK: 200,
+  CREATED: 201,
+  NO_CONTENT: 204,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  CONFLICT: 409,
+  RATE_LIMITED: 429,
+  INTERNAL_ERROR: 500,
+} as const;
 
 // Mock logger
-vi.mock('../../utils/logger', () => ({
+jest.mock('../../utils/logger', () => ({
   logger: {
-    error: vi.fn(),
-    warn: vi.fn(),
-    info: vi.fn(),
-    debug: vi.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn(),
   },
 }));
 
@@ -31,20 +42,20 @@ describe('Error Handler Middleware', () => {
       ip: '127.0.0.1',
     };
     res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn().mockReturnThis(),
+      status: jest.fn().mockReturnThis() as any,
+      json: jest.fn().mockReturnThis() as any,
     };
-    next = vi.fn();
-    vi.clearAllMocks();
+    next = jest.fn();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('errorHandler', () => {
     it('should handle AppError correctly', () => {
-      const appError = new AppError('Test AppError', HttpStatus.BAD_REQUEST);
+      const appError = new AppError('Test AppError', HttpStatus.BAD_REQUEST, 'BAD_REQUEST');
       
       errorHandler(appError, req as Request, res as Response, next);
 
@@ -56,13 +67,13 @@ describe('Error Handler Middleware', () => {
     });
 
     it('should handle ValidationError correctly', () => {
-      const validationError = new ValidationError([
+      const validationError = new ValidationError('Validation failed', [
         { field: 'email', message: 'Invalid email' },
       ]);
       
       errorHandler(validationError, req as Request, res as Response, next);
 
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.BAD_REQUEST);
+      expect(res.status).toHaveBeenCalledWith(422);
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
         success: false,
         errors: [{ field: 'email', message: 'Invalid email' }],

@@ -1,6 +1,4 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-
-const vi = jest;
 import { Request, Response, NextFunction } from 'express';
 import { authenticate, optionalAuth } from '../auth';
 import * as jwtUtils from '../../utils/jwt';
@@ -8,8 +6,8 @@ import db from '../../config/database';
 import { UnauthorizedError } from '../../errors/AppError';
 
 // Mock dependencies
-vi.mock('../../utils/jwt');
-vi.mock('../../config/database');
+jest.mock('../../utils/jwt');
+jest.mock('../../config/database');
 
 describe('Auth Middleware', () => {
   let req: Partial<Request>;
@@ -21,15 +19,15 @@ describe('Auth Middleware', () => {
       headers: {},
     };
     res = {
-      status: vi.fn().mockReturnThis(),
-      json: vi.fn().mockReturnThis(),
+      status: jest.fn().mockReturnThis() as any,
+      json: jest.fn().mockReturnThis() as any,
     };
-    next = vi.fn();
-    vi.clearAllMocks();
+    next = jest.fn();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('authenticate', () => {
@@ -56,11 +54,11 @@ describe('Auth Middleware', () => {
 
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
-      vi.mocked(db).mockReturnValue({
-        where: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(mockUser),
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
+      (db as any).mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        first: jest.fn().mockResolvedValue(mockUser),
       } as any);
 
       // Act
@@ -77,7 +75,7 @@ describe('Auth Middleware', () => {
     it('should return 401 when token is missing', async () => {
       // Arrange
       req.headers = {};
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(null);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(null);
 
       // Act
       await authenticate(req as Request, res as Response, next);
@@ -92,7 +90,7 @@ describe('Auth Middleware', () => {
     it('should return 401 when authorization header is missing', async () => {
       // Arrange
       req.headers = {};
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(null);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(null);
 
       // Act
       await authenticate(req as Request, res as Response, next);
@@ -108,8 +106,8 @@ describe('Auth Middleware', () => {
       const invalidToken = 'uat_invalidtoken';
       req.headers = { authorization: `Bearer ${invalidToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(invalidToken);
-      vi.mocked(jwtUtils.verifyAccessToken).mockImplementation(() => {
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(invalidToken);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockImplementation(() => {
         throw new UnauthorizedError('Invalid token');
       });
 
@@ -125,8 +123,8 @@ describe('Auth Middleware', () => {
       const expiredToken = 'uat_expiredtoken';
       req.headers = { authorization: `Bearer ${expiredToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(expiredToken);
-      vi.mocked(jwtUtils.verifyAccessToken).mockImplementation(() => {
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(expiredToken);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockImplementation(() => {
         const error = new UnauthorizedError('Token expired');
         throw error;
       });
@@ -145,11 +143,11 @@ describe('Auth Middleware', () => {
 
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
-      vi.mocked(db).mockReturnValue({
-        where: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(null),
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
+      (db as any).mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        first: jest.fn().mockResolvedValue(null),
       } as any);
 
       // Act
@@ -184,11 +182,11 @@ describe('Auth Middleware', () => {
 
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
-      vi.mocked(db).mockReturnValue({
-        where: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(mockUser),
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
+      (db as any).mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        first: jest.fn().mockResolvedValue(mockUser),
       } as any);
 
       // Act
@@ -207,9 +205,9 @@ describe('Auth Middleware', () => {
 
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
-      vi.mocked(db).mockImplementation(() => {
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
+      (db as any).mockImplementation(() => {
         throw new Error('Database connection failed');
       });
 
@@ -245,11 +243,11 @@ describe('Auth Middleware', () => {
 
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
-      vi.mocked(db).mockReturnValue({
-        where: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(mockUser),
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
+      (db as any).mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        first: jest.fn().mockResolvedValue(mockUser),
       } as any);
 
       // Act
@@ -264,7 +262,7 @@ describe('Auth Middleware', () => {
     it('should continue without user when no token is provided', async () => {
       // Arrange
       req.headers = {};
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(null);
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(null);
 
       // Act
       await optionalAuth(req as Request, res as Response, next);
@@ -279,8 +277,8 @@ describe('Auth Middleware', () => {
       const invalidToken = 'uat_invalidtoken';
       req.headers = { authorization: `Bearer ${invalidToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(invalidToken);
-      vi.mocked(jwtUtils.verifyAccessToken).mockImplementation(() => {
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(invalidToken);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockImplementation(() => {
         throw new Error('Invalid token');
       });
 
@@ -299,11 +297,11 @@ describe('Auth Middleware', () => {
 
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
-      vi.mocked(db).mockReturnValue({
-        where: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(null),
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
+      (db as any).mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        first: jest.fn().mockResolvedValue(null),
       } as any);
 
       // Act
@@ -337,11 +335,11 @@ describe('Auth Middleware', () => {
 
       req.headers = { authorization: `Bearer ${validToken}` };
 
-      vi.mocked(jwtUtils.extractTokenFromHeader).mockReturnValue(validToken);
-      vi.mocked(jwtUtils.verifyAccessToken).mockReturnValue(mockDecoded as any);
-      vi.mocked(db).mockReturnValue({
-        where: vi.fn().mockReturnThis(),
-        first: vi.fn().mockResolvedValue(mockUser),
+      (jwtUtils.extractTokenFromHeader as jest.Mock).mockReturnValue(validToken);
+      (jwtUtils.verifyAccessToken as jest.Mock).mockReturnValue(mockDecoded as any);
+      (db as any).mockReturnValue({
+        where: jest.fn().mockReturnThis(),
+        first: jest.fn().mockResolvedValue(mockUser),
       } as any);
 
       // Act

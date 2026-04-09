@@ -1,24 +1,22 @@
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-
-const vi = jest;
 import { getUserById, updateUser, changePassword } from '../userService';
 import { NotFoundError, UnauthorizedError, ConflictError } from '@/errors/AppError';
 
 // Mock database
-vi.mock('@/config/database', () => ({
-  default: vi.fn(() => ({
-    where: vi.fn().mockReturnThis(),
-    first: vi.fn().mockResolvedValue(null),
-    update: vi.fn().mockResolvedValue(1),
-    returning: vi.fn().mockResolvedValue([]),
-    whereNot: vi.fn().mockReturnThis(),
+jest.mock('@/config/database', () => ({
+  default: jest.fn(() => ({
+    where: jest.fn().mockReturnThis(),
+    first: jest.fn().mockResolvedValue(null),
+    update: jest.fn().mockResolvedValue(1),
+    returning: jest.fn().mockResolvedValue([]),
+    whereNot: jest.fn().mockReturnThis(),
   })),
 }));
 
 // Mock crypto utils
-vi.mock('@/utils/crypto', () => ({
-  hashPassword: vi.fn().mockResolvedValue('hashed_password'),
-  verifyPassword: vi.fn().mockResolvedValue(true),
+jest.mock('@/utils/crypto', () => ({
+  hashPassword: jest.fn().mockResolvedValue('hashed_password'),
+  verifyPassword: jest.fn().mockResolvedValue(true),
 }));
 
 describe('User Service', () => {
@@ -37,11 +35,11 @@ describe('User Service', () => {
   };
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('getUserById', () => {
